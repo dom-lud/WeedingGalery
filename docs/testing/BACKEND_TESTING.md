@@ -36,3 +36,22 @@ Opisuje zakres i standardy testów backendowych.
 
 ## Decyzje otwarte
 - Czy w pierwszej fazie dodać testy kontraktowe OpenAPI jako osobną warstwę.
+
+## Uwagi implementacyjne
+
+### Spring Boot 4.1.0 – zmiany w API testowym
+Spring Boot 4.1.0 usunął następujące klasy/adnotacje:
+- `@AutoConfigureMockMvc` – niedostępny w `spring-boot-test-autoconfigure`
+- `TestRestTemplate` – niedostępny w `spring-boot-test`
+
+Aktualnie obsługiwane podejście do testów HTTP integracyjnych:
+```java
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+class ExampleTest {
+    @LocalServerPort
+    private int port;
+    
+    private final RestTemplate restTemplate = new RestTemplate();
+    // ...
+}
+```

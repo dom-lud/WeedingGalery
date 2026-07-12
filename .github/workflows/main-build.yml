@@ -32,6 +32,10 @@ jobs:
       - name: Make Maven wrapper executable
         run: chmod +x backend/mvnw
 
+      - name: Run backend formatting check
+        working-directory: backend
+        run: ./mvnw -B spotless:check
+
       - name: Run backend tests
         working-directory: backend
         run: ./mvnw -B test
@@ -64,6 +68,10 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
+
+      - name: Run frontend format check
+        working-directory: frontend
+        run: npm run format:check
 
       - name: Run frontend lint
         working-directory: frontend

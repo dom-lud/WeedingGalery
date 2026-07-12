@@ -31,7 +31,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Wymagania bezpieczeństwa: brak sekretów w przykładach i promptach.
 - Wymagane testy: weryfikacja kompletności plików i linków.
 - Dokumenty powiązane: [FEATURE_ROADMAP.md](FEATURE_ROADMAP.md), [../development/WORKFLOW.md](../development/WORKFLOW.md).
-- Status początkowy: `ANALYSIS`.
+- Status: `DONE`.
 - ADR wymagany: nie.
 
 ### FND-002 - Szkielet techniczny monorepo
@@ -44,8 +44,8 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Wymagania bezpieczeństwa: brak sekretów, bezpieczna konfiguracja startowa.
 - Wymagane testy: build sanity check, podstawowe testy startowe.
 - Dokumenty powiązane: [../architecture/REPOSITORY_STRUCTURE.md](../architecture/REPOSITORY_STRUCTURE.md), [../adr/0001-modular-monolith.md](../adr/0001-modular-monolith.md).
-- Status początkowy: `IDEA`.
-- ADR wymagany: nie.
+- Status: `DONE`.
+- ADR wymagany: tak (ADR 0012 – Flyway).
 
 ## IDENTITY
 ### AUTH-001 - Rejestracja, logowanie i sesje użytkownika

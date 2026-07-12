@@ -153,6 +153,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | ADR 0009 | Generowanie ZIP | backend, ops | przy zmianie pobrań | [docs/adr/0009-download-archive-generation.md](adr/0009-download-archive-generation.md) |
 | ADR 0010 | Dostęp do galerii | backend, security, frontend | przy zmianie public access | [docs/adr/0010-gallery-access-strategy.md](adr/0010-gallery-access-strategy.md) |
 | ADR 0011 | Material UI jako system UI | frontend, design, AI | przy zmianie biblioteki UI | [docs/adr/0011-material-ui-frontend-system.md](adr/0011-material-ui-frontend-system.md) |
+| ADR 0012 | Flyway jako mechanizm migracji schematu | backend, DBA, AI | przy zmianie podejścia do migracji | [docs/adr/0012-flyway-schema-migrations.md](adr/0012-flyway-schema-migrations.md) |
 
 ## Skills
 | Dokument | Przeznaczenie | Kto czyta | Kiedy aktualizować | Link |
@@ -160,6 +161,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | Backend feature skill | Realizacja funkcji backendowej | AI, backend | przy zmianie standardów backendu | [.agents/skills/backend-feature/SKILL.md](../.agents/skills/backend-feature/SKILL.md) |
 | Frontend feature skill | Realizacja funkcji frontendowej | AI, frontend | przy zmianie standardów frontendu | [.agents/skills/frontend-feature/SKILL.md](../.agents/skills/frontend-feature/SKILL.md) |
 | Project foundation skill | Etap 0 i techniczne fundamenty repozytorium | AI, tech lead | przy starcie implementacji i stabilizacji repo | [.agents/skills/project-foundation/SKILL.md](../.agents/skills/project-foundation/SKILL.md) |
+| Stage 1 foundation skill | Etap 1 – szkielet techniczny monorepo (FND-002) | AI, backend, tech lead | przy realizacji Etapu 1 i rozszerzaniu fundamentów | [.agents/skills/stage-1-foundation/SKILL.md](../.agents/skills/stage-1-foundation/SKILL.md) |
 | Task orchestration skill | Koordynacja subagentów i integracja wyników | AI, reviewer | przy zmianie standardu orkiestracji | [.agents/skills/task-orchestration/SKILL.md](../.agents/skills/task-orchestration/SKILL.md) |
 | Database migration skill | Zmiany danych i migracje | AI, backend | przy zmianie standardów danych | [.agents/skills/database-migration/SKILL.md](../.agents/skills/database-migration/SKILL.md) |
 | API design skill | Projektowanie API | AI, backend | przy zmianie API conventions | [.agents/skills/api-design/SKILL.md](../.agents/skills/api-design/SKILL.md) |
