@@ -15,8 +15,7 @@ class DevelopmentConfigurationTest {
 	@Test
 	void developmentProfileUsesFlywayManagedSchema() throws IOException {
 		YamlPropertySourceLoader loader = new YamlPropertySourceLoader();
-		List<PropertySource<?>> sources = loader.load("application-dev",
-				new ClassPathResource("application-dev.yml"));
+		List<PropertySource<?>> sources = loader.load("application-dev", new ClassPathResource("application-dev.yml"));
 		PropertySource<?> properties = sources.get(0);
 
 		assertThat(properties.getProperty("spring.datasource.url"))
