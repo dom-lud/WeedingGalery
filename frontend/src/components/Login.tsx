@@ -14,7 +14,7 @@ const Login: React.FC = () => {
     e.preventDefault()
     setError('')
     try {
-      const response = await api.post('/auth/login', { email, password })
+      const response = await api.post('auth/login', { email, password })
       login(response.data)
       navigate('/dashboard')
     } catch (err: unknown) {

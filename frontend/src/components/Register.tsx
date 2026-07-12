@@ -13,7 +13,7 @@ const Register: React.FC = () => {
     e.preventDefault()
     setError('')
     try {
-      await api.post('/auth/register', { email, password })
+      await api.post('auth/register', { email, password })
       setSuccess(true)
       setTimeout(() => navigate('/login'), 2000)
     } catch (err: unknown) {

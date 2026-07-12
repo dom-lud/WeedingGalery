@@ -21,8 +21,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkAuth = async () => {
     try {
-      await api.get('/auth/csrf')
-      const response = await api.get('/auth/me')
+      await api.get('auth/csrf')
+      const response = await api.get('auth/me')
       setUser(response.data)
     } catch {
       setUser(null)
@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      await api.post('/auth/logout')
+      await api.post('auth/logout')
       setUser(null)
     } catch (error) {
       console.error('Logout failed', error)
