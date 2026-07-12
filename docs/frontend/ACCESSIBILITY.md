@@ -31,6 +31,7 @@ Opisuje minimalne wymagania dostępności dla frontendu.
 
 ## Powiązane dokumenty
 - [UI_COMPONENTS.md](UI_COMPONENTS.md)
+- [UI_SYSTEM.md](UI_SYSTEM.md)
 - [RESPONSIVE_DESIGN.md](RESPONSIVE_DESIGN.md)
 - [../testing/FRONTEND_TESTING.md](../testing/FRONTEND_TESTING.md)
 

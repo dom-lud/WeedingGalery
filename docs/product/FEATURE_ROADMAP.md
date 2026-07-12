@@ -1,101 +1,127 @@
 # Roadmapa Funkcjonalna
 
 ## Cel dokumentu
-Porządkuje rozwój produktu w logiczne etapy bez ograniczania końcowej wizji systemu.
+Porządkuje rozwój pełnej platformy w logiczne etapy implementacyjne bez redukowania wizji produktu do MVP.
 
 ## Status dokumentu
 - Status: draft
-- Zakres: etapy realizacji produktu
+- Zakres: roadmapa wdrażania funkcji i procesów
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Stan obecny
-- Roadmapa opisuje planowany rozwój; etapy nie są ukończone.
+- Roadmapa opisuje planowany rozwój. Żaden etap nie powinien być traktowany jako ukończony wyłącznie na podstawie dokumentacji.
 
 ## Stan docelowy
-- Uporządkowany rozwój prowadzący do pełnej platformy produkcyjnej.
+- Sekwencja etapów prowadząca od dokumentacji i procesów do stabilnej produkcji pełnej platformy wieloużytkownikowej.
 
-## Etap 1 - Fundamenty
-- Monorepo, podstawowa struktura backendu i frontendu
-- PostgreSQL, Flyway, konfiguracja środowisk
-- Docker Compose, podstawowe health checks
-- Minimalny CI i standardy kodu
+## Etap 0 - Dokumentacja i proces
+- Cel: zbudowanie podstaw procesu pracy, backlogu, checklist, ADR i materiałów dla agentów AI.
+- Zależności: brak.
+- Rezultat: spójna dokumentacja sterująca dalszym rozwojem.
+- Kryterium ukończenia: istnieją workflow, backlog, Definition of Ready, Definition of Done, prompt templates, checklisty i mapa dokumentacji.
+- Główne ryzyka: dryf terminologii, duplikacja dokumentacji, brak aktualizacji AGENTS i mapy dokumentacji.
 
-## Etap 2 - Tożsamość użytkownika
-- Rejestracja, logowanie, wylogowanie
-- Weryfikacja e-mail
-- Reset i zmiana hasła
-- Profil użytkownika
+## Etap 1 - Fundament techniczny
+- Cel: przygotowanie podstaw aplikacji i środowisk uruchomieniowych.
+- Zależności: etap 0.
+- Rezultat: działający szkielet backendu, frontendu, bazy, migracji i podstawowych health checks.
+- Kryterium ukończenia: repozytorium ma spójny szkielet techniczny zgodny z dokumentacją i ADR.
+- Główne ryzyka: rozjazd między implementacją a architekturą, błędne decyzje startowe dla konfiguracji i storage.
+
+## Etap 2 - Identity
+- Cel: wdrożenie tożsamości użytkownika i bezpiecznego logowania.
+- Zależności: etap 1, ADR dot. auth.
+- Rezultat: rejestracja, logowanie, sesje lub JWT, weryfikacja e-mail, reset hasła, profil użytkownika.
+- Kryterium ukończenia: użytkownik może utworzyć konto, zalogować się i zarządzać podstawową tożsamością.
+- Główne ryzyka: zła strategia auth, niedoszacowanie wymagań bezpieczeństwa i sesji.
 
 ## Etap 3 - Wydarzenia i członkowie
-- Tworzenie wydarzeń
-- Role wydarzenia
-- Zaproszenia e-mail
-- Współzarządzanie
+- Cel: wdrożenie rdzenia domenowego wydarzeń i współzarządzania.
+- Zależności: etap 2.
+- Rezultat: wydarzenia, owner, manager, role, zaproszenia i ownership.
+- Kryterium ukończenia: właściciel może tworzyć wydarzenia i zarządzać członkami.
+- Główne ryzyka: błędy ownership, niespójne role, brak audytu zmian członkostwa.
 
 ## Etap 4 - Galerie
-- Wiele galerii na wydarzenie
-- Ustawienia widoczności i uploadu
-- Publiczny dostęp
-- Kody QR
+- Cel: wdrożenie galerii i podstawowego modelu publikacji.
+- Zależności: etap 3, ADR dot. dostępu do galerii.
+- Rezultat: galerie per wydarzenie, slug, dostęp publiczny, ustawienia prywatności i QR.
+- Kryterium ukończenia: wydarzenie może posiadać wiele galerii z konfigurowalnym dostępem.
+- Główne ryzyka: enumeracja galerii, błędny model widoczności i slugów.
 
 ## Etap 5 - Upload i storage
-- Upload zdjęć i filmów
-- Walidacja i limity
-- Lokalny storage
-- Metadane i ownership plików
+- Cel: przyjmowanie zdjęć i filmów z walidacją i ograniczeniami.
+- Zależności: etap 4, ADR dot. storage.
+- Rezultat: upload zdjęć i filmów, walidacja, limity, storage abstraction i upload sessions.
+- Kryterium ukończenia: gość lub użytkownik może bezpiecznie przesłać media do właściwej galerii.
+- Główne ryzyka: upload security, limity miejsca, niespójność baza-storage.
 
 ## Etap 6 - Przetwarzanie mediów
-- Miniatury
-- Statusy i retry
-- Zadania asynchroniczne
-- Podstawowe metadane techniczne
+- Cel: uruchomienie przetwarzania asynchronicznego po uploadzie.
+- Zależności: etap 5, ADR dot. background jobs i media processing.
+- Rezultat: miniatury, metadane, statusy, retry i zadania asynchroniczne.
+- Kryterium ukończenia: media po uploadzie przechodzą pełny pipeline przetwarzania z monitoringiem błędów.
+- Główne ryzyka: przeciążenie serwera, brak idempotencji jobów, błędy retry.
 
-## Etap 7 - Galeria publiczna
-- Przeglądanie materiałów
-- Fullscreen i odtwarzanie filmów
-- Lazy loading
-- Pobieranie pojedynczych plików
+## Etap 7 - Publiczna galeria
+- Cel: udostępnienie galerii do przeglądania na urządzeniach mobilnych i desktopach.
+- Zależności: etap 6.
+- Rezultat: widok galerii, lightbox, filmy, lazy loading, filtrowanie i pobieranie.
+- Kryterium ukończenia: gość może wejść do galerii i komfortowo przeglądać opublikowane media.
+- Główne ryzyka: wydajność mobilna, ochrona prywatności, duży transfer danych.
 
 ## Etap 8 - Moderacja
-- Tryby publikacji
-- Zatwierdzanie, ukrywanie i odrzucanie
-- Operacje zbiorcze
+- Cel: wdrożenie publikacji sterowanej przez organizatora.
+- Zależności: etap 7.
+- Rezultat: zatwierdzanie, ukrywanie, usuwanie i operacje zbiorcze.
+- Kryterium ukończenia: właściciel lub manager może zarządzać widocznością materiałów.
+- Główne ryzyka: niespójne statusy mediów, brak audytu decyzji moderacyjnych.
 
 ## Etap 9 - Personalizacja
-- Motywy, kolory, okładki
-- Teksty powitalne
-- Bezpieczne warianty układu
+- Cel: wprowadzenie bezpiecznej konfiguracji wyglądu galerii.
+- Zależności: etap 7.
+- Rezultat: motywy, kolory, zdjęcie okładkowe, teksty i układ galerii.
+- Kryterium ukończenia: wydarzenie ma kontrolowane opcje personalizacji bez dowolnego HTML/CSS/JS.
+- Główne ryzyka: XSS, nadmierna złożoność UI, niespójność motywów.
 
 ## Etap 10 - Panel administratora
-- Dashboard i wyszukiwanie zasobów
-- Zarządzanie użytkownikami, wydarzeniami i galeriami
-- Audyt i retry zadań
+- Cel: wdrożenie operacyjnego panelu zarządzania platformą.
+- Zależności: etapy 2-9.
+- Rezultat: użytkownicy, wydarzenia, galerie, storage, limity, audyt i konfiguracja.
+- Kryterium ukończenia: administrator może obsługiwać najważniejsze przypadki operacyjne z pełnym audytem.
+- Główne ryzyka: nadużycie uprawnień administratora, brak separacji ścieżek administracyjnych.
 
 ## Etap 11 - Statystyki i powiadomienia
-- Dashboard wydarzenia
-- E-maile systemowe
-- Alerty limitów i błędów
+- Cel: dostarczenie informacji zwrotnej dla użytkowników i operatorów.
+- Zależności: etapy 5-10.
+- Rezultat: dashboard, wykorzystanie miejsca, powiadomienia e-mail i alerty o limitach.
+- Kryterium ukończenia: właściciel i administrator widzą kluczowe metryki i zdarzenia.
+- Główne ryzyka: naruszenie prywatności przez statystyki, spam notyfikacyjny.
 
-## Etap 12 - Plany i rozwój komercyjny
-- Plany i limity
-- Subskrypcje
-- Gotowość do integracji płatności
+## Etap 12 - Plany i komercjalizacja
+- Cel: przygotowanie platformy pod limity i komercyjne warianty oferty.
+- Zależności: etapy 2-11.
+- Rezultat: plany, limity, subskrypcje i przygotowanie pod płatności.
+- Kryterium ukończenia: system potrafi wymuszać limity i przypisywać plany bez konieczności wdrożonych płatności.
+- Główne ryzyka: limity sprzeczne z logiką domenową, zbyt wczesne komplikowanie modelu sprzedaży.
 
 ## Etap 13 - Stabilizacja produkcyjna
-- Backup i disaster recovery
-- Monitoring i alerting
-- Bezpieczeństwo produkcyjne
-- Testy obciążeniowe i twarde quality gates
+- Cel: przygotowanie platformy do bezpiecznej eksploatacji produkcyjnej.
+- Zależności: wszystkie poprzednie etapy.
+- Rezultat: backup, monitoring, logi, bezpieczeństwo, testy wydajnościowe i disaster recovery.
+- Kryterium ukończenia: platforma ma udokumentowane i sprawdzone procedury operacyjne dla wdrożenia produkcyjnego.
+- Główne ryzyka: niedoszacowanie wymagań storage, backupów i obciążenia uploadem.
 
 ## Zasady roadmapy
 - Etapy są logiczne, nie kontraktowe.
-- Funkcje planowane później nadal należą do docelowej architektury.
-- Zmiana kolejności wymaga aktualizacji dokumentacji zależności.
+- Funkcje wdrażane później nadal są częścią jednej docelowej wizji produktu.
+- Zmiana kolejności etapów wymaga aktualizacji zależności i ryzyk.
 
 ## Powiązane dokumenty
 - [PRODUCT_VISION.md](PRODUCT_VISION.md)
-- [FUNCTIONAL_REQUIREMENTS.md](FUNCTIONAL_REQUIREMENTS.md)
+- [BACKLOG.md](BACKLOG.md)
+- [../development/WORKFLOW.md](../development/WORKFLOW.md)
 - [../architecture/MODULES.md](../architecture/MODULES.md)
 
 ## Decyzje otwarte
-- Zakres pierwszego wydania produkcyjnego po etapie 7 lub 8.
+- Po którym etapie powinna nastąpić pierwsza wersja publicznie dostępna dla użytkowników zewnętrznych.

@@ -28,14 +28,23 @@ Platforma webowa do zbierania, organizowania i udostępniania zdjęć oraz film�
 7. Istniejące testy
 
 ## Mapa dokumentacji
+- Pełna mapa: [docs/DOCUMENTATION_MAP.md](docs/DOCUMENTATION_MAP.md)
 - Produkt: [docs/product/PRODUCT_VISION.md](docs/product/PRODUCT_VISION.md)
 - Role i uprawnienia: [docs/product/USER_ROLES.md](docs/product/USER_ROLES.md), [docs/product/PERMISSIONS_MATRIX.md](docs/product/PERMISSIONS_MATRIX.md)
+- Backlog: [docs/product/BACKLOG.md](docs/product/BACKLOG.md)
+- Roadmapa: [docs/product/FEATURE_ROADMAP.md](docs/product/FEATURE_ROADMAP.md)
 - Architektura: [docs/architecture/SYSTEM_ARCHITECTURE.md](docs/architecture/SYSTEM_ARCHITECTURE.md)
 - API: [docs/backend/API_ENDPOINTS.md](docs/backend/API_ENDPOINTS.md)
 - Bezpieczeństwo: [docs/security/SECURITY_REQUIREMENTS.md](docs/security/SECURITY_REQUIREMENTS.md)
 - Testy: [docs/testing/TEST_STRATEGY.md](docs/testing/TEST_STRATEGY.md)
 - Operacje: [docs/operations/DEPLOYMENT.md](docs/operations/DEPLOYMENT.md)
-- Zasady rozwoju: [docs/DEVELOPMENT_RULES.md](docs/DEVELOPMENT_RULES.md), [docs/DEFINITION_OF_DONE.md](docs/DEFINITION_OF_DONE.md)
+- Workflow: [docs/development/WORKFLOW.md](docs/development/WORKFLOW.md)
+- Definition of Ready: [docs/development/DEFINITION_OF_READY.md](docs/development/DEFINITION_OF_READY.md)
+- Definition of Done: [docs/DEFINITION_OF_DONE.md](docs/DEFINITION_OF_DONE.md)
+- Checklisty: [docs/checklists/FEATURE_CHECKLIST.md](docs/checklists/FEATURE_CHECKLIST.md)
+- Prompty: [docs/prompts/FEATURE_IMPLEMENTATION.md](docs/prompts/FEATURE_IMPLEMENTATION.md)
+- Zasady rozwoju: [docs/DEVELOPMENT_RULES.md](docs/DEVELOPMENT_RULES.md)
+- Skills: `.agents/skills/` po utworzeniu lokalnych skills dla projektu
 
 ## Zasady pracy
 - Traktuj dokumentację jako źródło prawdy dla stanu docelowego.
@@ -46,15 +55,20 @@ Platforma webowa do zbierania, organizowania i udostępniania zdjęć oraz film�
 - Nie traktuj planowanych funkcji jako istniejących.
 - Każda istotna decyzja techniczna powinna mieć odzwierciedlenie w dokumentacji lub ADR.
 
-## Minimalny workflow agenta
-1. Przeczytaj dokumenty wejściowe.
-2. Sprawdź aktualny stan kodu i testów.
-3. Przygotuj krótki plan.
-4. Wykonaj minimalny spójny zakres.
-5. Dodaj lub zaktualizuj testy.
-6. Uruchom build, lint i testy, jeśli zmieniasz kod.
-7. Zaktualizuj dokumentację.
-8. Podsumuj wynik i ograniczenia.
+## Kolejność pracy agenta
+1. Przeczytaj `AGENTS.md`.
+2. Sprawdź mapę dokumentacji.
+3. Znajdź zadanie w backlogu.
+4. Sprawdź Definition of Ready.
+5. Przeczytaj powiązane dokumenty.
+6. Sprawdź ADR-y.
+7. Przygotuj plan.
+8. Wybierz właściwy skill.
+9. Zaimplementuj zmianę.
+10. Uruchom testy.
+11. Wykonaj checklistę.
+12. Zaktualizuj dokumentację.
+13. Sprawdź Definition of Done.
 
 ## Definition of Done
 Skrócona definicja:
@@ -72,6 +86,11 @@ Pełna definicja: [docs/DEFINITION_OF_DONE.md](docs/DEFINITION_OF_DONE.md)
 - Linki między dokumentami muszą być względne.
 - Nie kopiuj całych sekcji między plikami; linkuj do źródła.
 - Zmiana architektoniczna bez aktualizacji dokumentacji jest niekompletna.
+
+## Skills
+- Skills mają być krótkim przewodnikiem wykonawczym, a nie kopią całej dokumentacji.
+- Agent wybiera skill dopiero po przeczytaniu dokumentów domenowych i przygotowaniu planu.
+- Jeśli skill koliduje z ADR albo dokumentacją domenową, nadrzędna jest dokumentacja projektu.
 
 ## Zasady ADR
 - ADR tworzymy dla decyzji wpływających na architekturę, bezpieczeństwo, dane lub operacje.

@@ -14,6 +14,7 @@ Opisuje docelową strukturę SPA, główne obszary interfejsu i odpowiedzialnoś
 
 ## Stan docelowy
 - React + TypeScript + Vite + React Router.
+- Material UI jako jedyny główny system UI frontendu.
 - Mobile-first, z trzema głównymi obszarami UI: panel użytkownika, galeria publiczna, panel administratora.
 
 ## Warstwy frontendu
@@ -21,7 +22,7 @@ Opisuje docelową strukturę SPA, główne obszary interfejsu i odpowiedzialnoś
 - Feature modules
 - API client i kontrakty DTO
 - Zarządzanie stanem widoku i stanem serwera
-- Biblioteka komponentów aplikacyjnych
+- Biblioteka komponentów aplikacyjnych zbudowana na Material UI
 
 ## Główne obszary
 - Public gallery
@@ -35,10 +36,12 @@ Opisuje docelową strukturę SPA, główne obszary interfejsu i odpowiedzialnoś
 - Komponenty renderujące nie zawierają logiki autoryzacji biznesowej.
 - Mobile-first dla uploadu i publicznej galerii.
 - Widoki administracyjne i użytkownika mają wspólne standardy, ale nie muszą współdzielić całego UI.
+- UI implementuj zgodnie z [UI_SYSTEM.md](UI_SYSTEM.md): MUI-first, wspólny `ThemeProvider`, theme jako źródło tokenów i własny CSS tylko jako wyjątek.
 
 ## Powiązane dokumenty
 - [ROUTING.md](ROUTING.md)
 - [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md)
+- [UI_SYSTEM.md](UI_SYSTEM.md)
 - [UPLOAD_UX.md](UPLOAD_UX.md)
 
 ## Decyzje otwarte

@@ -18,6 +18,7 @@ Opisuje zasady prowadzenia prac rozwojowych zgodnie z przyjętą architekturą i
 - Nie zmieniaj stacku bez zgody i aktualizacji ADR.
 - Nie dodawaj mikroserwisów bez wyraźnej decyzji architektonicznej.
 - Nie dodawaj przypadkowych bibliotek bez uzasadnienia.
+- Nie dodawaj drugiej pełnej biblioteki UI bez zaakceptowanego ADR; frontend stosuje Material UI jako główny system UI.
 - Nie omijaj autoryzacji, ownership i audytu.
 - Nie modyfikuj zatwierdzonych migracji Flyway.
 - Nie twierdź, że testy przeszły, jeśli nie zostały uruchomione.
@@ -27,6 +28,7 @@ Opisuje zasady prowadzenia prac rozwojowych zgodnie z przyjętą architekturą i
 - [DEFINITION_OF_DONE.md](DEFINITION_OF_DONE.md)
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 - [adr/README.md](adr/README.md)
+- [frontend/UI_SYSTEM.md](frontend/UI_SYSTEM.md)
 
 ## Decyzje otwarte
 - Czy każda zmiana w obszarze security ma wymagać obowiązkowego review przez wyznaczoną osobę.

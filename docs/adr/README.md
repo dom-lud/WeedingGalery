@@ -39,6 +39,7 @@ Opisuje sposób pracy z Architecture Decision Records w tym repozytorium.
 - [0008-api-error-format.md](0008-api-error-format.md)
 - [0009-download-archive-generation.md](0009-download-archive-generation.md)
 - [0010-gallery-access-strategy.md](0010-gallery-access-strategy.md)
+- [0011-material-ui-frontend-system.md](0011-material-ui-frontend-system.md)
 
 ## Powiązane dokumenty
 - [../architecture/SYSTEM_ARCHITECTURE.md](../architecture/SYSTEM_ARCHITECTURE.md)
