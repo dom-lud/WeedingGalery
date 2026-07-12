@@ -112,8 +112,10 @@ Pełna definicja: [docs/DEFINITION_OF_DONE.md](docs/DEFINITION_OF_DONE.md)
 ## CRITICAL ENFORCEMENT DLA AGENTÓW AI
 ZABRONIONE JEST POMIJANIE PONIŻSZYCH KROKÓW:
 1. **Decyzja o Subagentach**: Jako pierwszy krok planu ZAWSZE napisz wprost, czy i jakich subagentów uruchamiasz, z powołaniem się na `SUBAGENT_ORCHESTRATION.md`. Jeśli nie używasz żadnego, napisz jednoznacznie dlaczego.
-2. **Self-Review (Audyt)**: Po skończonej implementacji MUSISZ odgrywać rolę Code Reviewera i poddać własny kod bezlitosnemu self-review, szukając błędów security, wycieków logiki i odstępstw od ADR. Wnioski zapisuj na czacie albo w artefakcie.
-3. **Testy E2E i Kontrakty API**: Pisanie wyłącznie testów pod `RestTemplate` z wyłączonym CSRF lub bez autoryzacji to ZA MAŁO. MUSISZ dowieźć weryfikację na poziomie E2E (np. Playwright/Cypress dla flow z UI) lub rzetelnego, kompletnego testu integracyjnego obejmującego wszystkie nagłówki i realny stan bazy. Każdy etap kończy się realnym potwierdzeniem kontraktu, a nie testem napisanym "pod kod".
+2. **Self-Review (Audyt do skutku)**: Po skończonej implementacji MUSISZ odgrywać rolę Code Reviewera i poddać własny kod bezlitosnemu self-review, szukając błędów security, wycieków logiki i odstępstw od ADR. Jeśli znajdziesz błędy, naprawiaj je i powtarzaj review, aż kod będzie w 100% poprawny. Wnioski zapisuj na czacie albo w artefakcie.
+3. **API Contract**: Zmiany w komunikacji FE-BE (endpointy, payloady, formaty błędów) MUSZĄ być najpierw projektowane i dokumentowane w `api-contract/API_CONTRACT.md`. Dokument ten pełni rolę Single Source of Truth (SSOT). Agenci mają bezwzględny obowiązek go aktualizować.
+4. **Krytyczne Testowanie**: Zanim napiszesz jakikolwiek test, wykonaj analizę zmian i zaplanuj scenariusze (w tym edge case'y). Testy mają rygorystycznie bronić wymagań i kontraktu API. Pisanie testów "pod kod", byle tylko przeszły (np. wyłączanie zabezpieczeń), jest surowo ZABRONIONE.
+5. **Testy E2E i Kontrakty API**: Pisanie wyłącznie testów pod `RestTemplate` z wyłączonym CSRF lub bez autoryzacji to ZA MAŁO. MUSISZ dowieźć weryfikację na poziomie E2E (np. Playwright dla flow z UI) lub rzetelnego, kompletnego testu integracyjnego. Środowisko testowe E2E utrzymuj oddzielnie od testów integracyjnych API. Każdy etap kończy się realnym potwierdzeniem kontraktu w systemie działającym end-to-end.
 
 ## Decyzje otwarte
 - Strategia uwierzytelniania.

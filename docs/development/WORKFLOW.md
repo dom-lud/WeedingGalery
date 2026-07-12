@@ -19,8 +19,10 @@ Opisuje standardowy proces realizacji każdej funkcji, poprawki lub zmiany archi
 - Nie zakładaj, że opisane funkcje już istnieją w kodzie.
 - Wykonuj minimalny spójny zakres zamiast szerokiej, niesprawdzonej zmiany.
 - Aktualizacja dokumentacji jest częścią zadania, a nie etapem opcjonalnym.
+- Zmiany w API muszą być projektowane i aktualizowane w `api-contract/API_CONTRACT.md` zanim powstaną w kodzie.
+- Przed implementacją testów, zaplanuj scenariusze (w tym edge case'y). Nie pisz testów wyłącznie "pod napisaną już logikę".
 - Decyzja o użyciu albo nieużyciu subagentów musi być jawna dla każdego zadania nietrywialnego.
-- Self-review po implementacji jest obowiązkowy i ma być wykonany z perspektywy review, nie autora.
+- Self-review po implementacji jest obowiązkowy i ma być wykonany z perspektywy review, nie autora (wykonywany w pętli do skutku, aż wszystkie błędy zostaną poprawione).
 - Workflow jest pętlą: jeśli testy, review albo checklista wykryją problem, zadanie wraca do implementacji aż do domknięcia albo jawnego opisania blokera.
 - Zamknięcie zadania wymaga sprawdzenia spełnienia wymagań, DoD i właściwych checklist punkt po punkcie.
 

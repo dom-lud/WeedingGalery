@@ -1,4 +1,4 @@
-package pl.backend.weddinggallery.identity.domain;
+package pl.backend.weddinggallery.user.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

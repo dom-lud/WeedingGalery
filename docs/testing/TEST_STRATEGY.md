@@ -28,10 +28,12 @@ Opisuje docelową strategię testowania platformy na poziomie backendu, frontend
 
 ## Zasady jakości testów
 - Test ma bronić wymagania, kontraktu albo regresji, nie aktualnej struktury kodu.
+- Zanim napiszesz kod testu, ZAWSZE wykonaj analizę zmian i zaplanuj scenariusze testowe, uwzględniając ścieżki negatywne i edge case'y.
 - Test powinien umieć obalić błędną implementację, a nie tylko potwierdzić szczęśliwą ścieżkę.
 - Dla krytycznych zmian preferuj testy negatywne, graniczne i regresyjne obok testów pozytywnych.
 - Nie pisz testu tylko dlatego, że łatwo go dopasować do obecnego kodu.
 - Jeśli test jest zbyt mocno sprzężony z detalem implementacyjnym, trzeba to uzasadnić.
+- Nie mieszaj testów API z testami E2E UI. Należy je utrzymywać oddzielnie, używając innych narzędzi (np. Playwright do E2E, a Spring Boot Test / REST Assured do API).
 
 ## Powiązane dokumenty
 - [BACKEND_TESTING.md](BACKEND_TESTING.md)

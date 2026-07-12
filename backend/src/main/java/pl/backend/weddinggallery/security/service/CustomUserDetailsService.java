@@ -1,4 +1,4 @@
-package pl.backend.weddinggallery.identity.service;
+package pl.backend.weddinggallery.security.service;
 
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
@@ -7,8 +7,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import pl.backend.weddinggallery.identity.domain.User;
-import pl.backend.weddinggallery.identity.domain.UserRepository;
+import pl.backend.weddinggallery.user.model.User;
+import pl.backend.weddinggallery.user.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor

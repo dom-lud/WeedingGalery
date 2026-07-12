@@ -1,60 +1,40 @@
-package pl.backend.weddinggallery.identity.web;
+package pl.backend.weddinggallery.auth.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import pl.backend.weddinggallery.identity.domain.User;
-import pl.backend.weddinggallery.identity.domain.UserRepository;
+import pl.backend.weddinggallery.auth.dto.LoginRequest;
+import pl.backend.weddinggallery.auth.dto.RegisterRequest;
+import pl.backend.weddinggallery.auth.dto.UserInfoResponse;
+import pl.backend.weddinggallery.auth.service.AuthService;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-	private final AuthenticationManager authenticationManager;
-	private final UserRepository userRepository;
-	private final PasswordEncoder passwordEncoder;
+	private final AuthService authService;
 
 	@PostMapping("/register")
 	public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
-		if (userRepository.findByEmail(request.email().toLowerCase()).isPresent()) {
+		boolean registered = authService.registerUser(request);
+		if (!registered) {
 			return ResponseEntity.badRequest().body("Email already in use");
 		}
-
-		User user = new User();
-		user.setEmail(request.email().toLowerCase());
-		user.setPasswordHash(passwordEncoder.encode(request.password()));
-		userRepository.save(user);
-
 		return ResponseEntity.ok("User registered successfully");
 	}
 
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
-		UsernamePasswordAuthenticationToken authReq = new UsernamePasswordAuthenticationToken(request.email().toLowerCase(),
-				request.password());
-		Authentication auth = authenticationManager.authenticate(authReq);
-
-		SecurityContext sc = SecurityContextHolder.getContext();
-		sc.setAuthentication(auth);
-		HttpSession session = httpRequest.getSession(true);
-		session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, sc);
-
-		return ResponseEntity.ok(new UserInfoResponse(auth.getName()));
+		String username = authService.loginUser(request, httpRequest);
+		return ResponseEntity.ok(new UserInfoResponse(username));
 	}
 
 	@GetMapping("/me")

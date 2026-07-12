@@ -1,4 +1,4 @@
-package pl.backend.weddinggallery.identity.config;
+package pl.backend.weddinggallery.security.config;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,26 +24,24 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${app.security.csrf.enabled:true}")
-    private boolean csrfEnabled;
+	@Value("${app.security.csrf.enabled:true}")
+	private boolean csrfEnabled;
 
 	@Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
-        
-        if (csrfEnabled) {
-            http.csrf(csrf -> csrf
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()));
-        } else {
-            http.csrf(AbstractHttpConfigurer::disable);
-        }
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
-        http.exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+		if (csrfEnabled) {
+			http.csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+					.csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()));
+		} else {
+			http.csrf(AbstractHttpConfigurer::disable);
+		}
+
+		http.exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/csrf").permitAll()
-						.requestMatchers("/actuator/health").permitAll()
-						.anyRequest().authenticated())
+						.requestMatchers("/actuator/health").permitAll().anyRequest().authenticated())
 				.logout(logout -> logout.logoutUrl("/api/auth/logout")
 						.logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK))
 						.invalidateHttpSession(true).deleteCookies("JSESSIONID"));

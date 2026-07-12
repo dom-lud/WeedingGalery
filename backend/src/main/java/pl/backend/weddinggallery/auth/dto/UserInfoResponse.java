@@ -1,4 +1,4 @@
-package pl.backend.weddinggallery.identity.web;
+package pl.backend.weddinggallery.auth.dto;
 
 public record UserInfoResponse(String email) {
 }
