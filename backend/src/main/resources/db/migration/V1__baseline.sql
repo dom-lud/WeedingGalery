@@ -1,9 +1,0 @@
--- =============================================================================
--- V1__baseline.sql
--- Baseline migration: establishes Flyway tracking for WeddingGallery platform.
--- Schema to be defined in subsequent migrations starting from Etap 2 (Identity).
--- =============================================================================
---
--- Ten plik jest celowo pusty.
--- Kolejne migracje (V2__*, V3__*, ...) będą dodawać tabele domenowe.
--- Nie modyfikuj zatwierdzonej migracji po jej uruchomieniu na jakimkolwiek środowisku.

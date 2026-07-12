@@ -1,6 +1,8 @@
--- Seed script for events and galleries
--- Wymaga istniejącego admin@example.com (z V3__seed_data.sql) o UUID '00000000-0000-0000-0000-000000000001'
+-- Seed data dla środowiska developerskiego
+INSERT INTO users (id, email, password_hash, system_role, failed_login_attempts, created_at, updated_at)
+VALUES ('00000000-0000-0000-0000-000000000001', 'admin@example.com', '$2a$10$ikl3ddSI2Mil0Zdq57fzQuTBiPXjM3lOnJhhi6bznAAf3ODMJjrvq', 'ADMIN', 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
+-- Seed script for events and galleries
 INSERT INTO events (id, name, type, event_date, description, status, owner_id, created_at, updated_at)
 VALUES (
     '11111111-1111-1111-1111-111111111111',

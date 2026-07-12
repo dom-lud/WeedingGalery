@@ -1,7 +1,0 @@
-CREATE TABLE audit_events (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    event_type VARCHAR(255) NOT NULL,
-    user_email VARCHAR(255) NOT NULL,
-    details TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
