@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface EventRepository extends JpaRepository<Event, String> {
-    List<Event> findByOwnerId(String ownerId);
+	List<Event> findByOwnerId(String ownerId);
 }

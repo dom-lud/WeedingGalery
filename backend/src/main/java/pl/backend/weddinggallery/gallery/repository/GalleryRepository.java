@@ -9,6 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface GalleryRepository extends JpaRepository<Gallery, String> {
-    Optional<Gallery> findBySlug(String slug);
-    List<Gallery> findByEventId(String eventId);
+	Optional<Gallery> findBySlug(String slug);
+	List<Gallery> findByEventId(String eventId);
 }

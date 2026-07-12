@@ -16,31 +16,31 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EventService {
 
-    private final EventRepository eventRepository;
+	private final EventRepository eventRepository;
 
-    @Transactional(readOnly = true)
-    public List<Event> getEventsForUser(String userId) {
-        log.debug("Fetching events for user {}", userId);
-        return eventRepository.findByOwnerId(userId);
-    }
+	@Transactional(readOnly = true)
+	public List<Event> getEventsForUser(String userId) {
+		log.debug("Fetching events for user {}", userId);
+		return eventRepository.findByOwnerId(userId);
+	}
 
-    @Transactional(readOnly = true)
-    public Event getEventById(String eventId, String currentUserId) {
-        log.debug("Fetching event {} for user {}", eventId, currentUserId);
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new AppException(EventErrorCode.EVENT_NOT_FOUND));
+	@Transactional(readOnly = true)
+	public Event getEventById(String eventId, String currentUserId) {
+		log.debug("Fetching event {} for user {}", eventId, currentUserId);
+		Event event = eventRepository.findById(eventId)
+				.orElseThrow(() -> new AppException(EventErrorCode.EVENT_NOT_FOUND));
 
-        if (!event.getOwner().getId().equals(currentUserId)) {
-            log.warn("User {} attempted to access event {} without permission", currentUserId, eventId);
-            throw new AppException(EventErrorCode.UNAUTHORIZED_ACCESS);
-        }
+		if (!event.getOwner().getId().equals(currentUserId)) {
+			log.warn("User {} attempted to access event {} without permission", currentUserId, eventId);
+			throw new AppException(EventErrorCode.UNAUTHORIZED_ACCESS);
+		}
 
-        return event;
-    }
+		return event;
+	}
 
-    @Transactional
-    public Event createEvent(Event event) {
-        log.info("Creating new event: {}", event.getName());
-        return eventRepository.save(event);
-    }
+	@Transactional
+	public Event createEvent(Event event) {
+		log.info("Creating new event: {}", event.getName());
+		return eventRepository.save(event);
+	}
 }
