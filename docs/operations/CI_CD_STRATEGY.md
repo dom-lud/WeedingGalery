@@ -44,8 +44,8 @@ Zakres:
 - checkout,
 - setup Java i Node,
 - cache Maven i npm,
-- backend testy,
-- frontend lint, testy i build,
+- backend format (Spotless check) i testy,
+- frontend format (Prettier check), lint, testy i build,
 - walidacja `docker compose config`,
 - budowa obrazu backendu,
 - budowa obrazu frontendu.
@@ -54,8 +54,8 @@ Zakres:
 Uruchamiany po merge do `main`.
 
 Zakres:
-- backend testy i budowa JAR,
-- frontend lint, testy i build,
+- backend format (Spotless check), testy i budowa JAR,
+- frontend format (Prettier check), lint, testy i build,
 - testy backendowe,
 - testy frontendowe,
 - budowa obrazów Docker,

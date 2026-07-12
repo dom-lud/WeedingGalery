@@ -24,6 +24,7 @@ Opisuje warunki, które muszą być spełnione przed scaleniem zmian i przed wdr
 - Dokumentacja zaktualizowana
 
 ## Gates CI dla pull requestów
+- Zmiany są automatycznie formatowane i walidowane przez formatery (Spotless dla backendu, Prettier dla frontendu).
 - Backend Maven build przechodzi.
 - Frontend TypeScript build przechodzi.
 - Frontend lint przechodzi.

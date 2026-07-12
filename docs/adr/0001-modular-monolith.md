@@ -1,7 +1,7 @@
 # ADR 0001: Modularny Monolit
 
 ## Status dokumentu
-- Status: proposed
+- Status: accepted
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Cel dokumentu

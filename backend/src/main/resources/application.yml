@@ -3,3 +3,14 @@ spring:
     name: WeddingGallery
   jpa:
     open-in-view: false
+
+# Actuator: bezpieczne domyślne – tylko health, bez ujawniania szczegółów.
+# Profile dev i test nadpisują selektywnie.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never

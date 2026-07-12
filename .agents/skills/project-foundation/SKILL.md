@@ -4,23 +4,23 @@
 Skill prowadzący przez Etap 0, czyli techniczne fundamenty repozytorium przed implementacją funkcji biznesowych.
 
 ## Status dokumentu
-- Status: draft
+- Status: done
 - Zakres: project foundation / etap 0 skill
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Stan obecny
-- Repozytorium ma dokumentację, szkielety backendu i frontendu oraz podstawowe pliki Docker.
-- Etap 0 służy ustabilizowaniu fundamentów, a nie implementacji funkcji produktowych.
+- Etap 0 (FND-001) jest zamknięty: dokumentacja, workflow, checklisty, mapa dokumentacji i prompty istnieją.
+- Repozytorium ma spójny, minimalny szkielet z canonical package `pl.backend.weddinggallery`.
 
 ## Stan docelowy
-- Backend, frontend, Docker i podstawowe quality gates są powtarzalne.
-- Repozytorium jest gotowe do pierwszego vertical slice.
+- Skill jest archiwizowany jako wzorzec dla kolejnych edycji fundamentów.
+- Dalszy rozwój fundamentu technicznego odbywa się przez skill `stage-1-foundation`.
 
 ## Kiedy używać
-- Gdy użytkownik pisze: `zacznij etap 0`.
-- Gdy użytkownik pisze: `przygotuj fundamenty`, `ustabilizuj repo`, `sprawdź foundation`, `zrób project foundation`.
-- Przed pierwszym vertical slice backend/frontend.
-- Po większych zmianach w stacku, Dockerze, CI, testach albo strukturze repo.
+- Gdy użytkownik pisze: `zacznij etap 0` lub `co zawierał etap 0`.
+- Gdy potrzebujesz zrozumieć zakres lub wyniki Etapu 0.
+- Gdy chcesz powtórzyć audit fundamentów po dużej zmianie stacku.
+- Etap 0 jest zamknięty (FND-001 DONE). Dla Etapu 1 użyj skilla `stage-1-foundation`.
 
 ## Tryby pracy
 - `audit`: sprawdź stan i przygotuj listę braków bez zmian.
@@ -143,5 +143,8 @@ Użyj project-foundation i zaimplementuj minimalny Etap 0.
 Użyj project-foundation, sprawdź Docker/CI readiness i nic nie zmieniaj.
 ```
 
+## Powiązany skill
+- Następny etap: [stage-1-foundation](./../stage-1-foundation/SKILL.md)
+
 ## Decyzje otwarte
-- Czy Etap 0 ma obejmować pierwszy workflow GitHub Actions, czy tylko dokumentację i lokalne quality gates.
+- Czy skill project-foundation powinien być rozszerzony o kolejną rundę fundamentów po dużej zmianie stacku.

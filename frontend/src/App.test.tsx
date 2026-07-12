@@ -12,15 +12,11 @@ describe('App foundation shell', () => {
       </ThemeProvider>,
     )
 
-    expect(
-      screen.getByRole('heading', { level: 1, name: /get started/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /get started/i })).toBeInTheDocument()
 
     const counterButton = screen.getByRole('button', { name: /count is 0/i })
     fireEvent.click(counterButton)
 
-    expect(
-      screen.getByRole('button', { name: /count is 1/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /count is 1/i })).toBeInTheDocument()
   })
 })
