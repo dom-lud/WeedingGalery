@@ -1,6 +1,7 @@
 spring:
   application:
     name: WeddingGallery
+debug: true
   jpa:
     open-in-view: false
 

@@ -138,7 +138,7 @@ jobs:
         run: npm run dev &
 
       - name: Wait for services
-        run: npx wait-on http-get://localhost:8080/actuator/health http-get://localhost:5175 -t 60000
+        run: npx wait-on http-get://localhost:8080/actuator/health http-get://localhost:5173 -t 60000
 
       - name: Run Playwright tests
         working-directory: frontend
