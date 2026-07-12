@@ -24,7 +24,7 @@ System służy do zbierania, organizowania i bezpiecznego udostępniania zdjęć
 ## Najważniejsze założenia
 - Projekt od początku zakłada obsługę wielu niezależnych użytkowników i wydarzeń.
 - Dokumentacja opisuje pełną wizję produktu, a nie tylko MVP.
-- Backend docelowo: Java 21, Spring Boot 3, PostgreSQL, Flyway, Spring Security, Actuator, OpenAPI.
+- Backend docelowo: Java 25, Spring Boot 4, PostgreSQL, Flyway, Spring Security, Actuator, OpenAPI.
 - Frontend docelowo: React, TypeScript, Vite, React Router, mobile-first.
 - Infrastruktura docelowo: Docker Compose, Nginx, Linux VPS, lokalny storage z możliwością przejścia na storage obiektowy.
 
@@ -37,6 +37,7 @@ System służy do zbierania, organizowania i bezpiecznego udostępniania zdjęć
 - API: [docs/backend/API_ENDPOINTS.md](docs/backend/API_ENDPOINTS.md)
 - Bezpieczeństwo: [docs/security/SECURITY_REQUIREMENTS.md](docs/security/SECURITY_REQUIREMENTS.md)
 - Operacje: [docs/operations/DEPLOYMENT.md](docs/operations/DEPLOYMENT.md)
+- CI/CD: [docs/operations/CI_CD_STRATEGY.md](docs/operations/CI_CD_STRATEGY.md)
 - ADR: [docs/adr/README.md](docs/adr/README.md)
 
 ## Planowana struktura repozytorium
@@ -64,6 +65,7 @@ Szczegóły znajdują się w [docs/architecture/REPOSITORY_STRUCTURE.md](docs/ar
 3. Przeczytaj dokumenty architektoniczne w `docs/architecture/`.
 4. Sprawdź standardy backendu, frontendu, bezpieczeństwa, testów i operacji.
 5. Zanim podejmiesz decyzję implementacyjną, sprawdź [ADR](docs/adr/README.md).
+6. Przy zadaniach złożonych sprawdź [docs/development/SUBAGENT_ORCHESTRATION.md](docs/development/SUBAGENT_ORCHESTRATION.md).
 
 ## Decyzje otwarte
 - Ostateczny wybór strategii uwierzytelniania: sesja serwerowa vs JWT.

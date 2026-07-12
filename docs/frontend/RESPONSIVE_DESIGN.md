@@ -25,6 +25,7 @@ Opisuje zasady mobile-first dla frontendu platformy.
 - Minimalizujemy ciężkie elementy w publicznej galerii na słabym łączu.
 - Nawigacja panelu użytkownika musi działać również na małych ekranach.
 - Grid mediów dopasowuje się do orientacji i liczby plików.
+- Szczegółowe zasady CSS, Flexbox/Grid, breakpointów i checklistę mobile-first opisuje [CSS_AND_RESPONSIVE_GUIDELINES.md](CSS_AND_RESPONSIVE_GUIDELINES.md).
 
 ## Krytyczne widoki mobilne
 - Ekran wejścia do galerii
@@ -35,6 +36,7 @@ Opisuje zasady mobile-first dla frontendu platformy.
 
 ## Powiązane dokumenty
 - [FRONTEND_ARCHITECTURE.md](FRONTEND_ARCHITECTURE.md)
+- [CSS_AND_RESPONSIVE_GUIDELINES.md](CSS_AND_RESPONSIVE_GUIDELINES.md)
 - [UI_SYSTEM.md](UI_SYSTEM.md)
 - [UPLOAD_UX.md](UPLOAD_UX.md)
 - [ACCESSIBILITY.md](ACCESSIBILITY.md)

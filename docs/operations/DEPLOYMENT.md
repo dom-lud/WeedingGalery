@@ -31,10 +31,12 @@ flowchart TD
 - Trwałe wolumeny dla bazy i storage.
 - Health checks, readiness i liveness.
 - Plan aktualizacji i rollbacku.
+- Deployment powinien korzystać z artefaktów lub obrazów przechodzących quality gates opisane w [CI_CD_STRATEGY.md](CI_CD_STRATEGY.md).
 
 ## Powiązane dokumenty
 - [ENVIRONMENTS.md](ENVIRONMENTS.md)
 - [CONFIGURATION.md](CONFIGURATION.md)
+- [CI_CD_STRATEGY.md](CI_CD_STRATEGY.md)
 - [BACKUP_AND_RESTORE.md](BACKUP_AND_RESTORE.md)
 
 ## Decyzje otwarte

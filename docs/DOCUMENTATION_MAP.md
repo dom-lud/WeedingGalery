@@ -54,6 +54,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | Dokument | Przeznaczenie | Kto czyta | Kiedy aktualizować | Link |
 | --- | --- | --- | --- | --- |
 | Frontend architecture | Architektura SPA | frontend, AI | przy zmianie struktury UI | [docs/frontend/FRONTEND_ARCHITECTURE.md](frontend/FRONTEND_ARCHITECTURE.md) |
+| CSS and responsive guidelines | Szczegółowe zasady mobile-first, CSS i layoutu | frontend, AI, QA | przy zmianie zasad CSS lub responsywności | [docs/frontend/CSS_AND_RESPONSIVE_GUIDELINES.md](frontend/CSS_AND_RESPONSIVE_GUIDELINES.md) |
 | Routing | Trasy i guardy | frontend | przy zmianie routingu | [docs/frontend/ROUTING.md](frontend/ROUTING.md) |
 | State management | Zarządzanie stanem | frontend | przy zmianie modelu stanu | [docs/frontend/STATE_MANAGEMENT.md](frontend/STATE_MANAGEMENT.md) |
 | UI system | Decyzja MUI-first, theme i wyjątki UI | frontend, AI, design | przy zmianie systemu UI | [docs/frontend/UI_SYSTEM.md](frontend/UI_SYSTEM.md) |
@@ -84,6 +85,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | Dokument | Przeznaczenie | Kto czyta | Kiedy aktualizować | Link |
 | --- | --- | --- | --- | --- |
 | Deployment | Model wdrożenia | ops, backend | przy zmianie deploymentu | [docs/operations/DEPLOYMENT.md](operations/DEPLOYMENT.md) |
+| CI/CD strategy | Strategia GitHub Actions i quality gates | ops, backend, frontend, QA | przy zmianie pipeline lub quality gates | [docs/operations/CI_CD_STRATEGY.md](operations/CI_CD_STRATEGY.md) |
 | Environments | Środowiska uruchomieniowe | ops, backend, frontend | przy zmianie środowisk | [docs/operations/ENVIRONMENTS.md](operations/ENVIRONMENTS.md) |
 | Configuration | Zasady konfiguracji | ops, backend | przy zmianie env i sekretów | [docs/operations/CONFIGURATION.md](operations/CONFIGURATION.md) |
 | Backup and restore | Procedury backup i restore | ops | przy zmianie backupu | [docs/operations/BACKUP_AND_RESTORE.md](operations/BACKUP_AND_RESTORE.md) |
@@ -99,6 +101,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | Definition of Done | Kryteria zakończenia zadania | wszyscy | przy zmianie jakości procesu | [docs/DEFINITION_OF_DONE.md](DEFINITION_OF_DONE.md) |
 | Contributing | Zasady kontrybucji | programiści, AI | przy zmianie procesu współpracy | [docs/CONTRIBUTING.md](CONTRIBUTING.md) |
 | Workflow | Standardowy flow zadania | wszyscy | przy zmianie procesu wykonawczego | [docs/development/WORKFLOW.md](development/WORKFLOW.md) |
+| Subagent orchestration | Standard pracy Lead Agenta i subagentów | AI, reviewer, tech lead | przy zmianie orkiestracji agentów | [docs/development/SUBAGENT_ORCHESTRATION.md](development/SUBAGENT_ORCHESTRATION.md) |
 | Feature lifecycle | Statusy funkcji | product, AI, tech lead | przy zmianie lifecycle | [docs/development/FEATURE_LIFECYCLE.md](development/FEATURE_LIFECYCLE.md) |
 | Definition of Ready | Kryteria gotowości zadania | product, AI, tech lead | przy zmianie wejścia do realizacji | [docs/development/DEFINITION_OF_READY.md](development/DEFINITION_OF_READY.md) |
 | AI task planning | Zasady planowania przez AI | AI, reviewer | przy zmianie standardu planów | [docs/development/AI_TASK_PLANNING.md](development/AI_TASK_PLANNING.md) |
@@ -156,6 +159,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | --- | --- | --- | --- | --- |
 | Backend feature skill | Realizacja funkcji backendowej | AI, backend | przy zmianie standardów backendu | [.agents/skills/backend-feature/SKILL.md](../.agents/skills/backend-feature/SKILL.md) |
 | Frontend feature skill | Realizacja funkcji frontendowej | AI, frontend | przy zmianie standardów frontendu | [.agents/skills/frontend-feature/SKILL.md](../.agents/skills/frontend-feature/SKILL.md) |
+| Task orchestration skill | Koordynacja subagentów i integracja wyników | AI, reviewer | przy zmianie standardu orkiestracji | [.agents/skills/task-orchestration/SKILL.md](../.agents/skills/task-orchestration/SKILL.md) |
 | Database migration skill | Zmiany danych i migracje | AI, backend | przy zmianie standardów danych | [.agents/skills/database-migration/SKILL.md](../.agents/skills/database-migration/SKILL.md) |
 | API design skill | Projektowanie API | AI, backend | przy zmianie API conventions | [.agents/skills/api-design/SKILL.md](../.agents/skills/api-design/SKILL.md) |
 | Security review skill | Przegląd bezpieczeństwa | AI, security | przy zmianie security review | [.agents/skills/security-review/SKILL.md](../.agents/skills/security-review/SKILL.md) |

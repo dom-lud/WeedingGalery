@@ -22,6 +22,7 @@ Skill wspierający implementację funkcji frontendowej z naciskiem na mobile-fir
 - `docs/development/WORKFLOW.md`
 - `docs/frontend/FRONTEND_ARCHITECTURE.md`
 - `docs/frontend/UI_SYSTEM.md`
+- `docs/frontend/CSS_AND_RESPONSIVE_GUIDELINES.md`
 - `docs/frontend/STATE_MANAGEMENT.md`
 - `docs/frontend/ACCESSIBILITY.md`
 - `docs/frontend/RESPONSIVE_DESIGN.md`
@@ -43,13 +44,20 @@ Skill wspierający implementację funkcji frontendowej z naciskiem na mobile-fir
 - Sprawdź accessibility i focus.
 
 ## Wymagane kroki
-1. Zidentyfikuj trasę, widoki i komponenty.
-2. Dobierz komponenty MUI i potrzebne komponenty domenowe.
-3. Ustal warstwę API i kontrakty danych.
-4. Zaprojektuj loading, error, empty, retry, forbidden i offline state.
-5. Sprawdź accessibility i responsywność.
-6. Dodaj testy komponentów lub widoków.
-7. Zaktualizuj dokumentację UI, jeśli zmiana wpływa na UX.
+1. Najpierw zaprojektuj flow mobilny.
+2. Określ najważniejszą akcję użytkownika.
+3. Zidentyfikuj trasę, widoki i komponenty.
+4. Dobierz komponenty MUI i potrzebne komponenty domenowe.
+5. Ustal warstwę API i kontrakty danych.
+6. Zaimplementuj bazowy układ dla małego ekranu.
+7. Wybierz Flexbox lub Grid na podstawie charakteru układu.
+8. Dodaj rozszerzenia dla większych ekranów.
+9. Dodaj loading, empty, error i retry states oraz forbidden/offline, jeśli dotyczą przepływu.
+10. Sprawdź accessibility i focus.
+11. Sprawdź brak poziomego scrolla.
+12. Uruchom testy.
+13. Wykonaj weryfikację responsywności.
+14. Zaktualizuj dokumentację UI, jeśli zmiana wpływa na UX.
 
 ## Checklista
 - [ ] TypeScript strict został zachowany.
@@ -57,6 +65,10 @@ Skill wspierający implementację funkcji frontendowej z naciskiem na mobile-fir
 - [ ] Nie dodano drugiej biblioteki UI.
 - [ ] Theme zostało użyte zamiast wartości hardcoded, jeśli to możliwe.
 - [ ] Podejście mobile-first zostało uwzględnione.
+- [ ] Bazowy układ działa na małym ekranie.
+- [ ] Najważniejsza akcja użytkownika jest wygodna dotykowo.
+- [ ] Wybrano Flexbox lub Grid na podstawie układu, a nie preferencji.
+- [ ] Dodano rozszerzenia dla większych ekranów przez breakpointy.
 - [ ] Warstwa API jest wydzielona.
 - [ ] Loading state istnieje.
 - [ ] Error state istnieje.
@@ -64,6 +76,8 @@ Skill wspierający implementację funkcji frontendowej z naciskiem na mobile-fir
 - [ ] Retry, forbidden i offline state istnieją, jeśli dotyczą przepływu.
 - [ ] Accessibility została sprawdzona.
 - [ ] Responsywność została sprawdzona.
+- [ ] Brak poziomego scrolla został sprawdzony.
+- [ ] Długie nazwy plików, etykiety i komunikaty nie łamią layoutu.
 - [ ] Testy zostały dodane lub zaktualizowane.
 
 ## Zakazane działania

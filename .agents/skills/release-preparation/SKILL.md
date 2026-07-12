@@ -20,6 +20,7 @@ Skill wspierający przygotowanie wydania i wdrożenia.
 ## Wymagane dokumenty
 - `AGENTS.md`
 - `docs/operations/DEPLOYMENT.md`
+- `docs/operations/CI_CD_STRATEGY.md`
 - `docs/operations/CONFIGURATION.md`
 - `docs/operations/BACKUP_AND_RESTORE.md`
 - `docs/checklists/RELEASE_CHECKLIST.md`
@@ -27,14 +28,16 @@ Skill wspierający przygotowanie wydania i wdrożenia.
 
 ## Wymagane kroki
 1. Sprawdź build, testy i lint.
-2. Sprawdź migracje i wpływ na dane.
-3. Sprawdź backup i rollback.
-4. Sprawdź konfigurację i sekrety.
-5. Sprawdź health checks, monitoring i smoke tests.
+2. Sprawdź obowiązkowe quality gates z CI/CD.
+3. Sprawdź migracje i wpływ na dane.
+4. Sprawdź backup i rollback.
+5. Sprawdź konfigurację i sekrety.
+6. Sprawdź health checks, monitoring i smoke tests.
 
 ## Checklista
 - [ ] Build jest gotowy.
 - [ ] Testy są gotowe.
+- [ ] Quality gates są spełnione albo jawnie oznaczone jako blokery.
 - [ ] Migracje są zweryfikowane.
 - [ ] Backup został potwierdzony.
 - [ ] Konfiguracja i env są gotowe.

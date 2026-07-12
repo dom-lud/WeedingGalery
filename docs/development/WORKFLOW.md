@@ -27,14 +27,15 @@ Opisuje standardowy proces realizacji każdej funkcji, poprawki lub zmiany archi
 4. Identyfikacja modułów i plików objętych zmianą.
 5. Analiza wpływu na model danych, migracje, API, backend, frontend, bezpieczeństwo, autoryzację, ownership, testy, storage, limity, monitoring i dokumentację.
 6. Przygotowanie krótkiego planu.
-7. Identyfikacja wymaganych ADR-ów.
-8. Implementacja minimalnego spójnego zakresu.
-9. Dodanie lub aktualizacja testów.
-10. Uruchomienie builda, testów i lintowania.
-11. Code review.
-12. Security review, jeśli zmiana dotyczy danych, uploadu, autoryzacji lub panelu administratora.
-13. Aktualizacja dokumentacji.
-14. Podsumowanie wykonanych zmian.
+7. Decyzja, czy zadanie wymaga orkiestracji subagentów zgodnie z [SUBAGENT_ORCHESTRATION.md](SUBAGENT_ORCHESTRATION.md).
+8. Identyfikacja wymaganych ADR-ów.
+9. Implementacja minimalnego spójnego zakresu.
+10. Dodanie lub aktualizacja testów.
+11. Uruchomienie builda, testów i lintowania.
+12. Code review.
+13. Security review, jeśli zmiana dotyczy danych, uploadu, autoryzacji lub panelu administratora.
+14. Aktualizacja dokumentacji.
+15. Podsumowanie wykonanych zmian.
 
 ## Kontrola przed implementacją
 - Sprawdź [DEFINITION_OF_READY.md](DEFINITION_OF_READY.md).
@@ -51,6 +52,8 @@ Przed implementacją należy jawnie odpowiedzieć:
 - Czy zmiana wpływa na limity, storage, retencję lub backup?
 - Czy trzeba dodać monitoring, logowanie albo audyt?
 - Czy trzeba zmienić dokumentację domenową, checklisty lub prompt templates?
+- Czy zadanie wymaga subagentów, czy wystarczy jeden agent?
+- Czy zmiana wpływa na CI/CD lub quality gates?
 
 ## Diagram przepływu
 ```mermaid
@@ -79,8 +82,10 @@ flowchart TD
 ## Powiązane dokumenty
 - [FEATURE_LIFECYCLE.md](FEATURE_LIFECYCLE.md)
 - [DEFINITION_OF_READY.md](DEFINITION_OF_READY.md)
+- [SUBAGENT_ORCHESTRATION.md](SUBAGENT_ORCHESTRATION.md)
 - [../DEFINITION_OF_DONE.md](../DEFINITION_OF_DONE.md)
 - [../checklists/FEATURE_CHECKLIST.md](../checklists/FEATURE_CHECKLIST.md)
+- [../operations/CI_CD_STRATEGY.md](../operations/CI_CD_STRATEGY.md)
 
 ## Decyzje otwarte
 - Czy security review będzie obowiązkowe dla wszystkich zmian publicznego API czy tylko dla wybranych kategorii.

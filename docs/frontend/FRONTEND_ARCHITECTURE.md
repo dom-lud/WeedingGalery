@@ -37,11 +37,16 @@ Opisuje docelową strukturę SPA, główne obszary interfejsu i odpowiedzialnoś
 - Mobile-first dla uploadu i publicznej galerii.
 - Widoki administracyjne i użytkownika mają wspólne standardy, ale nie muszą współdzielić całego UI.
 - UI implementuj zgodnie z [UI_SYSTEM.md](UI_SYSTEM.md): MUI-first, wspólny `ThemeProvider`, theme jako źródło tokenów i własny CSS tylko jako wyjątek.
+- Szczegółowe zasady CSS, responsywności, Flexbox/Grid, stanów UI i React/TypeScript opisuje [CSS_AND_RESPONSIVE_GUIDELINES.md](CSS_AND_RESPONSIVE_GUIDELINES.md).
+- Każdy ekran pobierający dane musi projektować initial, loading, success, empty, partial, error, retry, unauthorized, forbidden oraz offline/interrupted state, jeśli dotyczy.
+- Server state powinien być oddzielony od local UI state.
+- Optymalizacje React, takie jak `useMemo` i `useCallback`, stosuj dopiero przy realnej potrzebie.
 
 ## Powiązane dokumenty
 - [ROUTING.md](ROUTING.md)
 - [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md)
 - [UI_SYSTEM.md](UI_SYSTEM.md)
+- [CSS_AND_RESPONSIVE_GUIDELINES.md](CSS_AND_RESPONSIVE_GUIDELINES.md)
 - [UPLOAD_UX.md](UPLOAD_UX.md)
 
 ## Decyzje otwarte

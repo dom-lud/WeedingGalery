@@ -12,7 +12,7 @@ Opisuje minimalne wymagania dostępności dla frontendu.
 - Wymagania nie są jeszcze odwzorowane w implementacji.
 
 ## Stan docelowy
-- Frontend spełnia podstawowe praktyki WCAG dla krytycznych ścieżek produktu.
+- Frontend spełnia podstawowe praktyki WCAG dla krytycznych ścieżek produktu, z WCAG 2.2 AA jako celem projektu.
 
 ## Wymagania
 - Pełna obsługa klawiatury dla formularzy, modali i galerii.
@@ -32,6 +32,7 @@ Opisuje minimalne wymagania dostępności dla frontendu.
 ## Powiązane dokumenty
 - [UI_COMPONENTS.md](UI_COMPONENTS.md)
 - [UI_SYSTEM.md](UI_SYSTEM.md)
+- [CSS_AND_RESPONSIVE_GUIDELINES.md](CSS_AND_RESPONSIVE_GUIDELINES.md)
 - [RESPONSIVE_DESIGN.md](RESPONSIVE_DESIGN.md)
 - [../testing/FRONTEND_TESTING.md](../testing/FRONTEND_TESTING.md)
 

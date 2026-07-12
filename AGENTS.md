@@ -38,7 +38,9 @@ Platforma webowa do zbierania, organizowania i udostępniania zdjęć oraz film�
 - Bezpieczeństwo: [docs/security/SECURITY_REQUIREMENTS.md](docs/security/SECURITY_REQUIREMENTS.md)
 - Testy: [docs/testing/TEST_STRATEGY.md](docs/testing/TEST_STRATEGY.md)
 - Operacje: [docs/operations/DEPLOYMENT.md](docs/operations/DEPLOYMENT.md)
+- CI/CD: [docs/operations/CI_CD_STRATEGY.md](docs/operations/CI_CD_STRATEGY.md)
 - Workflow: [docs/development/WORKFLOW.md](docs/development/WORKFLOW.md)
+- Orkiestracja subagentów: [docs/development/SUBAGENT_ORCHESTRATION.md](docs/development/SUBAGENT_ORCHESTRATION.md)
 - Definition of Ready: [docs/development/DEFINITION_OF_READY.md](docs/development/DEFINITION_OF_READY.md)
 - Definition of Done: [docs/DEFINITION_OF_DONE.md](docs/DEFINITION_OF_DONE.md)
 - Checklisty: [docs/checklists/FEATURE_CHECKLIST.md](docs/checklists/FEATURE_CHECKLIST.md)
@@ -63,12 +65,13 @@ Platforma webowa do zbierania, organizowania i udostępniania zdjęć oraz film�
 5. Przeczytaj powiązane dokumenty.
 6. Sprawdź ADR-y.
 7. Przygotuj plan.
-8. Wybierz właściwy skill.
-9. Zaimplementuj zmianę.
-10. Uruchom testy.
-11. Wykonaj checklistę.
-12. Zaktualizuj dokumentację.
-13. Sprawdź Definition of Done.
+8. Jeśli zadanie jest złożone, sprawdź potrzebę subagentów.
+9. Wybierz właściwy skill.
+10. Zaimplementuj zmianę.
+11. Uruchom testy.
+12. Wykonaj checklistę.
+13. Zaktualizuj dokumentację.
+14. Sprawdź Definition of Done.
 
 ## Definition of Done
 Skrócona definicja:

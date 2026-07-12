@@ -13,6 +13,7 @@ Opisuje warunki, które muszą być spełnione przed scaleniem zmian i przed wdr
 
 ## Stan docelowy
 - Każdy relewantny change przechodzi przez spójny zestaw kontroli jakości.
+- Quality gates są zintegrowane z docelowym GitHub Actions flow opisanym w [../operations/CI_CD_STRATEGY.md](../operations/CI_CD_STRATEGY.md).
 
 ## Gates dla kodu
 - Build przechodzi
@@ -20,6 +21,16 @@ Opisuje warunki, które muszą być spełnione przed scaleniem zmian i przed wdr
 - Testy właściwe dla zakresu przechodzą
 - Brak nowych krytycznych ostrzeżeń bezpieczeństwa
 - Dokumentacja zaktualizowana
+
+## Gates CI dla pull requestów
+- Backend Maven build przechodzi.
+- Frontend TypeScript build przechodzi.
+- Frontend lint przechodzi.
+- Testy jednostkowe i integracyjne wymagane zakresem zmiany przechodzą.
+- `docker compose config` przechodzi.
+- Obrazy Docker budują się dla zmian infrastrukturalnych lub release.
+- Brak sekretów w repozytorium.
+- Dokumentacja i ADR są zaktualizowane, jeśli zmiana wpływa na decyzje, API, dane, security, UX lub operacje.
 
 ## Gates dla funkcji biznesowych
 - Ownership sprawdzony
@@ -38,6 +49,7 @@ Opisuje warunki, które muszą być spełnione przed scaleniem zmian i przed wdr
 - [TEST_STRATEGY.md](TEST_STRATEGY.md)
 - [../DEFINITION_OF_DONE.md](../DEFINITION_OF_DONE.md)
 - [../security/SECURITY_CHECKLIST.md](../security/SECURITY_CHECKLIST.md)
+- [../operations/CI_CD_STRATEGY.md](../operations/CI_CD_STRATEGY.md)
 
 ## Decyzje otwarte
 - Które quality gates będą blokujące w pierwszym CI, a które ostrzegawcze.

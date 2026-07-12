@@ -23,11 +23,14 @@ Opisuje zakres testów komponentów, hooków, warstwy API i widoków.
 - Testy uploadu i retry
 - Testy stanów błędów i pustych danych
 - Testy guardów widoku
+- Testy lub manualna weryfikacja mobile-first dla krytycznych widoków
+- Testy accessibility dla formularzy, modali, lightboxa i nawigacji
 
 ## Powiązane dokumenty
 - [TEST_STRATEGY.md](TEST_STRATEGY.md)
 - [../frontend/UPLOAD_UX.md](../frontend/UPLOAD_UX.md)
 - [../frontend/ACCESSIBILITY.md](../frontend/ACCESSIBILITY.md)
+- [../frontend/CSS_AND_RESPONSIVE_GUIDELINES.md](../frontend/CSS_AND_RESPONSIVE_GUIDELINES.md)
 
 ## Decyzje otwarte
 - Czy dodać wizualne snapshoty dla krytycznych widoków galerii.
