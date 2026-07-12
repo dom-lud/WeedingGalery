@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
+import pl.backend.weddinggallery.audit.model.EventType;
 import pl.backend.weddinggallery.audit.service.AuditService;
 import pl.backend.weddinggallery.auth.dto.LoginRequest;
 import pl.backend.weddinggallery.auth.dto.RegisterRequest;
@@ -45,7 +46,7 @@ public class AuthService {
 		userRepository.save(user);
 
 		log.info("User registered successfully: {}", email);
-		auditService.logEvent(email, "USER_REGISTERED", "New user account created");
+		auditService.logEvent(email, EventType.USER_REGISTERED, "New user account created");
 	}
 
 	public String loginUser(LoginRequest request, HttpServletRequest httpRequest) {
@@ -65,7 +66,7 @@ public class AuthService {
 		session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, sc);
 
 		log.info("User logged in successfully: {}", email);
-		auditService.logEvent(email, "USER_LOGGED_IN", "User session created");
+		auditService.logEvent(email, EventType.USER_LOGGED_IN, "User session created");
 
 		return auth.getName();
 	}

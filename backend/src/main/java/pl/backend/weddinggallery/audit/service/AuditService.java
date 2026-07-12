@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.backend.weddinggallery.audit.model.AuditEvent;
+import pl.backend.weddinggallery.audit.model.EventType;
 import pl.backend.weddinggallery.audit.repository.AuditEventRepository;
 
 @Service
@@ -15,11 +16,11 @@ public class AuditService {
 	private final AuditEventRepository auditEventRepository;
 
 	@Transactional
-	public void logEvent(String userEmail, String eventType, String details) {
+	public void logEvent(String userEmail, EventType eventType, String details) {
 		try {
 			AuditEvent event = new AuditEvent(eventType, userEmail, details);
 			auditEventRepository.save(event);
-			log.info("Audit event saved: [{}] for user: {}", eventType, userEmail);
+			log.debug("Audit event saved: {} for user: {}", eventType, userEmail);
 		} catch (Exception e) {
 			log.error("Failed to save audit event: [{}] for user: {}", eventType, userEmail, e);
 		}

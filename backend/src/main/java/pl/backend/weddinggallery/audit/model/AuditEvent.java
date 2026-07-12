@@ -17,8 +17,9 @@ public class AuditEvent {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Enumerated(EnumType.STRING)
 	@Column(name = "event_type", nullable = false)
-	private String eventType;
+	private EventType eventType;
 
 	@Column(name = "user_email", nullable = false)
 	private String userEmail;
@@ -34,7 +35,7 @@ public class AuditEvent {
 		this.createdAt = LocalDateTime.now();
 	}
 
-	public AuditEvent(String eventType, String userEmail, String details) {
+	public AuditEvent(EventType eventType, String userEmail, String details) {
 		this.eventType = eventType;
 		this.userEmail = userEmail;
 		this.details = details;
