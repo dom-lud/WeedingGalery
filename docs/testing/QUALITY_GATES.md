@@ -9,7 +9,7 @@ Opisuje warunki, które muszą być spełnione przed scaleniem zmian i przed wdr
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Stan obecny
-- Quality gates są zdefiniowane docelowo, a podstawowy workflow foundation egzekwuje backend testy, frontend lint i build oraz `docker compose config`.
+- Quality gates są zdefiniowane docelowo, a aktualne workflowy GitHub Actions egzekwują backend testy, frontend lint, frontend testy, frontend build, `docker compose config` oraz budowę obrazów backendu i frontendu.
 - Nie wszystkie docelowe quality gates są jeszcze automatycznie egzekwowane.
 
 ## Stan docelowy

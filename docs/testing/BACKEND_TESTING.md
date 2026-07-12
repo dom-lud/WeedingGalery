@@ -10,7 +10,7 @@ Opisuje zakres i standardy testów backendowych.
 
 ## Stan obecny
 - Backend nie posiada jeszcze docelowego zestawu testów.
-- Obecnie istnieje tylko test startowy kontekstu aplikacji.
+- Obecnie istnieją testy foundation dla startu aplikacji i konfiguracji produkcyjnej.
 
 ## Stan docelowy
 - Testy jednostkowe, integracyjne i kontraktowe chroniące krytyczne reguły biznesowe.

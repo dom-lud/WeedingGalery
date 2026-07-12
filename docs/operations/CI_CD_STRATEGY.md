@@ -9,8 +9,9 @@ Opisuje docelową strategię CI/CD dla GitHub Actions bez implementowania workfl
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Stan obecny
-- Repozytorium ma podstawowy workflow GitHub Actions dla foundation checks.
-- Quality gates są opisane dokumentacyjnie, ale nie są w pełni egzekwowane automatycznie.
+- Repozytorium ma workflow PR validation oraz workflow buildowy dla `main`.
+- Backend testy, frontend lint/test/build, walidacja `docker compose config` i budowa obrazów backendu oraz frontendu są egzekwowane automatycznie w GitHub Actions.
+- Quality gates są częściowo zautomatyzowane; obszary biznesowe, security review i przyszłe E2E nadal wymagają dalszej rozbudowy.
 
 ## Stan docelowy
 - Każda zmiana przechodzi przez pull request, automatyczne quality gates i review.
@@ -34,7 +35,7 @@ feature branch
 → smoke tests
 ```
 
-## Planowane workflow
+## Workflow
 
 ### PR validation
 Uruchamiany dla pull requestów do `main`.
@@ -43,24 +44,23 @@ Zakres:
 - checkout,
 - setup Java i Node,
 - cache Maven i npm,
-- backend build i testy,
-- frontend lint i build,
-- testy dopasowane do zakresu zmiany,
-- walidacja Docker build,
-- podstawowe skanowanie zależności,
-- sprawdzenie, czy dokumentacja została zaktualizowana, jeśli zmiana tego wymaga.
+- backend testy,
+- frontend lint, testy i build,
+- walidacja `docker compose config`,
+- budowa obrazu backendu,
+- budowa obrazu frontendu.
 
 ### Main build
 Uruchamiany po merge do `main`.
 
 Zakres:
-- pełny build backendu,
-- pełny build frontendu,
+- backend testy i budowa JAR,
+- frontend lint, testy i build,
 - testy backendowe,
 - testy frontendowe,
 - budowa obrazów Docker,
-- tagowanie artefaktów,
-- publikacja artefaktów lub obrazów do registry, jeśli registry zostanie wybrane.
+- publikacja artefaktów CI jako GitHub Actions artifacts,
+- przygotowanie pod późniejszą publikację do registry, jeśli registry zostanie wybrane.
 
 ### Deployment
 Uruchamiany ręcznie albo po zatwierdzeniu środowiska.
@@ -89,6 +89,7 @@ Zakres:
 ### Frontend
 - TypeScript build przechodzi.
 - Lint przechodzi.
+- Testy frontendu przechodzą.
 - Testy komponentów, hooków lub widoków przechodzą, jeśli zmiana dotyczy UI.
 - Kluczowe stany UI są pokryte: loading, empty, error, retry, forbidden i offline, jeśli dotyczą przepływu.
 - Mobile-first i accessibility są sprawdzone zgodnie z dokumentacją.
@@ -128,6 +129,7 @@ Zmiana gate z ostrzegawczego na blokujący powinna zostać odnotowana w dokument
 - Cache Maven powinien być oparty o `backend/pom.xml`.
 - Cache npm powinien być oparty o `frontend/package-lock.json`.
 - Artefakty builda muszą być powiązane z commit SHA.
+- Artefakty backendu i frontendu na `main` powinny być dostępne do pobrania z workflow jako punkt odniesienia dla dalszych etapów delivery.
 - Obrazy Docker powinny być tagowane co najmniej przez commit SHA; tag `latest` nie może być jedynym identyfikatorem produkcyjnym.
 
 ## Sekrety CI

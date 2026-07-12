@@ -10,6 +10,7 @@ Opisuje zakres testów komponentów, hooków, warstwy API i widoków.
 
 ## Stan obecny
 - Frontend nie posiada jeszcze docelowego zestawu testów.
+- Repozytorium posiada podstawowy test smoke frontendu uruchamiany w CI.
 
 ## Stan docelowy
 - Testy chronią krytyczne formularze, upload, routing i widoki zależne od uprawnień.
