@@ -23,6 +23,8 @@ Opisuje zasady prowadzenia prac rozwojowych zgodnie z przyjętą architekturą i
 - Nie modyfikuj zatwierdzonych migracji schematu, gdy mechanizm migracji zostanie już wprowadzony do repozytorium.
 - Nie twierdź, że testy przeszły, jeśli nie zostały uruchomione.
 - Dokumentacja musi być aktualizowana razem ze zmianą.
+- **Logika błędów i wyjątków**: Błędy biznesowe należy zgłaszać poprzez rzucanie wyjątków dziedziczących po `AppException` bezpośrednio w serwisach (nigdy przez zwracanie flag boolean i if-ologię w kontrolerach). Ostateczne mapowanie do REST API spoczywa na `GlobalExceptionHandler`.
+- **Logowanie i Audyt**: Ważne operacje w systemie (logowania, rejestracje, istotne zmiany) muszą być utrwalone w tabeli audytu (bez danych wrażliwych) używając `AuditService`, natomiast przebieg procesów należy logować technicznie używając `@Slf4j`.
 
 ## Powiązane dokumenty
 - [DEFINITION_OF_DONE.md](DEFINITION_OF_DONE.md)

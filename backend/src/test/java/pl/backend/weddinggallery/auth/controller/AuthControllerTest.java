@@ -100,4 +100,35 @@ public class AuthControllerTest {
 		assertThat(meResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(meResponse.getBody()).contains("test@example.com");
 	}
+
+	@Test
+	void shouldFailRegistrationWhenEmailExists() {
+		HttpHeaders headers = getHeadersWithCsrf();
+		Map<String, String> registerRequest = Map.of("email", "existing@example.com", "password", "password123");
+		HttpEntity<Map<String, String>> entity = new HttpEntity<>(registerRequest, headers);
+
+		// First registration
+		restTemplate.exchange(getBaseUrl() + "/register", HttpMethod.POST, entity, String.class);
+
+		// Second registration
+		ResponseEntity<String> regResponse2 = restTemplate.exchange(getBaseUrl() + "/register", HttpMethod.POST, entity,
+				String.class);
+
+		assertThat(regResponse2.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(regResponse2.getBody()).contains("EMAIL_ALREADY_IN_USE");
+	}
+
+	@Test
+	void shouldFailLoginWithBadCredentials() {
+		HttpHeaders headers = getHeadersWithCsrf();
+		Map<String, String> loginRequest = Map.of("email", "wrong@example.com", "password", "wrongpass");
+		HttpEntity<Map<String, String>> entity = new HttpEntity<>(loginRequest, headers);
+
+		ResponseEntity<String> loginResponse = restTemplate.exchange(getBaseUrl() + "/login", HttpMethod.POST, entity,
+				String.class);
+
+		assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		System.out.println("LOGIN RESPONSE BODY: " + loginResponse.getBody());
+		assertThat(loginResponse.getBody()).isNotNull().contains("INVALID_CREDENTIALS");
+	}
 }

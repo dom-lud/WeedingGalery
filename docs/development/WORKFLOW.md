@@ -60,7 +60,8 @@ Przed implementacją należy jawnie odpowiedzieć:
 - Czy frontend wymaga nowych widoków, stanów loading/error/empty lub guardów?
 - Czy zmiana wpływa na ownership, role albo dostęp publiczny?
 - Czy zmiana wpływa na limity, storage, retencję lub backup?
-- Czy trzeba dodać monitoring, logowanie albo audyt?
+- Czy trzeba dodać monitoring, logowanie techniczne (@Slf4j) albo biznesowy audyt (AuditService)?
+- Czy kod tworzy nowe ścieżki awaryjne wymagające rzucania dedykowanych wyjątków domenowych i aktualizacji `GlobalExceptionHandler`?
 - Czy trzeba zmienić dokumentację domenową, checklisty lub prompt templates?
 - Czy zadanie wymaga subagentów, czy wystarczy jeden agent?
 - Czy zmiana wpływa na CI/CD lub quality gates?
