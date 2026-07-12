@@ -34,6 +34,7 @@ Zasady analizy:
 - sprawdź aktualny kod i testy,
 - wskaż moduły i pliki objęte zmianą,
 - oceń wpływ na API, bazę, frontend, auth, ownership, bezpieczeństwo i dokumentację,
+- jawnie zdecyduj, czy potrzebni są subagenci,
 - jeśli potrzebna jest decyzja architektoniczna, nie implementuj jej bez ADR.
 
 Zakres do wykonania:
@@ -44,15 +45,19 @@ Poza zakresem:
 
 Wymagania testowe:
 - [testy jednostkowe, integracyjne, E2E lub brak]
+- testy mają bronić wymagań, kontraktu i regresji,
+- uwzględnij scenariusze negatywne i graniczne tam, gdzie niosą ryzyko.
 
 Wymagania bezpieczeństwa:
 - [auth, ownership, upload, dane osobowe, limity]
 
 Nie wychodź poza zakres zadania.
+Po implementacji wykonaj self-review i powtarzaj pętlę poprawki-testy-review aż wynik będzie akceptowalny albo blocker będzie jawnie opisany.
 
 Format końcowego podsumowania:
 - wykonane zmiany,
 - uruchomione testy,
+- wynik self-review,
 - zaktualizowane dokumenty,
 - ryzyka i nieweryfikowane obszary.
 ```

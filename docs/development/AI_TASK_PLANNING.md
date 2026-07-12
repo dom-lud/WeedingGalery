@@ -18,6 +18,9 @@ Opisuje, jak agent AI powinien przygotować plan przed rozpoczęciem implementac
 - Plan nie może być ogólnikiem typu „zrobię backend i frontend”.
 - Plan musi być osadzony w aktualnym stanie kodu i dokumentacji.
 - Jeśli zadanie wymaga wcześniejszej decyzji, plan powinien to wskazać zamiast przechodzić od razu do implementacji.
+- Plan musi jawnie wskazać, czy potrzebni są subagenci; jeśli nie, plan ma to powiedzieć wprost.
+- Plan musi zawierać sposób self-review i warunek ponawiania iteracji po wykryciu problemów.
+- Plan musi wskazać testy, które mogą obalić błędną implementację, a nie tylko potwierdzić aktualny kod.
 
 ## Struktura planu
 1. Cel zadania.
@@ -34,14 +37,17 @@ Opisuje, jak agent AI powinien przygotować plan przed rozpoczęciem implementac
 12. Testy.
 13. Dokumentacja.
 14. Ryzyka.
-15. Kolejność implementacji.
-16. Warunki zakończenia.
+15. Decyzja o subagentach.
+16. Plan self-review.
+17. Kolejność implementacji.
+18. Warunki zakończenia.
 
 ## Minimalny standard jakości planu
 - Wskazuje konkretne moduły i pliki.
 - Rozróżnia stan obecny od docelowego.
 - Wskazuje, czego agent nie zweryfikował.
 - Wskazuje zależności i blokery.
+- Wskazuje jak zostanie zweryfikowane spełnienie wymagań na końcu pracy.
 
 ## Powiązane dokumenty
 - [WORKFLOW.md](WORKFLOW.md)

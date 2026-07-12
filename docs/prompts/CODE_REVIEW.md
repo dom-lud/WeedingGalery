@@ -28,6 +28,7 @@ Przed pracą przeczytaj:
 Zasady analizy:
 - skup się na bugach, ryzykach, regresjach i brakujących testach,
 - sprawdź auth, ownership, walidację, błędy i dokumentację,
+- oceń, czy testy bronią wymagań zamiast aktualnej implementacji,
 - nie proponuj zmian stylistycznych bez znaczenia technicznego.
 
 Zakres review:
@@ -38,6 +39,7 @@ Poza zakresem:
 
 Wymagania testowe:
 - oceń czy istniejące i nowe testy są wystarczające.
+- oceń czy testy zawierają scenariusze, które mogłyby obalić błędny kod.
 
 Wymagania bezpieczeństwa:
 - oceń auth, ownership, dane wrażliwe, logowanie i upload, jeśli dotyczy.
@@ -45,7 +47,8 @@ Wymagania bezpieczeństwa:
 Format końcowego podsumowania:
 - findings uporządkowane od najważniejszych,
 - pytania otwarte,
-- krótka ocena ryzyka.
+- krótka ocena ryzyka,
+- ocena jakości testów.
 ```
 
 ## Powiązane dokumenty

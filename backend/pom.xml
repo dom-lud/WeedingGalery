@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>pl.backend</groupId>
-	<artifactId>WeedingGalery</artifactId>
+	<artifactId>wedding-gallery-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>WeedingGalery</name>
-	<description>WeedingGalery</description>
+	<name>Wedding Gallery Backend</name>
+	<description>Backend for the Wedding Gallery platform</description>
 	<url/>
 	<licenses>
 		<license/>

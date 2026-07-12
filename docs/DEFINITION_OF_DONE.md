@@ -20,6 +20,7 @@ Definiuje kompletne kryteria ukończenia zadania dla zmian w projekcie.
 - [ ] Przypadki brzegowe zostały przeanalizowane.
 - [ ] Obsługa błędów jest zdefiniowana.
 - [ ] Nieweryfikowane obszary zostały jawnie opisane.
+- [ ] Na końcu pracy wykonano jawne sprawdzenie wymagań punkt po punkcie.
 
 ## Kryteria bezpieczeństwa i autoryzacji
 - [ ] Ownership zasobów został sprawdzony.
@@ -36,6 +37,8 @@ Definiuje kompletne kryteria ukończenia zadania dla zmian w projekcie.
 
 ## Kryteria testowe
 - [ ] Dodano lub zaktualizowano testy adekwatne do zakresu.
+- [ ] Testy wynikają z wymagań, kontraktu, regresji i ryzyk, a nie z dopasowania do aktualnej implementacji.
+- [ ] Testy obejmują co najmniej jedną próbę obalenia błędnego zachowania, jeśli zakres zmiany to uzasadnia.
 - [ ] Build przechodzi.
 - [ ] Lint przechodzi.
 - [ ] Testy integracyjne zostały uruchomione, jeśli dotyczy.
@@ -51,6 +54,7 @@ Definiuje kompletne kryteria ukończenia zadania dla zmian w projekcie.
 ## Kryteria dokumentacyjne
 - [ ] Dokumentacja została zaktualizowana.
 - [ ] Zmiana jest zgodna z ADR albo uzupełniono nowy lub zaktualizowany ADR.
+- [ ] Self-review został wykonany po implementacji i przed finalnym podsumowaniem.
 - [ ] Code review został wykonany.
 - [ ] Podsumowanie wykonanych działań wskazuje, co zostało zweryfikowane.
 

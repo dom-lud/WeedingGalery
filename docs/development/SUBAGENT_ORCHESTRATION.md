@@ -19,6 +19,8 @@ Opisuje standard wykorzystywania subagentów podczas pracy nad projektem.
 ## Zasada nadrzędna
 Lead Agent / Orchestrator jest właścicielem całości zadania. Wynik subagenta jest rekomendacją, dopóki Lead Agent go nie zatwierdzi, nie rozwiąże sprzeczności i nie zintegruje zmian.
 
+Lead Agent musi też jawnie uzasadnić, dlaczego subagenci są potrzebni albo dlaczego nie są potrzebni. Brak subagentów przy prostym zadaniu jest poprawną decyzją, ale nadal powinien być świadomym wyborem.
+
 ## Role subagentów
 
 ### Lead Agent / Orchestrator

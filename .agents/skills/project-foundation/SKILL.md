@@ -77,9 +77,13 @@ Etap 0 może obejmować:
 7. Sprawdź `.gitignore` i `.dockerignore`.
 8. Sprawdź, czy istnieją podstawowe quality gates.
 9. Wskaż braki blokujące pierwszy vertical slice.
-10. Jeśli tryb to `implement`, wykonaj minimalne poprawki.
-11. Uruchom kontrole końcowe.
-12. Podsumuj, co jest gotowe i co zostaje poza zakresem.
+10. Jawnie zdecyduj, czy Etap 0 wymaga subagentów; domyślnie nie.
+11. Jeśli tryb to `implement`, wykonaj minimalne poprawki.
+12. Dodaj lub zaktualizuj testy tak, by broniły foundation contracts, a nie tylko aktualnego kodu.
+13. Uruchom kontrole końcowe.
+14. Wykonaj self-review w świeżym kontekście.
+15. Jeśli wykryto problemy, wróć do implementacji i powtarzaj pętlę.
+16. Podsumuj, co jest gotowe i co zostaje poza zakresem.
 
 ## Standardowe komendy weryfikacyjne
 Dobierz komendy do stanu repo, ale preferuj:
@@ -105,6 +109,8 @@ Na Windows użyj odpowiedników, np. `.\mvnw.cmd test`.
 - [ ] `.env.example` nie zawiera sekretów.
 - [ ] `.gitignore` obejmuje artefakty lokalne.
 - [ ] `.dockerignore` ogranicza kontekst builda.
+- [ ] Testy foundation nie są napisane wyłącznie pod aktualną implementację.
+- [ ] Wykonano self-review i poprawiono wykryte problemy.
 - [ ] Nie zaimplementowano funkcji biznesowych poza zakresem.
 - [ ] Lista następnych kroków prowadzi do pierwszego vertical slice.
 

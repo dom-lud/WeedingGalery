@@ -9,7 +9,7 @@ Opisuje docelową strategię CI/CD dla GitHub Actions bez implementowania workfl
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Stan obecny
-- Repozytorium nie ma jeszcze docelowych workflow GitHub Actions.
+- Repozytorium ma podstawowy workflow GitHub Actions dla foundation checks.
 - Quality gates są opisane dokumentacyjnie, ale nie są w pełni egzekwowane automatycznie.
 
 ## Stan docelowy

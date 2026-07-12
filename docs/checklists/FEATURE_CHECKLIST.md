@@ -17,16 +17,20 @@ Lista kontrolna dla realizacji funkcji i większych zmian technicznych.
 ## Lista kontrolna
 - [ ] Wymagania i kryteria akceptacji są jasne.
 - [ ] Zakres i poza zakresem są opisane.
+- [ ] Jawnie zdecydowano, czy zadanie wymaga subagentów.
 - [ ] Autoryzacja została sprawdzona.
 - [ ] Ownership zasobów został sprawdzony.
 - [ ] Walidacja wejścia została uwzględniona.
 - [ ] Obsługa błędów została zdefiniowana.
 - [ ] Testy zostały dodane lub zaktualizowane.
+- [ ] Testy nie są „pod kod”, tylko pod wymagania, kontrakt i regresje.
+- [ ] Wykonano self-review i poprawiono wykryte problemy.
 - [ ] Dokumentacja została zaktualizowana.
 - [ ] Monitoring, logowanie lub audyt zostały uwzględnione, jeśli dotyczy.
 - [ ] Migracje zostały przeanalizowane, jeśli dotyczy.
 - [ ] Storage i limity zostały przeanalizowane, jeśli dotyczy.
 - [ ] Brak sekretów w repozytorium.
+- [ ] Na końcu sprawdzono spełnienie wymagań i DoD punkt po punkcie.
 
 ## Powiązane dokumenty
 - [../development/WORKFLOW.md](../development/WORKFLOW.md)

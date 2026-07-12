@@ -9,7 +9,8 @@ Opisuje warunki, które muszą być spełnione przed scaleniem zmian i przed wdr
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Stan obecny
-- Quality gates są zdefiniowane docelowo, ale nie wszystkie są jeszcze automatycznie egzekwowane.
+- Quality gates są zdefiniowane docelowo, a podstawowy workflow foundation egzekwuje backend testy, frontend lint i build oraz `docker compose config`.
+- Nie wszystkie docelowe quality gates są jeszcze automatycznie egzekwowane.
 
 ## Stan docelowy
 - Każdy relewantny change przechodzi przez spójny zestaw kontroli jakości.

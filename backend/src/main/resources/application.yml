@@ -1,5 +1,5 @@
 spring:
   application:
-    name: WeedingGalery
+    name: WeddingGallery
   jpa:
     open-in-view: false

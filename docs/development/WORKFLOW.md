@@ -19,6 +19,10 @@ Opisuje standardowy proces realizacji każdej funkcji, poprawki lub zmiany archi
 - Nie zakładaj, że opisane funkcje już istnieją w kodzie.
 - Wykonuj minimalny spójny zakres zamiast szerokiej, niesprawdzonej zmiany.
 - Aktualizacja dokumentacji jest częścią zadania, a nie etapem opcjonalnym.
+- Decyzja o użyciu albo nieużyciu subagentów musi być jawna dla każdego zadania nietrywialnego.
+- Self-review po implementacji jest obowiązkowy i ma być wykonany z perspektywy review, nie autora.
+- Workflow jest pętlą: jeśli testy, review albo checklista wykryją problem, zadanie wraca do implementacji aż do domknięcia albo jawnego opisania blokera.
+- Zamknięcie zadania wymaga sprawdzenia spełnienia wymagań, DoD i właściwych checklist punkt po punkcie.
 
 ## Standardowy przebieg zadania
 1. Analiza zadania.
@@ -30,12 +34,16 @@ Opisuje standardowy proces realizacji każdej funkcji, poprawki lub zmiany archi
 7. Decyzja, czy zadanie wymaga orkiestracji subagentów zgodnie z [SUBAGENT_ORCHESTRATION.md](SUBAGENT_ORCHESTRATION.md).
 8. Identyfikacja wymaganych ADR-ów.
 9. Implementacja minimalnego spójnego zakresu.
-10. Dodanie lub aktualizacja testów.
+10. Dodanie lub aktualizacja testów opartych na wymaganiach, kontrakcie i ryzykach.
 11. Uruchomienie builda, testów i lintowania.
-12. Code review.
-13. Security review, jeśli zmiana dotyczy danych, uploadu, autoryzacji lub panelu administratora.
-14. Aktualizacja dokumentacji.
-15. Podsumowanie wykonanych zmian.
+12. Self-review w świeżym kontekście.
+13. Poprawa problemów wykrytych przez testy albo self-review.
+14. Ponowne uruchomienie kontroli aż wynik będzie zielony albo blocker będzie jasno opisany.
+15. Code review.
+16. Security review, jeśli zmiana dotyczy danych, uploadu, autoryzacji lub panelu administratora.
+17. Aktualizacja dokumentacji.
+18. Końcowe sprawdzenie DoD i checklist.
+19. Podsumowanie wykonanych zmian.
 
 ## Kontrola przed implementacją
 - Sprawdź [DEFINITION_OF_READY.md](DEFINITION_OF_READY.md).
@@ -54,6 +62,8 @@ Przed implementacją należy jawnie odpowiedzieć:
 - Czy trzeba zmienić dokumentację domenową, checklisty lub prompt templates?
 - Czy zadanie wymaga subagentów, czy wystarczy jeden agent?
 - Czy zmiana wpływa na CI/CD lub quality gates?
+- Jakie testy najlepiej obalą błędną implementację, a nie tylko potwierdzą szczęśliwą ścieżkę?
+- Jak zweryfikować zmianę po implementacji z perspektywy niezależnego review?
 
 ## Diagram przepływu
 ```mermaid
@@ -62,21 +72,25 @@ flowchart TD
     B --> C[Sprawdzenie dokumentacji i ADR]
     C --> D[Przegląd kodu i testów]
     D --> E[Analiza wpływu i ryzyk]
-    E --> F{Czy potrzebna decyzja architektoniczna lub ADR?}
+    E --> F{"Czy potrzebna decyzja architektoniczna lub ADR?"}
     F -->|Tak| G[Przygotuj lub zaktualizuj ADR]
     F -->|Nie| H[Przygotuj plan]
     G --> H
     H --> I[Implementacja minimalnego spójnego zakresu]
     I --> J[Testy, build i lint]
-    J --> K[Code review i security review jeśli dotyczy]
-    K --> L[Aktualizacja dokumentacji]
-    L --> M[Podsumowanie i zamknięcie zadania]
+    J --> K[Self-review]
+    K --> L{"Czy są problemy?"}
+    L -->|Tak| I
+    L -->|Nie| M[Code review i security review jeśli dotyczy]
+    M --> N[Aktualizacja dokumentacji]
+    N --> O[Sprawdzenie DoD i checklist]
+    O --> P[Podsumowanie i zamknięcie zadania]
 ```
 
 ## Role i odpowiedzialności
-- Autor zmiany: analiza, implementacja, testy, dokumentacja.
+- Autor zmiany: analiza, implementacja, testy, self-review, dokumentacja i końcowe sprawdzenie wymagań.
 - Reviewer: poprawność, architektura, bezpieczeństwo, zakres, jakość.
-- Agent AI: przygotowanie planu, wykonanie minimalnego zakresu, wskazanie braków i niezweryfikowanych obszarów.
+- Agent AI: przygotowanie planu, jawna decyzja o subagentach, wykonanie minimalnego zakresu, wskazanie braków i niezweryfikowanych obszarów oraz iteracja aż do zielonego stanu albo jasno opisanego blokera.
 - Właściciel decyzji architektonicznej: zatwierdzenie ADR i zmian wpływających na fundamenty systemu.
 
 ## Powiązane dokumenty

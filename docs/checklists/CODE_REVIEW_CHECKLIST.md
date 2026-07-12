@@ -22,7 +22,9 @@ Lista kontrolna dla review zmian kodu i dokumentacji technicznej.
 - [ ] Nie pojawia się zbędna duplikacja.
 - [ ] Obsługa błędów jest poprawna.
 - [ ] Logowanie i audyt są uwzględnione, jeśli dotyczy.
-- [ ] Testy są adekwatne.
+- [ ] Testy są adekwatne i nie wyglądają na napisane „pod kod”.
+- [ ] Testy obejmują istotne scenariusze negatywne, graniczne i regresyjne, jeśli zakres tego wymaga.
+- [ ] Reviewer sprawdził, czy autor wykonał self-review i domknął wykryte problemy.
 - [ ] Dokumentacja została zaktualizowana.
 - [ ] Bezpieczeństwo i ownership zostały sprawdzone.
 

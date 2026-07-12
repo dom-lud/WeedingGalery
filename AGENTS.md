@@ -56,6 +56,11 @@ Platforma webowa do zbierania, organizowania i udostępniania zdjęć oraz film�
 - Nie zapisuj sekretów w repozytorium.
 - Nie traktuj planowanych funkcji jako istniejących.
 - Każda istotna decyzja techniczna powinna mieć odzwierciedlenie w dokumentacji lub ADR.
+- Przed implementacją jawnie zdecyduj, czy zadanie wymaga subagentów; brak użycia subagentów też jest decyzją.
+- Po implementacji wykonaj self-review w świeżym kontekście, jak reviewer, a nie autor zmiany.
+- Jeśli testy, review albo checklista wykryją problem, wróć do implementacji i powtarzaj pętlę aż problem zniknie albo zostanie jawnie opisany jako blocker.
+- Na końcu sprawdź punkt po punkcie, czy spełniono wymagania zadania, Definition of Done i właściwe checklisty.
+- Testy mają bronić wymagań, kontraktu i regresji; nie wolno pisać ich wyłącznie „pod kod”.
 
 ## Kolejność pracy agenta
 1. Przeczytaj `AGENTS.md`.
@@ -68,16 +73,20 @@ Platforma webowa do zbierania, organizowania i udostępniania zdjęć oraz film�
 8. Jeśli zadanie jest złożone, sprawdź potrzebę subagentów.
 9. Wybierz właściwy skill.
 10. Zaimplementuj zmianę.
-11. Uruchom testy.
-12. Wykonaj checklistę.
-13. Zaktualizuj dokumentację.
-14. Sprawdź Definition of Done.
+11. Dodaj lub zaktualizuj testy oparte na wymaganiach, kontrakcie i ryzykach.
+12. Uruchom testy.
+13. Wykonaj self-review i popraw wykryte problemy.
+14. Powtarzaj implementację, testy i review aż wynik będzie akceptowalny.
+15. Wykonaj checklistę.
+16. Zaktualizuj dokumentację.
+17. Sprawdź Definition of Done.
 
 ## Definition of Done
 Skrócona definicja:
 - funkcjonalność zgodna z zakresem,
 - autoryzacja i ownership zachowane,
 - testy dodane i uruchomione, jeśli dotyczy,
+- testy napisane krytycznie, a nie pod aktualną implementację,
 - dokumentacja zaktualizowana,
 - brak sekretów i obejść bezpieczeństwa,
 - zgodność z ADR.
