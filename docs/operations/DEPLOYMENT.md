@@ -10,9 +10,10 @@ Opisuje docelowy model wdrożenia platformy, z naciskiem na start na jednym VPS.
 
 ## Stan obecny
 - Repozytorium zawiera szkice plików deploymentowych, ale nie stanowią one potwierdzonej konfiguracji produkcyjnej.
+- Aktualny `docker-compose.yml` uruchamia `mysql`, `backend`, `frontend` i `nginx`.
 
 ## Stan docelowy
-- Jeden VPS z Nginx, frontendem, backendem, PostgreSQL, lokalnym storage i procesem zadań asynchronicznych.
+- Jeden VPS z Nginx, frontendem, backendem, relacyjną bazą danych, lokalnym storage i procesem zadań asynchronicznych.
 
 ## Architektura wdrożenia
 ```mermaid
@@ -20,7 +21,7 @@ flowchart TD
     Internet --> Nginx[Nginx + HTTPS]
     Nginx --> Frontend[Frontend SPA]
     Nginx --> Backend[Backend API]
-    Backend --> Postgres[(PostgreSQL)]
+    Backend --> Database[(Relational DB)]
     Backend --> Storage[(Local Storage Volume)]
     Backend --> Worker[Background Worker]
 ```

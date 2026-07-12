@@ -15,6 +15,7 @@ Definiuje szczegółowe zasady implementacji backendu zgodne z docelową archite
 ## Stan docelowy
 - Backend w Java 25 i Spring Boot 4, zorganizowany jako modularny monolit.
 - Pakiety i use case są organizowane według domen biznesowych, nie według globalnych warstw technicznych.
+- Aktualny kod backendu korzysta z MySQL; ewentualna zmiana silnika bazy wymaga osobnej decyzji oraz migracji implementacji i konfiguracji.
 
 ## Docelowy stack
 - Java 25
@@ -23,8 +24,8 @@ Definiuje szczegółowe zasady implementacji backendu zgodne z docelową archite
 - Spring Data JPA
 - Spring Security
 - Bean Validation
-- PostgreSQL Driver
-- Flyway
+- MySQL Driver
+- Narzędzie migracji schematu: do ustalenia; po wdrożeniu staje się obowiązkowym elementem procesu zmian danych
 - Spring Boot Actuator
 - Springdoc OpenAPI, jeśli będzie zgodny z docelową wersją Spring Boot
 - Maven

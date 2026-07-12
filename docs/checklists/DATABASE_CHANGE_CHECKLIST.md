@@ -15,7 +15,7 @@ Lista kontrolna dla zmian schematu, encji i migracji.
 - Każda zmiana bazy danych jest analizowana pod kątem bezpieczeństwa, kompatybilności i operacji.
 
 ## Lista kontrolna
-- [ ] Dodano nową migrację Flyway, jeśli zmiana tego wymaga.
+- [ ] Dodano nową migrację schematu, jeśli zmiana tego wymaga i mechanizm migracji jest już częścią repozytorium.
 - [ ] Nie zmodyfikowano zatwierdzonych migracji.
 - [ ] Constraints zostały przeanalizowane.
 - [ ] Indeksy zostały przeanalizowane.

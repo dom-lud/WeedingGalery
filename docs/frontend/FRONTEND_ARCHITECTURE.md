@@ -10,6 +10,7 @@ Opisuje docelową strukturę SPA, główne obszary interfejsu i odpowiedzialnoś
 
 ## Stan obecny
 - W repozytorium istnieje szkic aplikacji React/Vite.
+- W aktualnych zależnościach są React, TypeScript, Vite i Material UI, ale React Router nie jest jeszcze używany w kodzie.
 - Docelowa architektura paneli i galerii publicznej nie jest jeszcze wdrożona.
 
 ## Stan docelowy

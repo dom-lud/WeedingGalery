@@ -12,10 +12,10 @@ Opisuje strategię backupu, retencję, RPO/RTO i procedurę odtworzenia.
 - Strategia backupu nie jest jeszcze wdrożona.
 
 ## Stan docelowy
-- Regularne backupy PostgreSQL, storage i konfiguracji z testowanym odtwarzaniem.
+- Regularne backupy używanej relacyjnej bazy danych, storage i konfiguracji z testowanym odtwarzaniem.
 
 ## Zakres backupu
-- PostgreSQL
+- Relacyjna baza danych używana przez aktualne wdrożenie
 - Storage plików
 - Konfiguracja i sekrety przechowywane poza repozytorium
 - Artefakty krytyczne dla odtworzenia środowiska

@@ -45,7 +45,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | Backend guidelines | Standard implementacji backendu | backend, AI | przy zmianie standardów | [docs/backend/BACKEND_GUIDELINES.md](backend/BACKEND_GUIDELINES.md) |
 | API conventions | Konwencje REST | backend, frontend | przy zmianie kontraktów | [docs/backend/API_CONVENTIONS.md](backend/API_CONVENTIONS.md) |
 | API endpoints | Katalog endpointów | backend, frontend, QA | przy dodaniu endpointów | [docs/backend/API_ENDPOINTS.md](backend/API_ENDPOINTS.md) |
-| Database conventions | Zasady schematu i Flyway | backend, DBA | przy zmianie zasad danych | [docs/backend/DATABASE_CONVENTIONS.md](backend/DATABASE_CONVENTIONS.md) |
+| Database conventions | Zasady schematu, migracji i pracy z relacyjną bazą danych | backend, DBA | przy zmianie zasad danych | [docs/backend/DATABASE_CONVENTIONS.md](backend/DATABASE_CONVENTIONS.md) |
 | Error handling | Format błędów | backend, frontend | przy zmianie błędów API | [docs/backend/ERROR_HANDLING.md](backend/ERROR_HANDLING.md) |
 | Authentication and authorization | Model authN/authZ | backend, security | przy zmianie auth | [docs/backend/AUTHENTICATION_AND_AUTHORIZATION.md](backend/AUTHENTICATION_AND_AUTHORIZATION.md) |
 | Media processing | Pipeline mediów | backend, ops | przy zmianie processingu | [docs/backend/MEDIA_PROCESSING.md](backend/MEDIA_PROCESSING.md) |
@@ -159,6 +159,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | --- | --- | --- | --- | --- |
 | Backend feature skill | Realizacja funkcji backendowej | AI, backend | przy zmianie standardów backendu | [.agents/skills/backend-feature/SKILL.md](../.agents/skills/backend-feature/SKILL.md) |
 | Frontend feature skill | Realizacja funkcji frontendowej | AI, frontend | przy zmianie standardów frontendu | [.agents/skills/frontend-feature/SKILL.md](../.agents/skills/frontend-feature/SKILL.md) |
+| Project foundation skill | Etap 0 i techniczne fundamenty repozytorium | AI, tech lead | przy starcie implementacji i stabilizacji repo | [.agents/skills/project-foundation/SKILL.md](../.agents/skills/project-foundation/SKILL.md) |
 | Task orchestration skill | Koordynacja subagentów i integracja wyników | AI, reviewer | przy zmianie standardu orkiestracji | [.agents/skills/task-orchestration/SKILL.md](../.agents/skills/task-orchestration/SKILL.md) |
 | Database migration skill | Zmiany danych i migracje | AI, backend | przy zmianie standardów danych | [.agents/skills/database-migration/SKILL.md](../.agents/skills/database-migration/SKILL.md) |
 | API design skill | Projektowanie API | AI, backend | przy zmianie API conventions | [.agents/skills/api-design/SKILL.md](../.agents/skills/api-design/SKILL.md) |

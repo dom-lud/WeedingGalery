@@ -83,7 +83,7 @@ Zakres:
 - Testy jednostkowe przechodzą.
 - Testy integracyjne przechodzą, jeśli zmiana dotyczy API, bazy, security, storage lub background jobs.
 - Testy security i ownership przechodzą, jeśli zmiana dotyczy autoryzacji lub danych użytkowników.
-- Migracje Flyway są walidowane, jeśli zmiana dotyczy schematu.
+- Migracje schematu są walidowane, jeśli zmiana dotyczy danych i repozytorium zawiera już aktywny mechanizm migracji.
 - Brak znanych krytycznych podatności w zależnościach.
 
 ### Frontend
@@ -137,7 +137,7 @@ Zmiana gate z ostrzegawczego na blokujący powinna zostać odnotowana w dokument
 - Środowiska produkcyjne powinny wymagać ręcznego zatwierdzenia lub environment protection rules.
 
 ## Migracje i dane
-- Migracje Flyway uruchamiamy przed startem nowej wersji aplikacji albo jako jawny etap deploymentu.
+- Migracje schematu uruchamiamy przed startem nowej wersji aplikacji albo jako jawny etap deploymentu, gdy mechanizm migracji zostanie wdrożony.
 - Destrukcyjne migracje wymagają planu danych, backupu i rollbacku.
 - Zmiany schematu muszą być kompatybilne z procesem rollbacku albo mieć osobny plan operacyjny.
 

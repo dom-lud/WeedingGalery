@@ -1,0 +1,141 @@
+# Project Foundation
+
+## Cel dokumentu
+Skill prowadzący przez Etap 0, czyli techniczne fundamenty repozytorium przed implementacją funkcji biznesowych.
+
+## Status dokumentu
+- Status: draft
+- Zakres: project foundation / etap 0 skill
+- Ostatnia aktualizacja: 2026-07-12
+
+## Stan obecny
+- Repozytorium ma dokumentację, szkielety backendu i frontendu oraz podstawowe pliki Docker.
+- Etap 0 służy ustabilizowaniu fundamentów, a nie implementacji funkcji produktowych.
+
+## Stan docelowy
+- Backend, frontend, Docker i podstawowe quality gates są powtarzalne.
+- Repozytorium jest gotowe do pierwszego vertical slice.
+
+## Kiedy używać
+- Gdy użytkownik pisze: `zacznij etap 0`.
+- Gdy użytkownik pisze: `przygotuj fundamenty`, `ustabilizuj repo`, `sprawdź foundation`, `zrób project foundation`.
+- Przed pierwszym vertical slice backend/frontend.
+- Po większych zmianach w stacku, Dockerze, CI, testach albo strukturze repo.
+
+## Tryby pracy
+- `audit`: sprawdź stan i przygotuj listę braków bez zmian.
+- `plan`: przygotuj kolejność zmian Etapu 0 bez implementacji.
+- `implement`: wykonaj minimalny bezpieczny zakres Etapu 0.
+- `verify`: uruchom kontrole i podsumuj blokery.
+
+Jeśli użytkownik nie poda trybu, przyjmij `audit + plan`, a implementuj dopiero gdy prosi o wykonanie.
+
+## Wymagane dokumenty
+- `AGENTS.md`
+- `README.md`
+- `docs/DOCUMENTATION_MAP.md`
+- `docs/development/WORKFLOW.md`
+- `docs/operations/CI_CD_STRATEGY.md`
+- `docs/testing/QUALITY_GATES.md`
+- `docs/backend/BACKEND_GUIDELINES.md`
+- `docs/frontend/FRONTEND_ARCHITECTURE.md`
+- `docs/frontend/UI_SYSTEM.md`
+- `docs/architecture/REPOSITORY_STRUCTURE.md`
+- odpowiednie ADR
+
+## Zakres Etapu 0
+Etap 0 może obejmować:
+- spójność README, AGENTS, mapy dokumentacji i realnej struktury repo,
+- spójność wersji stacku między docs i kodem,
+- build backendu,
+- testy backendu,
+- build frontendu,
+- lint frontendu,
+- Docker Compose config,
+- Docker build,
+- `.env.example`,
+- `.gitignore`,
+- `.dockerignore`,
+- podstawowe health/config readiness,
+- przygotowanie Flyway i pustych migracji tylko wtedy, gdy nie wprowadza to jeszcze modelu domenowego,
+- minimalny CI/CD plan lub workflow dopiero gdy użytkownik wyraźnie poprosi o implementację pipeline.
+
+## Poza zakresem Etapu 0
+- Implementacja auth.
+- Implementacja eventów, galerii, uploadu, panelu admina lub publicznej galerii.
+- Docelowy model danych poza technicznym przygotowaniem migracji.
+- Pełny deployment produkcyjny.
+- Mikroserwisy, Kubernetes lub zmiana stacku bez ADR.
+
+## Wymagane kroki
+1. Przeczytaj wymagane dokumenty.
+2. Sprawdź aktualną strukturę repo.
+3. Sprawdź zgodność stacku między docs i kodem.
+4. Sprawdź backend: build, testy, konfiguracja, Dockerfile.
+5. Sprawdź frontend: zależności, MUI, theme, lint, build, Dockerfile.
+6. Sprawdź Docker Compose i `.env.example`.
+7. Sprawdź `.gitignore` i `.dockerignore`.
+8. Sprawdź, czy istnieją podstawowe quality gates.
+9. Wskaż braki blokujące pierwszy vertical slice.
+10. Jeśli tryb to `implement`, wykonaj minimalne poprawki.
+11. Uruchom kontrole końcowe.
+12. Podsumuj, co jest gotowe i co zostaje poza zakresem.
+
+## Standardowe komendy weryfikacyjne
+Dobierz komendy do stanu repo, ale preferuj:
+
+```bash
+cd backend && ./mvnw test
+cd frontend && npm run lint
+cd frontend && npm run build
+docker compose config --quiet
+docker compose build
+```
+
+Na Windows użyj odpowiedników, np. `.\mvnw.cmd test`.
+
+## Checklista
+- [ ] Dokumentacja wejściowa jest spójna.
+- [ ] Stack w docs zgadza się z kodem.
+- [ ] Backend testy przechodzą.
+- [ ] Frontend lint przechodzi.
+- [ ] Frontend build przechodzi.
+- [ ] Docker Compose config przechodzi.
+- [ ] Docker build przechodzi albo blocker jest jasno opisany.
+- [ ] `.env.example` nie zawiera sekretów.
+- [ ] `.gitignore` obejmuje artefakty lokalne.
+- [ ] `.dockerignore` ogranicza kontekst builda.
+- [ ] Nie zaimplementowano funkcji biznesowych poza zakresem.
+- [ ] Lista następnych kroków prowadzi do pierwszego vertical slice.
+
+## Kiedy użyć subagentów
+Etap 0 zwykle robi jeden agent. Użyj `task-orchestration` tylko gdy:
+- Docker/CI/security wymaga niezależnej analizy,
+- stack lub ADR są sprzeczne,
+- planujesz realną implementację pipeline,
+- zmiany dotykają wielu obszarów naraz.
+
+## Oczekiwany format wyniku
+- status Etapu 0,
+- wykonane zmiany albo lista braków,
+- wyniki komend,
+- blokery,
+- ryzyka,
+- rekomendowany następny etap,
+- czego nie zweryfikowano.
+
+## Przykłady krótkich zleceń
+```text
+Użyj project-foundation i zrób audit Etapu 0.
+```
+
+```text
+Użyj project-foundation i zaimplementuj minimalny Etap 0.
+```
+
+```text
+Użyj project-foundation, sprawdź Docker/CI readiness i nic nie zmieniaj.
+```
+
+## Decyzje otwarte
+- Czy Etap 0 ma obejmować pierwszy workflow GitHub Actions, czy tylko dokumentację i lokalne quality gates.

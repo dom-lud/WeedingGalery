@@ -11,11 +11,12 @@ Opisuje docelową architekturę systemu, główne komponenty i przepływy międz
 ## Stan obecny
 - W repozytorium istnieje jedynie szkic backendu i frontendu.
 - Obecny kod nie odzwierciedla jeszcze docelowych modułów ani kompletnej architektury.
+- Aktualny backend jest skonfigurowany do pracy z MySQL; dokument nie powinien sugerować, że zmiana na inny silnik została już zaimplementowana.
 
 ## Stan docelowy
 - Modularny monolit uruchamiany jako jedna aplikacja backendowa i jeden frontend SPA.
 - Wydzielone moduły domenowe i integracyjne.
-- Jedna baza PostgreSQL i abstrakcja storage dla plików.
+- Jedna relacyjna baza danych i abstrakcja storage dla plików.
 
 ## Widok wysokiego poziomu
 ```mermaid
@@ -26,7 +27,7 @@ flowchart LR
     Frontend[React Frontend]
     Nginx[Nginx]
     Api[Spring Boot Modular Monolith]
-    Db[(PostgreSQL)]
+    Db[(Relational DB)]
     Storage[(File Storage)]
     Jobs[Background Jobs]
     Mail[Email Provider]

@@ -10,18 +10,19 @@ Opisuje zakres i standardy testów backendowych.
 
 ## Stan obecny
 - Backend nie posiada jeszcze docelowego zestawu testów.
+- Obecnie istnieje tylko test startowy kontekstu aplikacji.
 
 ## Stan docelowy
 - Testy jednostkowe, integracyjne i kontraktowe chroniące krytyczne reguły biznesowe.
 
 ## Zakres
 - Testy jednostkowe use case i polityk
-- Testy repository na PostgreSQL z Testcontainers
+- Testy repository na silniku zgodnym z aktualnym runtime backendu, docelowo uruchamiane kontenerowo
 - Testy security i ownership
 - Testy API
 - Testy uploadu i storage
 - Testy przetwarzania mediów i background jobs
-- Testy migracji Flyway
+- Testy migracji schematu po wprowadzeniu mechanizmu migracji do repozytorium
 
 ## Wymagania
 - Każda nowa reguła ownership wymaga testu pozytywnego i negatywnego.

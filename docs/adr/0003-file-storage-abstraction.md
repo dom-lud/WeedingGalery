@@ -25,7 +25,7 @@ Wprowadzamy abstrakcję `StorageService` i zakazujemy zależności logiki domeno
 
 ## Alternatywy
 - Bezpośredni zapis na dysk z wielu miejsc: odrzucony.
-- BLOB w PostgreSQL: odrzucony.
+- BLOB w relacyjnej bazie danych: odrzucony.
 
 ## Decyzje otwarte
 - Czy signed download links będą podstawowym mechanizmem pobierania już w pierwszej wersji.

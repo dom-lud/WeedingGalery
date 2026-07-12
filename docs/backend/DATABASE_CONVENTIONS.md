@@ -1,7 +1,7 @@
 # Konwencje Bazy Danych
 
 ## Cel dokumentu
-Opisuje standardy projektowania schematu PostgreSQL, migracji Flyway i zapytań.
+Opisuje standardy projektowania relacyjnego schematu danych, migracji i zapytań.
 
 ## Status dokumentu
 - Status: draft
@@ -9,10 +9,11 @@ Opisuje standardy projektowania schematu PostgreSQL, migracji Flyway i zapytań.
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Stan obecny
-- Docelowy schemat PostgreSQL nie został jeszcze utworzony.
+- Repozytorium używa obecnie MySQL w konfiguracji runtime backendu i Docker Compose.
+- W projekcie nie ma jeszcze wdrożonego narzędzia migracji schematu.
 
 ## Stan docelowy
-- Stabilny, audytowalny model danych rozwijany migracjami Flyway.
+- Stabilny, audytowalny model danych rozwijany przez jawny mechanizm migracji schematu po jego wprowadzeniu do kodu.
 
 ## Zasady nazewnictwa
 - Tabele w liczbie pojedynczej lub mnogiej muszą być konsekwentne w całym projekcie; rekomendacja: liczba pojedyncza.
@@ -20,14 +21,14 @@ Opisuje standardy projektowania schematu PostgreSQL, migracji Flyway i zapytań.
 - Klucze obce: `{entity}_id`.
 - Znaczniki czasu: `created_at`, `updated_at`, `deleted_at`.
 
-## Migracje Flyway
+## Migracje schematu
 - Tylko migracje do przodu.
 - Nie modyfikujemy zatwierdzonych migracji.
 - Zmiany destrukcyjne wymagają planu migracyjnego i retencji.
 
 ## Typy danych
 - UUID jako preferowany identyfikator zewnętrzny.
-- `jsonb` wyłącznie dla ograniczonych, uzasadnionych pól konfiguracyjnych lub metadanych.
+- Typy specyficzne dla dostawcy bazy stosujemy tylko z jawnym uzasadnieniem i opisem wpływu na przenośność.
 - Rozmiary plików i limity w `bigint`.
 - Statusy jako czytelne enumy aplikacyjne mapowane przewidywalnie.
 

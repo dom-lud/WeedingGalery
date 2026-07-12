@@ -15,7 +15,7 @@ Lista kontrolna dla backupu i odtwarzania platformy.
 - Backup i restore są regularnie sprawdzane i mierzalne.
 
 ## Lista kontrolna
-- [ ] Backup PostgreSQL jest wykonywany.
+- [ ] Backup używanej relacyjnej bazy danych jest wykonywany.
 - [ ] Backup storage jest wykonywany.
 - [ ] Backup konfiguracji jest wykonywany.
 - [ ] Kopie są przechowywane poza VPS.

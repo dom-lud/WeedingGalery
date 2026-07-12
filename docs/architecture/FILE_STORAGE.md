@@ -15,7 +15,7 @@ Opisuje docelową abstrakcję storage, model przechowywania plików i zasady dos
 - Storage ukryty za interfejsem domenowym, z pierwszą implementacją lokalną na VPS i możliwością przejścia na storage obiektowy bez zmiany logiki biznesowej.
 
 ## Założenia
-- Pliki nie są przechowywane jako BLOB w PostgreSQL.
+- Pliki nie są przechowywane jako BLOB w relacyjnej bazie danych.
 - Klient nie otrzymuje fizycznych ścieżek systemowych.
 - Backend odpowiada za autoryzację i generowanie bezpiecznych linków lub streaming.
 

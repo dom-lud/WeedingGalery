@@ -10,9 +10,10 @@ Opisuje docelowy model danych, główne encje, relacje, indeksy i zasady ownersh
 
 ## Stan obecny
 - Model danych nie jest jeszcze zaimplementowany.
+- Aktualny kod i konfiguracja runtime backendu wskazują MySQL jako używany silnik bazy.
 
 ## Stan docelowy
-- Relacyjny model PostgreSQL zoptymalizowany pod wieloużytkownikowość, audyt i pracę na plikach.
+- Relacyjny model danych zoptymalizowany pod wieloużytkownikowość, audyt i pracę na plikach.
 
 ## Zasady modelowania
 - Każdy zasób biznesowy ma właściciela lub kontekst wydarzenia.

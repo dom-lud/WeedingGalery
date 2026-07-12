@@ -10,6 +10,7 @@ Opisuje metryki, logi, health checks i alerty dla platformy.
 
 ## Stan obecny
 - Mechanizmy monitoringu nie są jeszcze wdrożone.
+- Zależność `Spring Boot Actuator` nie jest jeszcze częścią backendowego `pom.xml`.
 
 ## Stan docelowy
 - Podstawowa obserwowalność gotowa do rozbudowy o Prometheus i Grafana.

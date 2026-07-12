@@ -9,7 +9,7 @@ Szablon promptu do zmian modelu danych i migracji.
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Stan obecny
-- Szablon wspiera analizę zmian bazy i migracji bez naruszania istniejących zasad Flyway.
+- Szablon wspiera analizę zmian bazy i migracji bez naruszania obowiązujących zasad repozytorium.
 
 ## Stan docelowy
 - Każda zmiana danych jest oceniona pod kątem kompatybilności, ownership i retencji.
@@ -27,7 +27,7 @@ Przed pracą przeczytaj:
 - [powiązane ADR]
 
 Zasady analizy:
-- nie modyfikuj zatwierdzonych migracji Flyway,
+- nie modyfikuj zatwierdzonych migracji schematu,
 - oceń nullability, constraints, indeksy, soft delete, ownership i kompatybilność danych,
 - wskaż wpływ na API, backend, frontend i operacje.
 

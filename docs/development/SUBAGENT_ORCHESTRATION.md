@@ -81,7 +81,7 @@ Odpowiada za:
 - relacje,
 - constraints,
 - indeksy,
-- migracje Flyway,
+- migracje schematu,
 - kompatybilność danych,
 - wydajność zapytań,
 - strategię soft delete,

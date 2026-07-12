@@ -39,7 +39,7 @@ flowchart TD
     Internet --> AuthAPI[Auth API]
     PublicAPI --> App[Application]
     AuthAPI --> App
-    App --> Db[(PostgreSQL)]
+    App --> Db[(Relational DB)]
     App --> Storage[(Storage)]
     Admin[Administrator] --> AdminAPI[Admin API]
     AdminAPI --> App

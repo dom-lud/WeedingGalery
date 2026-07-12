@@ -44,7 +44,7 @@ stateDiagram-v2
 ```
 
 ## Model wykonania
-- Preferowany start: jobi zapisane w PostgreSQL i worker uruchamiany z tej samej codebase.
+- Preferowany start: joby zapisane w relacyjnej bazie danych używanej przez backend i worker uruchamiany z tej samej codebase.
 - API zapisuje zlecenie, a worker pobiera zadania wsadowo.
 - Długie operacje nie powinny być wykonywane w wątku requestu.
 

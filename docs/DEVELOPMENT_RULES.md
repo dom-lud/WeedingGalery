@@ -20,7 +20,7 @@ Opisuje zasady prowadzenia prac rozwojowych zgodnie z przyjętą architekturą i
 - Nie dodawaj przypadkowych bibliotek bez uzasadnienia.
 - Nie dodawaj drugiej pełnej biblioteki UI bez zaakceptowanego ADR; frontend stosuje Material UI jako główny system UI.
 - Nie omijaj autoryzacji, ownership i audytu.
-- Nie modyfikuj zatwierdzonych migracji Flyway.
+- Nie modyfikuj zatwierdzonych migracji schematu, gdy mechanizm migracji zostanie już wprowadzony do repozytorium.
 - Nie twierdź, że testy przeszły, jeśli nie zostały uruchomione.
 - Dokumentacja musi być aktualizowana razem ze zmianą.
 

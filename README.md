@@ -9,7 +9,7 @@ Główny punkt wejścia do repozytorium i dokumentacji projektowej planowanej pl
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Stan obecny
-- Repozytorium zawiera szkic backendu Spring Boot, szkic frontendu React/Vite oraz podstawowe pliki infrastrukturalne.
+- Repozytorium zawiera szkic backendu Spring Boot, szkic frontendu React/Vite oraz podstawowe pliki uruchomieniowe dla Dockera i Nginx.
 - Brak gotowej implementacji docelowego systemu opisanego w dokumentacji.
 - Część istniejących plików technicznych nie odpowiada jeszcze docelowemu stackowi i nie powinna być traktowana jako decyzja końcowa.
 
@@ -24,7 +24,8 @@ System służy do zbierania, organizowania i bezpiecznego udostępniania zdjęć
 ## Najważniejsze założenia
 - Projekt od początku zakłada obsługę wielu niezależnych użytkowników i wydarzeń.
 - Dokumentacja opisuje pełną wizję produktu, a nie tylko MVP.
-- Backend docelowo: Java 25, Spring Boot 4, PostgreSQL, Flyway, Spring Security, Actuator, OpenAPI.
+- Backend obecnie: Java 25, Spring Boot 4, Spring Security, Spring Data JPA i MySQL.
+- Backend docelowo: modularny monolit Spring Boot rozwijany na bazie aktualnego szkieletu; ewentualna zmiana silnika bazy lub narzędzia migracji wymaga decyzji architektonicznej i zmian w kodzie.
 - Frontend docelowo: React, TypeScript, Vite, React Router, mobile-first.
 - Infrastruktura docelowo: Docker Compose, Nginx, Linux VPS, lokalny storage z możliwością przejścia na storage obiektowy.
 
@@ -46,7 +47,6 @@ wedding-gallery-platform/
 ├── backend/
 ├── frontend/
 ├── nginx/
-├── infrastructure/
 ├── scripts/
 ├── docs/
 ├── docker-compose.yml
@@ -57,7 +57,7 @@ wedding-gallery-platform/
 └── README.md
 ```
 
-Szczegóły znajdują się w [docs/architecture/REPOSITORY_STRUCTURE.md](docs/architecture/REPOSITORY_STRUCTURE.md).
+Aktualna struktura i plan dalszego rozwoju znajdują się w [docs/architecture/REPOSITORY_STRUCTURE.md](docs/architecture/REPOSITORY_STRUCTURE.md).
 
 ## Jak czytać dokumentację
 1. Przeczytaj [AGENTS.md](AGENTS.md).
