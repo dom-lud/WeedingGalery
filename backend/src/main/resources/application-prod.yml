@@ -6,8 +6,8 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      # Zgodnie z ADR 0012, tymczasowo update dla dev, docelowo validate
-      ddl-auto: update
+      # Produkcja waliduje schemat zarządzany przez Flyway, nie mutuje go przez Hibernate.
+      ddl-auto: validate
     open-in-view: false
   flyway:
     enabled: true
