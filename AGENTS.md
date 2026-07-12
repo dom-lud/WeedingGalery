@@ -109,6 +109,12 @@ Pełna definicja: [docs/DEFINITION_OF_DONE.md](docs/DEFINITION_OF_DONE.md)
 - Statusy: `proposed`, `accepted`, `rejected`, `superseded`.
 - Każdy ADR musi opisywać kontekst, decyzję, konsekwencje i alternatywy.
 
+## CRITICAL ENFORCEMENT DLA AGENTÓW AI
+ZABRONIONE JEST POMIJANIE PONIŻSZYCH KROKÓW:
+1. **Decyzja o Subagentach**: Jako pierwszy krok planu ZAWSZE napisz wprost, czy i jakich subagentów uruchamiasz, z powołaniem się na `SUBAGENT_ORCHESTRATION.md`. Jeśli nie używasz żadnego, napisz jednoznacznie dlaczego.
+2. **Self-Review (Audyt)**: Po skończonej implementacji MUSISZ odgrywać rolę Code Reviewera i poddać własny kod bezlitosnemu self-review, szukając błędów security, wycieków logiki i odstępstw od ADR. Wnioski zapisuj na czacie albo w artefakcie.
+3. **Testy E2E i Kontrakty API**: Pisanie wyłącznie testów pod `RestTemplate` z wyłączonym CSRF lub bez autoryzacji to ZA MAŁO. MUSISZ dowieźć weryfikację na poziomie E2E (np. Playwright/Cypress dla flow z UI) lub rzetelnego, kompletnego testu integracyjnego obejmującego wszystkie nagłówki i realny stan bazy. Każdy etap kończy się realnym potwierdzeniem kontraktu, a nie testem napisanym "pod kod".
+
 ## Decyzje otwarte
 - Strategia uwierzytelniania.
 - Docelowy silnik background jobs.

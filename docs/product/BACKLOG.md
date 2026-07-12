@@ -58,8 +58,8 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Wymagania bezpieczeństwa: bezpieczne hashowanie, rate limiting, brak enumeracji użytkowników.
 - Wymagane testy: testy auth, security, sesji i błędnych logowań.
 - Dokumenty powiązane: [../backend/AUTHENTICATION_AND_AUTHORIZATION.md](../backend/AUTHENTICATION_AND_AUTHORIZATION.md).
-- Status początkowy: `IDEA`.
-- ADR wymagany: tak.
+- Status: `IN PROGRESS`.
+- ADR wymagany: tak (ADR 0002).
 
 ### AUTH-002 - Weryfikacja e-mail i reset hasła
 - Cel: zapewnić odzyskiwanie dostępu i potwierdzenie tożsamości.
