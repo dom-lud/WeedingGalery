@@ -34,7 +34,9 @@ test.describe('Authentication Flow E2E', () => {
     await loginPage.expectPasswordHidden()
   })
 
-  test('should show an error and stay on login page for invalid credentials', async ({ loginPage }) => {
+  test('should show an error and stay on login page for invalid credentials', async ({
+    loginPage,
+  }) => {
     await loginPage.goto()
     const response = await loginPage.login('admin@example.com', 'wrongpass')
 

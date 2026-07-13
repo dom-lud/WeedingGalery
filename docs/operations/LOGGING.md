@@ -6,24 +6,43 @@ Opisuje zasady logowania aplikacyjnego, strukturalnego i audytowego.
 ## Status dokumentu
 - Status: draft
 - Zakres: logi aplikacyjne i operacyjne
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
-- Standard logowania nie jest jeszcze uzgodniony.
+- W kodzie istnieje juz techniczne logowanie przez `@Slf4j` oraz podstawowy biznesowy audyt oparty o `AuditService`.
+- Aktualna tabela audytu to `audit_events`.
+- Obecnie zapisywane eventy audytowe to `USER_REGISTERED` i `USER_LOGGED_IN`.
 
 ## Stan docelowy
-- Logi strukturalne z correlation ID i kontrolą danych wrażliwych.
+- Logi strukturalne z correlation ID, kontrola danych wrazliwych oraz rozszerzony log audytowy dla wszystkich krytycznych operacji.
+
+## Rozroznienie odpowiedzialnosci
+- Logi aplikacyjne sluza do diagnostyki technicznej.
+- Audyt sluzy do odtworzenia wrazliwych dzialan biznesowych i administracyjnych.
+- Logi aplikacyjne nie zastepuja `AuditEvent`, a audyt nie zastepuje logow technicznych.
 
 ## Zasady
-- Logi aplikacyjne nie zastępują `AuditLog`.
-- Dane osobowe i tokeny są redagowane.
-- Wpisy błędów muszą zawierać correlation ID.
-- Logi powinny wspierać analizę uploadów, ZIP i błędów integracji.
+- Dane osobowe, tokeny i sekrety sa redagowane lub pomijane.
+- Wpisy bledow powinny zawierac correlation ID, gdy mechanizm zostanie dodany.
+- Logi powinny wspierac analize auth, uploadow, ZIP i bledow integracji.
+- Kazda nowa wrazliwa akcja powinna byc oceniona pod katem potrzeby wpisu audytowego.
+- Rozszerzenie katalogu eventow audytowych wymaga jednoczesnej aktualizacji kodu, testow i dokumentacji.
 
-## Powiązane dokumenty
+## Minimalny zakres audytu aktualnie zaimplementowany
+- Udane utworzenie konta przez administratora.
+- Udane zalogowanie uzytkownika.
+
+## Zakres audytu do dalszego rozszerzenia
+- Nieudane logowania.
+- Wylogowania i uniewaznienia sesji.
+- Zmiany rol i innych uprawnien.
+- Akcje administracyjne wykonywane na kontach i zasobach.
+
+## Powiazane dokumenty
 - [MONITORING.md](MONITORING.md)
 - [INCIDENT_RESPONSE.md](INCIDENT_RESPONSE.md)
+- [../backend/AUTHENTICATION_AND_AUTHORIZATION.md](../backend/AUTHENTICATION_AND_AUTHORIZATION.md)
 - [../security/SECURITY_REQUIREMENTS.md](../security/SECURITY_REQUIREMENTS.md)
 
 ## Decyzje otwarte
-- Czy przyjąć jednolity format JSON logs we wszystkich środowiskach poza developmentem.
+- Czy przyjac jednolity format JSON logs we wszystkich srodowiskach poza developmentem.

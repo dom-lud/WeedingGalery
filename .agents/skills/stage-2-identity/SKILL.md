@@ -1,49 +1,95 @@
 ---
 name: stage-2-identity
-description: "Skill prowadzący przez Etap 2 – Tożsamość użytkownika i autoryzacja (AUTH-001). Implementuje Spring Security, model usera i proces logowania/rejestracji."
+description: "Skill prowadzacy przez Etap 2 - Tozsamosc uzytkownika i autoryzacja (AUTH-001 i okolice). Obejmuje sesje Spring Security, CSRF dla SPA, administracyjne tworzenie kont, testy auth i audit eventy."
 ---
 
-# Etap 2 - Tożsamość i Autoryzacja
+# Etap 2 - Tozsamosc i Autoryzacja
 
-## Kiedy używać?
-Użyj tego skilla, gdy Etap 1 jest zakończony i repozytorium zawiera gotowy szkielet techniczny, a Twoim celem jest implementacja **AUTH-001 - Rejestracja, logowanie i sesje użytkownika**.
+## Kiedy uzywac?
+Uzyj tego skilla, gdy repozytorium ma juz dzialajacy szkielet techniczny, a Twoim celem jest implementacja lub rozszerzenie obszaru identity: logowanie, sesje, CSRF, zarzadzanie kontami, testy auth albo audyt zdarzen identity.
+
+## Decyzja o subagentach
+Domyslnie nie uruchamiaj subagentow, jesli zmiana miesci sie w jednym spojnym obszarze auth + frontend + testy + dokumentacja i da sie ja zweryfikowac w jednym przebiegu.
+Uruchom subagentow tylko wtedy, gdy:
+- trzeba rownolegle prowadzic niezalezne watki, np. osobny audit security i osobny audit testow,
+- zakres obejmuje wiele modulow poza identity,
+- potrzebny jest osobny reviewer po zakonczeniu implementacji.
+
+## Repo truth na dzis
+- Strategia auth jest oparta o sesje serwerowe Spring Security.
+- SPA korzysta z CSRF i bootstrapuje token przez `GET /api/auth/csrf`.
+- Aktualne endpointy identity w kodzie i kontrakcie to:
+  - `GET /api/auth/csrf`
+  - `POST /api/auth/login`
+  - `GET /api/auth/me`
+  - `POST /api/auth/register`
+- `POST /api/auth/register` nie jest publiczna rejestracja. Konto tworzy zalogowany administrator.
+- Frontend nie powinien eksponowac publicznego przycisku rejestracji.
+- Aktualny audyt auth obejmuje `USER_REGISTERED` i `USER_LOGGED_IN`.
 
 ## Cel
-Wdrożenie tożsamości użytkownika (organizatora/managera), umożliwiające zabezpieczenie dostępu do przyszłych endpointów panelu zarządzania wydarzeniami. Zgodnie z ADR 0002, opieramy się na natywnym mechanizmie sesji Spring Security.
+Wdrozenie i dalsze uszczelnianie tozsamosci uzytkownika, tak aby przyszle endpointy panelu wydarzen i administracji byly chronione, zgodne z kontraktem FE-BE i pokryte testami, ktore realnie wykrywaja regresje.
 
-## Kroki implementacyjne
+## Obowiazkowa kolejnosc pracy
+1. Przeczytaj `AGENTS.md`, dokument auth, kontrakt API i test strategy.
+2. Sprawdz, czy zmiana wymaga aktualizacji `api-contract/API_CONTRACT.md`.
+3. Sprawdz, czy zmienia sie katalog audit eventow i czy trzeba rozszerzyc `EventType`.
+4. Zaimplementuj backend i frontend zgodnie z aktualnym kontraktem.
+5. Rozszerz testy jednostkowe, integracyjne i E2E na podstawie wymagan biznesowych oraz ryzyk.
+6. Zaktualizuj dokumentacje, roadmape, backlog i ten skill, jezeli zmienia sie etap lub standard pracy.
+7. Wykonaj self-review w roli reviewera, popraw problemy i powtorz review az wynik bedzie akceptowalny.
 
-### 1. Zatwierdzenie Architektury
-Upewnij się, że ADR 0002 został zmodyfikowany na status `accepted` i precyzuje wykorzystanie sesji opartych o ciastka HTTP-only oraz ochronę CSRF (jako że frontend jest oddzielnym SPA).
+## Zakres implementacyjny
 
-### 2. Rozbudowa Bazy Danych
-Utwórz kolejną migrację Flyway (np. `V2__create_users_table.sql` w `backend/src/main/resources/db/migration/`).
-- Tabela `users`: klucz główny `id`, unikalny `email`, `password_hash`, rola, czasy utworzenia i modyfikacji, pola pomocnicze (np. logowania).
+### 1. Backend
+- Utrzymuj sesje Spring Security i CSRF zgodne ze SPA.
+- Publiczny dostep bez konta dotyczy galerii, nie auth uzytkownikow systemowych.
+- Traktuj administracyjne tworzenie kont oddzielnie od przyszlych flow typu reset hasla czy weryfikacja e-mail.
+- Hasla musza byc bezpiecznie hashowane.
+- Przy zmianach endpointow lub payloadow najpierw aktualizuj `api-contract/API_CONTRACT.md`.
 
-### 3. Implementacja Backendu (Spring Security)
-Dodaj w `pom.xml` pakiety `spring-boot-starter-security` oraz `spring-boot-starter-data-jpa`.
-- Skonfiguruj `SecurityFilterChain`.
-- Włącz i skonfiguruj odpowiednio obsługę CORS (zezwolenie na credentials, domena frontendu).
-- Włącz CSRF w trybie kompatybilnym ze SPA (np. `CookieCsrfTokenRepository.withHttpOnlyFalse()` jeśli React ma to odczytywać ze specyficznego ciastka XSRF-TOKEN).
-- Stwórz własną logikę kontrolera auth (`/api/auth/register`, `/api/auth/me`), a logowanie (jeśli to możliwe) obsłuż natywnymi filtrami Springa lub dedykowanym endpointem dla SPA `/api/auth/login`.
-- Zakoduj logikę użytkownika: domena (Entity `User`), repozytorium (Spring Data), serwis (rejestracja i ładowanie do `UserDetailsService`). Hasła muszą być bezpiecznie hashowane (BCrypt/Argon2).
+### 2. Frontend
+- Logowanie powinno byc zgodne z kontraktem i nie moze zakladac "idealnej" synchronizacji z backendem.
+- Publiczny przycisk rejestracji nie powinien wracac, dopoki polityka kont pozostaje admin-only.
+- Dla formularzy auth utrzymuj dobra ergonomie i dostepnosc, w tym mozliwosc podgladu hasla.
+- Stosuj page object pattern w E2E, aby selektory i akcje byly utrzymywane w jednym miejscu.
 
-### 4. Implementacja Frontendu (React)
-- Zainstaluj bibliotekę do routingu (np. `react-router-dom`).
-- Zainstaluj i skonfiguruj bibliotekę do stanów lub żądań (np. `axios`, `react-query` lub stan w Context API), aby przesyłała ciasteczka uwierzytelniające (`withCredentials: true`).
-- Stwórz komponenty widokowe zgodne ze stackiem (w przyszłości Material UI wg ADR, na razie mogą być to podstawowe schludne komponenty CSS):
-  - Formularz rejestracji
-  - Formularz logowania
-  - Prosty dashboard / ekran powitalny, widoczny tylko dla zalogowanych.
-- Przygotuj mechanizm pobierania początkowego stanu uwierzytelnienia (sprawdzanie `/api/auth/me` podczas startu aplikacji).
+### 3. Audyt
+- Wrazliwe akcje identity i admina musza byc ocenione pod katem wpisu audytowego.
+- Przy kazdym nowym flow sprawdz:
+  - czy trzeba dodac nowy `EventType`,
+  - czy potrzebny jest bardziej szczegolowy `details`,
+  - czy testy i dokumentacja odzwierciedlaja nowy audit.
+- W audycie nie zapisuj sekretow ani wrazliwych payloadow.
 
-### 5. Walidacja, Testy E2E i Self-Review
-Po zakończeniu implementacji musisz **OBOWIĄZKOWO** wykonać następujące czynności:
-1. Napisz i uruchom **testy API / E2E** (Playwright we frontendzie i REST Assured lub w pełni zintegrowany MockMvc w backendzie).
-2. Przeprowadź jawne, rygorystyczne **Self-Review** wchodząc w rolę niezależnego audytora Security/Code, szukając błędów logicznych, luk CSRF/XSS i odstępstw od architektury. Skomentuj wyniki w podsumowaniu.
-3. Potwierdź, czy cały proces rejestracji i logowania funkcjonuje poprawnie w rzeczywistym flow. Upewnij się, że dodane zostały nowe testy jednostkowe (AuthService) i integracyjne (Security config).
+### 4. Testy
+- Testy maja bronic wymagan i kontraktu, a nie aktualnej implementacji.
+- Dla logowania musza istniec scenariusze realistyczne, w tym szybki klik po otwarciu strony.
+- Page Object ma porzadkowac API testowe, ale nie moze maskowac bugow przez sztuczne czekanie na odpowiedzi, ktorych uzytkownik jeszcze nie wyzwolil.
+- Minimalny zestaw powinien laczyc:
+  - testy jednostkowe logiki auth,
+  - testy integracyjne/security kontraktu,
+  - testy E2E flow UI.
 
-## Ograniczenia i zasady
-- Nie wchodzimy jeszcze w implementację modułów wydarzeń ani zaproszeń (to kolejne zadania).
-- Zawsze korzystaj z najświeższych standardów Spring Boota 3+ i React.
-- Zachowaj minimalizm i modularną strukturę pakietów w Javie (pakiet `pl.backend.weddinggallery.identity` dla modułu auth).
+## Co zwykle nalezy zaktualizowac razem ze zmiana
+- `api-contract/API_CONTRACT.md`
+- `docs/backend/AUTHENTICATION_AND_AUTHORIZATION.md`
+- `docs/operations/LOGGING.md`
+- `docs/testing/TEST_STRATEGY.md`
+- `docs/testing/FRONTEND_TESTING.md`
+- `docs/testing/E2E_SCENARIOS.md`
+- `docs/product/BACKLOG.md`
+- `docs/product/FEATURE_ROADMAP.md`
+
+## Typowe pulapki
+- Pisanie testu, ktory czeka na `/api/auth/csrf` przed akcja logowania i przez to nie odtwarza realnego szybkiego kliku.
+- Pozostawienie publicznej rejestracji w UI po zmianie polityki na admin-only.
+- Rozszerzenie auth bez dopisania audit eventu albo bez aktualizacji dokumentacji.
+- Aktualizacja kodu bez aktualizacji kontraktu FE-BE.
+
+## Co jeszcze nie jest domkniete w Etapie 2
+- Weryfikacja e-mail.
+- Reset hasla.
+- Pelny logout i ewentualne zarzadzanie wieloma sesjami.
+- Obsluga maili transakcyjnych.
+- Szerszy katalog audit eventow, np. nieudane logowania i akcje administracyjne na kontach.

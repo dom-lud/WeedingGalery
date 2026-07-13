@@ -63,10 +63,7 @@ export class LoginPage {
   }
 
   async expectPasswordVisible() {
-    await expect(this.page.locator('.password-input-wrapper input')).toHaveAttribute(
-      'type',
-      'text',
-    )
+    await expect(this.page.locator('.password-input-wrapper input')).toHaveAttribute('type', 'text')
   }
 
   async togglePasswordVisibility() {

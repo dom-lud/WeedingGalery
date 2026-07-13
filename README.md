@@ -1,42 +1,44 @@
 # Wedding Gallery Platform
 
 ## Cel dokumentu
-Główny punkt wejścia do repozytorium i dokumentacji projektowej planowanej platformy webowej do obsługi wielu prywatnych wydarzeń, w szczególności wesel.
+Glowny punkt wejscia do repozytorium i dokumentacji projektowej planowanej platformy webowej do obslugi wielu prywatnych wydarzen, w szczegolnosci wesel.
 
 ## Status dokumentu
 - Status: draft
 - Zakres: opis repozytorium, wizji produktu i mapy dokumentacji
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
-- Repozytorium zawiera szkic backendu Spring Boot, szkic frontendu React/Vite oraz podstawowe pliki uruchomieniowe dla Dockera i Nginx.
-- Brak gotowej implementacji docelowego systemu opisanego w dokumentacji.
-- Część istniejących plików technicznych nie odpowiada jeszcze docelowemu stackowi i nie powinna być traktowana jako decyzja końcowa.
+- Repozytorium zawiera backend Spring Boot, frontend React/Vite oraz podstawowe pliki uruchomieniowe dla Dockera i Nginx.
+- Etap 1 zostal uruchomiony i repo ma dzialajacy szkielet techniczny zgodny z aktualnym stackiem.
+- Etap 2 jest realizowany czesciowo: istnieje logowanie oparte o sesje, CSRF dla SPA, endpoint `GET /api/auth/me`, administracyjne tworzenie kont oraz podstawowe audit eventy.
+- Nie wszystkie elementy docelowego systemu sa jeszcze zaimplementowane end-to-end.
 
 ## Stan docelowy
 - Modularny monolit w monorepo.
-- Platforma wieloużytkownikowa obsługująca wiele kont, wydarzeń, galerii, upload plików, moderację, storage, panel administratora i operacje produkcyjne.
-- Dokumentacja w katalogu `docs/` jest nadrzędnym źródłem wiedzy o planowanym systemie.
+- Platforma wielouzytkownikowa obslugujaca wiele kont, wydarzen, galerii, upload plikow, moderacje, storage, panel administratora i operacje produkcyjne.
+- Dokumentacja w katalogu `docs/` jest nadrzednym zrodlem wiedzy o planowanym systemie.
 
 ## Czym jest system
-System służy do zbierania, organizowania i bezpiecznego udostępniania zdjęć oraz filmów z wesel i innych prywatnych wydarzeń. Para młoda lub inny organizator zakłada konto, tworzy wydarzenie i galerie, a goście przesyłają materiały przez link, kod QR lub token dostępu bez konieczności rejestracji.
+System sluzy do zbierania, organizowania i bezpiecznego udostepniania zdjec oraz filmow z wesel i innych prywatnych wydarzen. Para mloda lub inny organizator bedzie zarzadzac swoim kontem, wydarzeniami i galeriami, a goscie beda przesylac materialy przez link, kod QR lub token dostepu bez koniecznosci rejestracji.
 
-## Najważniejsze założenia
-- Projekt od początku zakłada obsługę wielu niezależnych użytkowników i wydarzeń.
-- Dokumentacja opisuje pełną wizję produktu, a nie tylko MVP.
+## Najwazniejsze zalozenia
+- Projekt od poczatku zaklada obsluge wielu niezaleznych uzytkownikow i wydarzen.
+- Dokumentacja opisuje pelna wizje produktu, a nie tylko MVP.
 - Backend obecnie: Java 25, Spring Boot 4, Spring Security, Spring Data JPA i MySQL.
-- Backend docelowo: modularny monolit Spring Boot rozwijany na bazie aktualnego szkieletu; ewentualna zmiana silnika bazy lub narzędzia migracji wymaga decyzji architektonicznej i zmian w kodzie.
-- Frontend docelowo: React, TypeScript, Vite, React Router, mobile-first.
-- Infrastruktura docelowo: Docker Compose, Nginx, Linux VPS, lokalny storage z możliwością przejścia na storage obiektowy.
+- Frontend obecnie: React, TypeScript, Vite i Material UI jako glowny system UI.
+- Identity obecnie: sesje serwerowe, CSRF dla SPA, admin-only tworzenie kont, podstawowy audyt auth.
+- Infrastruktura docelowo: Docker Compose, Nginx, Linux VPS, lokalny storage z mozliwoscia przejscia na storage obiektowy.
 
 ## Mapa dokumentacji
-- Start dla agentów i programistów: [AGENTS.md](AGENTS.md)
+- Start dla agentow i programistow: [AGENTS.md](AGENTS.md)
 - Wizja produktu: [docs/product/PRODUCT_VISION.md](docs/product/PRODUCT_VISION.md)
 - Role i uprawnienia: [docs/product/USER_ROLES.md](docs/product/USER_ROLES.md), [docs/product/PERMISSIONS_MATRIX.md](docs/product/PERMISSIONS_MATRIX.md)
 - Architektura systemu: [docs/architecture/SYSTEM_ARCHITECTURE.md](docs/architecture/SYSTEM_ARCHITECTURE.md)
 - Model danych: [docs/architecture/DATA_MODEL.md](docs/architecture/DATA_MODEL.md)
 - API: [docs/backend/API_ENDPOINTS.md](docs/backend/API_ENDPOINTS.md)
-- Bezpieczeństwo: [docs/security/SECURITY_REQUIREMENTS.md](docs/security/SECURITY_REQUIREMENTS.md)
+- Kontrakt FE-BE: [api-contract/API_CONTRACT.md](api-contract/API_CONTRACT.md)
+- Bezpieczenstwo: [docs/security/SECURITY_REQUIREMENTS.md](docs/security/SECURITY_REQUIREMENTS.md)
 - Operacje: [docs/operations/DEPLOYMENT.md](docs/operations/DEPLOYMENT.md)
 - CI/CD: [docs/operations/CI_CD_STRATEGY.md](docs/operations/CI_CD_STRATEGY.md)
 - ADR: [docs/adr/README.md](docs/adr/README.md)
@@ -44,35 +46,36 @@ System służy do zbierania, organizowania i bezpiecznego udostępniania zdjęć
 ## Planowana struktura repozytorium
 ```text
 wedding-gallery-platform/
-├── backend/
-├── frontend/
-├── nginx/
-├── scripts/
-├── docs/
-├── docker-compose.yml
-├── docker-compose.prod.yml
-├── .env.example
-├── .gitignore
-├── AGENTS.md
-└── README.md
+|-- backend/
+|-- frontend/
+|-- nginx/
+|-- scripts/
+|-- docs/
+|-- api-contract/
+|-- docker-compose.yml
+|-- docker-compose.prod.yml
+|-- .env.example
+|-- .gitignore
+|-- AGENTS.md
+`-- README.md
 ```
 
-Aktualna struktura i plan dalszego rozwoju znajdują się w [docs/architecture/REPOSITORY_STRUCTURE.md](docs/architecture/REPOSITORY_STRUCTURE.md).
+Aktualna struktura i plan dalszego rozwoju znajduja sie w [docs/architecture/REPOSITORY_STRUCTURE.md](docs/architecture/REPOSITORY_STRUCTURE.md).
 
-## Jak czytać dokumentację
+## Jak czytac dokumentacje
 1. Przeczytaj [AGENTS.md](AGENTS.md).
-2. Przejdź przez dokumenty produktowe w `docs/product/`.
+2. Przejdz przez dokumenty produktowe w `docs/product/`.
 3. Przeczytaj dokumenty architektoniczne w `docs/architecture/`.
-4. Sprawdź standardy backendu, frontendu, bezpieczeństwa, testów i operacji.
-5. Zanim podejmiesz decyzję implementacyjną, sprawdź [ADR](docs/adr/README.md).
-6. Przy zadaniach złożonych sprawdź [docs/development/SUBAGENT_ORCHESTRATION.md](docs/development/SUBAGENT_ORCHESTRATION.md).
+4. Sprawdz standardy backendu, frontendu, bezpieczenstwa, testow i operacji.
+5. Zanim podejmiesz decyzje implementacyjna, sprawdz [ADR](docs/adr/README.md).
+6. Przy zadaniach zlozonych sprawdz [docs/development/SUBAGENT_ORCHESTRATION.md](docs/development/SUBAGENT_ORCHESTRATION.md).
 
 ## Decyzje otwarte
-- Ostateczny wybór strategii uwierzytelniania: sesja serwerowa vs JWT.
+- Finalny zamkniety zakres Etapu 2.
 - Konkretny mechanizm background jobs w pierwszej wersji implementacyjnej.
-- Zakres pierwszego wydania produkcyjnego względem funkcji rozszerzonych.
+- Zakres pierwszego wydania produkcyjnego wzgledem funkcji rozszerzonych.
 
-## Powiązane dokumenty
+## Powiazane dokumenty
 - [docs/product/FEATURE_ROADMAP.md](docs/product/FEATURE_ROADMAP.md)
 - [docs/DEVELOPMENT_RULES.md](docs/DEVELOPMENT_RULES.md)
 - [docs/DEFINITION_OF_DONE.md](docs/DEFINITION_OF_DONE.md)
