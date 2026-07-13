@@ -330,7 +330,7 @@ public class AuthControllerTest {
 				String.class);
 
 		assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-		assertThat(auditEventRepository.findAll()).extracting("eventType")
-				.contains(EventType.USER_LOGIN_FAILED, EventType.USER_LOGIN_BLOCKED);
+		assertThat(auditEventRepository.findAll()).extracting("eventType").contains(EventType.USER_LOGIN_FAILED,
+				EventType.USER_LOGIN_BLOCKED);
 	}
 }

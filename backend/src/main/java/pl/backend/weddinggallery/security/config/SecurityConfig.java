@@ -47,8 +47,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/login", "/api/auth/csrf").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/auth/register").hasRole("ADMIN")
 						.requestMatchers("/actuator/health").permitAll().anyRequest().authenticated())
-				.logout(logout -> logout.logoutUrl("/api/auth/logout")
-						.logoutSuccessHandler(auditLogoutSuccessHandler)
+				.logout(logout -> logout.logoutUrl("/api/auth/logout").logoutSuccessHandler(auditLogoutSuccessHandler)
 						.invalidateHttpSession(true).deleteCookies("JSESSIONID"));
 
 		return http.build();

@@ -38,6 +38,7 @@ Opisuje docelowa strategie testowania platformy na poziomie backendu, frontendu 
 - Jesli test jest zbyt mocno sprzezony z detalem implementacyjnym, trzeba to uzasadnic.
 - Nie mieszaj testow API z testami E2E UI. Nalezy je utrzymywac oddzielnie, uzywajac innych narzedzi, np. Playwright do E2E, a Spring Boot Test lub REST Assured do API.
 - W testach Playwright preferowany jest page object pattern, aby selektory i techniczne kroki byly utrzymywane centralnie, a specy pozostawaly opisem zachowania biznesowego.
+- Wyniki Playwright w CI powinny byc widoczne zarowno w artefakcie HTML, jak i w komentarzu PR z podsumowaniem przebiegu, aby reviewer od razu widzial skale problemu bez przeklikiwania calego workflow.
 
 ## Powiazane dokumenty
 - [BACKEND_TESTING.md](BACKEND_TESTING.md)
