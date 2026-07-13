@@ -2,6 +2,12 @@
 
 Ten dokument gromadzi i opisuje zaplanowane scenariusze testow End-to-End (E2E) dla platformy. Scenariusze sa utrzymywane niezaleznie od implementacji, aby testy bronily biznesu i kontraktu.
 
+## Standard uruchomienia lokalnego
+- Dla lokalnej weryfikacji krytycznych flow E2E nie polegaj wylacznie na procesach developerskich odpalonych recznie.
+- Najpierw przebuduj backend komenda `backend\mvnw.cmd -DskipTests package`.
+- Nastepnie uruchom lub odswiez srodowisko komenda `docker compose up --build`.
+- Dopiero na takim srodowisku uruchamiaj testy E2E, aby weryfikacja odpowiadala rzeczywistemu flow aplikacji.
+
 ## Modul: Uwierzytelnianie (Tozsamosc)
 
 ### 1. Administracyjne utworzenie nowego uzytkownika

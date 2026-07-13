@@ -33,6 +33,7 @@ Opisuje zakres testow komponentow, hookow, warstwy API i widokow.
 - Selektory, akcje i asercje specyficzne dla widoku nalezy trzymac w klasach stron, np. `LoginPage`, `DashboardPage`.
 - Jesli zmieni sie `id`, tekst przycisku albo struktura formularza, poprawka powinna zwykle byc potrzebna w jednym miejscu, a nie we wszystkich specach.
 - Bezposrednie `page.click(...)`, `page.fill(...)` i podobne wywolania w plikach `*.spec.ts` nalezy ograniczac do wyjatkow, ktore sa jawnie uzasadnione przez nietypowy scenariusz testowy.
+- Lokalnie testy Playwright powinny byc uruchamiane na przebudowanych komponentach dockerowych, a nie tylko na recznie odpalonych procesach dev. Standard: `backend\mvnw.cmd -DskipTests package`, potem `docker compose up --build`, dopiero nastepnie testy E2E.
 
 ## Powiazane dokumenty
 - [TEST_STRATEGY.md](TEST_STRATEGY.md)

@@ -43,6 +43,7 @@ Rozwaz subagentow tylko wtedy, gdy:
 - Etap 2 dostarcza juz sesje, CSRF, admin-only tworzenie kont, login, logout, `/api/auth/me`, blokade po wielu blednych logowaniach oraz podstawowy audyt auth.
 - Aktualne role systemowe w kodzie to `ADMIN` i `USER`.
 - Role wydarzenia nie sa jeszcze zaimplementowane i nie wolno udawac, ze juz istnieja w runtime.
+- Lokalna weryfikacja pelnego flow powinna byc wykonywana na przebudowanych komponentach dockerowych: najpierw `backend\mvnw.cmd -DskipTests package`, potem `docker compose up --build`, a dopiero nastepnie testy i review.
 
 ## Glowne decyzje wykonawcze
 - Najpierw zaprojektuj kontrakt API i ownership, potem dopiero kontrolery.
@@ -58,7 +59,8 @@ Rozwaz subagentow tylko wtedy, gdy:
 5. Wdroz czlonkostwo i role wydarzenia.
 6. Dodaj audyt dla wrazliwych zmian ownership i membership.
 7. Rozszerz testy backendowe, integracyjne i E2E lub rzetelne testy integracyjne flow.
-8. Zaktualizuj dokumentacje i wykonaj self-review.
+8. Uruchom lokalna weryfikacje na przebudowanych komponentach dockerowych.
+9. Zaktualizuj dokumentacje i wykonaj self-review.
 
 ## Testy, ktore musza powstac
 - Pozytywne scenariusze tworzenia i edycji wydarzenia przez wlasciciela.
