@@ -20,6 +20,35 @@ export interface GalleryWritePayload {
   sortOrder: number
 }
 
+export type ModerationMode = 'NONE' | 'REQUIRED'
+
+export interface GallerySettings {
+  publicViewEnabled: boolean
+  uploadEnabled: boolean
+  downloadEnabled: boolean
+  moderationMode: ModerationMode
+  accessTokenConfigured: boolean
+  accessCodeConfigured: boolean
+  publishedAt: string | null
+  expiresAt: string | null
+  version: number
+}
+
+export interface GallerySettingsPayload {
+  publicViewEnabled: boolean
+  uploadEnabled: boolean
+  downloadEnabled: boolean
+  moderationMode: ModerationMode
+  publishedAt: string | null
+  expiresAt: string | null
+  version: number
+}
+
+export interface RotatedGalleryToken {
+  accessToken: string
+  sharePath: string
+}
+
 const path = (eventId: string) => `events/${eventId}/galleries`
 
 export const galleriesApi = {
@@ -31,4 +60,14 @@ export const galleriesApi = {
   archive: (eventId: string, galleryId: string) =>
     api.post<GalleryData>(`${path(eventId)}/${galleryId}/archive`),
   remove: (eventId: string, galleryId: string) => api.delete(`${path(eventId)}/${galleryId}`),
+  settings: (eventId: string, galleryId: string) =>
+    api.get<GallerySettings>(`${path(eventId)}/${galleryId}/settings`),
+  updateSettings: (eventId: string, galleryId: string, payload: GallerySettingsPayload) =>
+    api.put<GallerySettings>(`${path(eventId)}/${galleryId}/settings`, payload),
+  rotateAccessToken: (eventId: string, galleryId: string) =>
+    api.post<RotatedGalleryToken>(`${path(eventId)}/${galleryId}/access-token/rotate`),
+  setAccessCode: (eventId: string, galleryId: string, accessCode: string) =>
+    api.put(`${path(eventId)}/${galleryId}/access-code`, { accessCode }),
+  removeAccessCode: (eventId: string, galleryId: string) =>
+    api.delete(`${path(eventId)}/${galleryId}/access-code`),
 }

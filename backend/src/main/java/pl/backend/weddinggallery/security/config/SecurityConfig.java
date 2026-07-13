@@ -44,9 +44,10 @@ public class SecurityConfig {
 		}
 
 		http.exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/login", "/api/auth/csrf").permitAll()
-						.requestMatchers(HttpMethod.POST, "/api/auth/register").hasRole("ADMIN")
-						.requestMatchers("/actuator/health").permitAll().anyRequest().authenticated())
+				.authorizeHttpRequests(
+						auth -> auth.requestMatchers("/api/auth/login", "/api/auth/csrf", "/api/public/**").permitAll()
+								.requestMatchers(HttpMethod.POST, "/api/auth/register").hasRole("ADMIN")
+								.requestMatchers("/actuator/health").permitAll().anyRequest().authenticated())
 				.logout(logout -> logout.logoutUrl("/api/auth/logout").logoutSuccessHandler(auditLogoutSuccessHandler)
 						.invalidateHttpSession(true).deleteCookies("JSESSIONID"));
 

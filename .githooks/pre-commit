@@ -6,7 +6,7 @@ run_frontend_check() {
   echo "Running frontend format check..."
 
   if command -v cmd.exe >/dev/null 2>&1; then
-    cmd.exe /c "cd /d %CD%\\frontend && npm.cmd run format:check"
+    cmd.exe /c "cd /d %CD%\\frontend && npm.cmd run format"
     return
   fi
 
@@ -20,7 +20,7 @@ run_backend_check() {
   echo "Running backend Spotless check..."
 
   if command -v cmd.exe >/dev/null 2>&1; then
-    cmd.exe /c "cd /d %CD%\\backend && mvnw.cmd -B spotless:check"
+    cmd.exe /c "cd /d %CD%\\backend && mvnw.cmd -B spotless"
     return
   fi
 

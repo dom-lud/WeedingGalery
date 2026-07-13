@@ -44,6 +44,34 @@ public class Gallery {
 	@Column(name = "deleted_at")
 	private LocalDateTime deletedAt;
 
+	@Column(name = "public_view_enabled", nullable = false)
+	private boolean publicViewEnabled;
+
+	@Column(name = "upload_enabled", nullable = false)
+	private boolean uploadEnabled;
+
+	@Column(name = "download_enabled", nullable = false)
+	private boolean downloadEnabled;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "moderation_mode", nullable = false)
+	private ModerationMode moderationMode;
+
+	@Column(name = "access_code_hash", length = 100)
+	private String accessCodeHash;
+
+	@Column(name = "published_at")
+	private LocalDateTime publishedAt;
+
+	@Column(name = "expires_at")
+	private LocalDateTime expiresAt;
+
+	@Column(name = "storage_used_bytes", nullable = false)
+	private long storageUsedBytes;
+
+	@Column(name = "storage_reserved_bytes", nullable = false)
+	private long storageReservedBytes;
+
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
@@ -62,6 +90,9 @@ public class Gallery {
 		updatedAt = LocalDateTime.now();
 		if (status == null) {
 			status = GalleryStatus.ACTIVE;
+		}
+		if (moderationMode == null) {
+			moderationMode = ModerationMode.REQUIRED;
 		}
 	}
 

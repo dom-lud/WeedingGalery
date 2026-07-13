@@ -21,8 +21,14 @@ public class AuditEvent {
 	@Column(name = "event_type", nullable = false)
 	private EventType eventType;
 
-	@Column(name = "user_email", nullable = false)
+	@Column(name = "user_email")
 	private String userEmail;
+
+	@Column(name = "actor_type", nullable = false)
+	private String actorType = "USER";
+
+	@Column(name = "public_access_id", length = 36)
+	private String publicAccessId;
 
 	@Column(name = "details")
 	private String details;
@@ -48,6 +54,14 @@ public class AuditEvent {
 		this.eventType = eventType;
 		this.userEmail = userEmail;
 		this.details = details;
+	}
+
+	public static AuditEvent guestGalleryEvent(EventType eventType, String publicAccessId, String eventId,
+			String galleryId, String details) {
+		AuditEvent event = galleryEvent(eventType, null, eventId, galleryId, details);
+		event.setActorType("GUEST");
+		event.setPublicAccessId(publicAccessId);
+		return event;
 	}
 
 	public AuditEvent(EventType eventType, String userEmail, String eventId, String targetUserId, String details) {

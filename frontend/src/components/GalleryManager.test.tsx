@@ -13,6 +13,11 @@ vi.mock('../galleriesApi', () => ({
     update: vi.fn(),
     archive: vi.fn(),
     remove: vi.fn(),
+    settings: vi.fn(),
+    updateSettings: vi.fn(),
+    rotateAccessToken: vi.fn(),
+    setAccessCode: vi.fn(),
+    removeAccessCode: vi.fn(),
   },
 }))
 
@@ -96,5 +101,88 @@ describe('GalleryManager', () => {
     renderManager()
     expect(await screen.findByText('Gallery operation failed.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
+  })
+
+  it('lets the owner rotate a one-time private share link', async () => {
+    vi.mocked(galleriesApi.list).mockResolvedValue({
+      data: [
+        {
+          id: 'gallery-1',
+          eventId: 'event-1',
+          name: 'Reception',
+          slug: 'reception',
+          description: null,
+          sortOrder: 0,
+          status: 'ACTIVE',
+          currentUserRole: 'OWNER',
+          createdAt: '',
+          updatedAt: '',
+        },
+      ],
+    } as never)
+    vi.mocked(galleriesApi.settings).mockResolvedValue({
+      data: {
+        publicViewEnabled: false,
+        uploadEnabled: false,
+        downloadEnabled: false,
+        moderationMode: 'REQUIRED',
+        accessTokenConfigured: false,
+        accessCodeConfigured: false,
+        publishedAt: null,
+        expiresAt: null,
+        version: 0,
+      },
+    } as never)
+    vi.mocked(galleriesApi.rotateAccessToken).mockResolvedValue({
+      data: { accessToken: 'raw', sharePath: '/g/reception#token=raw' },
+    } as never)
+    renderManager()
+
+    await screen.findByText('Reception')
+    fireEvent.click(screen.getByRole('button', { name: 'Access settings' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Rotate private share link' }))
+    expect(
+      await screen.findByDisplayValue(`${window.location.origin}/g/reception#token=raw`),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/shown only once/i)).toBeInTheDocument()
+  })
+
+  it('shows settings to a manager without mutation controls', async () => {
+    vi.mocked(galleriesApi.list).mockResolvedValue({
+      data: [
+        {
+          id: 'gallery-1',
+          eventId: 'event-1',
+          name: 'Morning',
+          slug: 'morning',
+          description: null,
+          sortOrder: 0,
+          status: 'ACTIVE',
+          currentUserRole: 'MANAGER',
+          createdAt: '',
+          updatedAt: '',
+        },
+      ],
+    } as never)
+    vi.mocked(galleriesApi.settings).mockResolvedValue({
+      data: {
+        publicViewEnabled: true,
+        uploadEnabled: true,
+        downloadEnabled: false,
+        moderationMode: 'REQUIRED',
+        accessTokenConfigured: true,
+        accessCodeConfigured: true,
+        publishedAt: null,
+        expiresAt: null,
+        version: 0,
+      },
+    } as never)
+    renderManager({ ...event, currentUserRole: 'MANAGER' })
+
+    await screen.findByText('Morning')
+    fireEvent.click(screen.getByRole('button', { name: 'View access settings' }))
+    expect(await screen.findByText('Guest view on')).toBeInTheDocument()
+    expect(screen.getByText(/Only the event owner/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Save access settings' })).not.toBeInTheDocument()
   })
 })

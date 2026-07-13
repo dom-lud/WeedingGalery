@@ -16,6 +16,11 @@ spring:
   flyway:
     enabled: false
 app:
+  storage:
+    local:
+      root: ./target/test-media
+  public-access:
+    rate-limit: 1000
   security:
     csrf:
       enabled: false
