@@ -9,7 +9,7 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 - Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
-- Endpointy auth oraz minimalny zakres events/memberships oznaczony ponizej sa zaimplementowane.
+- Endpointy auth oraz minimalny zakres events/memberships/galleries oznaczony ponizej sa zaimplementowane.
 - Pozostale endpointy sa planowane; ich obecność na liscie nie oznacza istnienia w runtime.
 
 ## Stan docelowy
@@ -57,12 +57,12 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 - `POST /api/events/{eventId}/ownership-transfer` - zaimplementowany
 
 ## Galleries
-- `GET /api/events/{eventId}/galleries` - planowany GALLERY-001
-- `POST /api/events/{eventId}/galleries` - planowany GALLERY-001
-- `GET /api/events/{eventId}/galleries/{galleryId}` - planowany GALLERY-001
-- `PUT /api/events/{eventId}/galleries/{galleryId}` - planowany GALLERY-001
-- `POST /api/events/{eventId}/galleries/{galleryId}/archive` - planowany GALLERY-001
-- `DELETE /api/events/{eventId}/galleries/{galleryId}` - planowany soft delete GALLERY-001
+- `GET /api/events/{eventId}/galleries` - zaimplementowany GALLERY-001
+- `POST /api/events/{eventId}/galleries` - zaimplementowany GALLERY-001
+- `GET /api/events/{eventId}/galleries/{galleryId}` - zaimplementowany GALLERY-001
+- `PUT /api/events/{eventId}/galleries/{galleryId}` - zaimplementowany GALLERY-001
+- `POST /api/events/{eventId}/galleries/{galleryId}/archive` - zaimplementowany GALLERY-001
+- `DELETE /api/events/{eventId}/galleries/{galleryId}` - zaimplementowany soft delete GALLERY-001
 - `POST /api/galleries/{galleryId}/publish`
 - `POST /api/galleries/{galleryId}/disable-upload`
 - `POST /api/galleries/{galleryId}/enable-upload`
@@ -134,7 +134,7 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 - `GET /api/admin/audit`
 
 ## Uwagi kontraktowe
-- SSOT dokladnych payloadow, statusow i rol dla zaimplementowanego Etapu 3 oraz planowanego pierwszego zakresu GALLERY-001 to [../../api-contract/API_CONTRACT.md](../../api-contract/API_CONTRACT.md).
+- SSOT dokladnych payloadow, statusow i rol dla zaimplementowanych Etapow 3 i 4 to [../../api-contract/API_CONTRACT.md](../../api-contract/API_CONTRACT.md).
 - Zwykly endpoint wydarzen nie daje administratorowi bypassu ownership.
 - Zaproszenia e-mail i tokeny pozostaja poza Etapem 3.
 - Docelowo listy wspieraja filtrowanie i paginacje; minimalne `GET /api/events` i `GET /api/events/{eventId}/members` w Etapie 3 zwracaja pelne tablice dostepnego zakresu bez paginacji.

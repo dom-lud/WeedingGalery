@@ -33,6 +33,7 @@ import {
   type EventType,
   type EventWritePayload,
 } from '../eventsApi'
+import GalleryManager from './GalleryManager'
 
 const emptyPayload: EventWritePayload = {
   name: '',
@@ -257,6 +258,8 @@ export default function Dashboard() {
                     {selected.type} · {selected.status}
                   </Typography>
                 </Box>
+                <Divider />
+                <GalleryManager event={selected} />
                 <Divider />
                 <Typography variant="h6">People</Typography>
                 <List disablePadding>

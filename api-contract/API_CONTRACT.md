@@ -322,10 +322,10 @@ aktora, `eventId`, identyfikator celu (jesli dotyczy) i zmiane roli, ale nie
 zawiera hasel, tokenow, danych CSRF ani innych sekretow. Operacja wrazliwa nie
 moze zostac uznana za udana, jesli wymagany wpis audytowy nie zostal zapisany.
 
-## Planowany kontrakt GALLERY-001 - Etap 4
+## Kontrakt GALLERY-001 - Etap 4
 
-Status: `PLANNED`, jeszcze niezaimplementowany. Ta sekcja zamraza pierwszy
-zakres przed rozpoczeciem kodu Etapu 4. Nie definiuje publicznego dostepu.
+Status: `IMPLEMENTED`. Sekcja definiuje zaimplementowany pierwszy zakres Etapu 4
+i nie definiuje publicznego dostepu.
 
 Wszystkie endpointy wymagaja aktywnej sesji. Mutacje wymagaja CSRF. Galeria
 zawsze dziedziczy ownership z wydarzenia; payload nie przyjmuje `eventId`,

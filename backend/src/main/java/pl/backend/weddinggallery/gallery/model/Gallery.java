@@ -26,7 +26,7 @@ public class Gallery {
 	private String slug;
 
 	@Column(nullable = false)
-	private String title;
+	private String name;
 
 	@Column(columnDefinition = "TEXT")
 	private String description;
@@ -35,27 +35,23 @@ public class Gallery {
 	@Column(nullable = false)
 	private GalleryStatus status;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private GalleryVisibility visibility;
+	@Column(name = "sort_order", nullable = false)
+	private int sortOrder;
 
-	@Column(name = "allow_upload", nullable = false)
-	private boolean allowUpload;
+	@Column(name = "archived_at")
+	private LocalDateTime archivedAt;
 
-	@Column(name = "allow_download", nullable = false)
-	private boolean allowDownload;
-
-	@Column(name = "require_approval", nullable = false)
-	private boolean requireApproval;
-
-	@Column(name = "expires_at")
-	private LocalDateTime expiresAt;
+	@Column(name = "deleted_at")
+	private LocalDateTime deletedAt;
 
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
 	@Column(name = "updated_at", nullable = false)
 	private LocalDateTime updatedAt;
+
+	@Version
+	private long version;
 
 	@PrePersist
 	protected void onCreate() {
@@ -65,10 +61,7 @@ public class Gallery {
 		createdAt = LocalDateTime.now();
 		updatedAt = LocalDateTime.now();
 		if (status == null) {
-			status = GalleryStatus.DRAFT;
-		}
-		if (visibility == null) {
-			visibility = GalleryVisibility.PRIVATE;
+			status = GalleryStatus.ACTIVE;
 		}
 	}
 

@@ -12,6 +12,7 @@ Prezentuje wysokopoziomowa macierz uprawnien dla rol systemowych i rol wydarzeni
 - Zaimplementowany jest podstawowy model auth dla kont systemowych.
 - W praktyce wdrozone sa obecnie tylko uprawnienia potrzebne do logowania, wylogowania, odczytu `/api/auth/me` i administracyjnego tworzenia kont.
 - Uprawnienia `EventOwner` i `EventManager` oraz ownership wydarzenia sa wdrozone w zakresie Etapu 3.
+- W zakresie GALLERY-001 owner i aktywny manager moga listowac, odczytywac, tworzyc i edytowac metadane galerii; archiwizacja i soft delete sa zastrzezone dla ownera.
 - Osobny tor administracyjny wydarzen nie jest jeszcze zaimplementowany; rola `ADMIN` nie omija ownership w zwyklym `/api/events`.
 
 ## Stan docelowy

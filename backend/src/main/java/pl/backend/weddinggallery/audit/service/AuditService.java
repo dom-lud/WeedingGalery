@@ -40,4 +40,12 @@ public class AuditService {
 		auditEventRepository.save(event);
 		log.debug("Required audit event saved: {} for event: {}", eventType, eventId);
 	}
+
+	@Transactional
+	public void logRequiredGalleryEvent(String userEmail, EventType eventType, String eventId, String galleryId,
+			String details) {
+		AuditEvent event = AuditEvent.galleryEvent(eventType, userEmail, eventId, galleryId, details);
+		auditEventRepository.save(event);
+		log.debug("Required audit event saved: {} for gallery: {}", eventType, galleryId);
+	}
 }

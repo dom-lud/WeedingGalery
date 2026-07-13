@@ -36,6 +36,7 @@ Lista kontrolna dla realizacji funkcji i większych zmian technicznych.
 - [../development/WORKFLOW.md](../development/WORKFLOW.md)
 - [../DEFINITION_OF_DONE.md](../DEFINITION_OF_DONE.md)
 - Wykonanie dla Etapu 3: [STAGE_3_COMPLETION_CHECKLIST.md](STAGE_3_COMPLETION_CHECKLIST.md)
+- Wykonanie dla Etapu 4: [STAGE_4_COMPLETION_CHECKLIST.md](STAGE_4_COMPLETION_CHECKLIST.md)
 
 ## Decyzje otwarte
 - Czy część punktów będzie automatycznie weryfikowana w CI.

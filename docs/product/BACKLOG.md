@@ -157,7 +157,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Wymagania bezpieczeństwa: dostęp tylko w kontekście wydarzenia i membership.
 - Wymagane testy: testy CRUD galerii, ownership i walidacji.
 - Dokumenty powiązane: [../architecture/DATA_MODEL.md](../architecture/DATA_MODEL.md).
-- Status: `READY`.
+- Status: `DONE` w zakresie pierwszego wejscia GALLERY-001.
 - ADR wymagany: nie.
 
 ### GALLERY-002 - Ustawienia widoczności i publikacji galerii

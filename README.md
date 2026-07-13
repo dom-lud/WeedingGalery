@@ -13,6 +13,7 @@ Glowny punkt wejscia do repozytorium i dokumentacji projektowej planowanej platf
 - Etap 1 zostal uruchomiony i repo ma dzialajacy szkielet techniczny zgodny z aktualnym stackiem.
 - Etap 2 jest domkniety w zakresie podstawowej identity: istnieje logowanie i wylogowanie oparte o sesje, CSRF dla SPA, endpoint `GET /api/auth/me`, administracyjne tworzenie kont, blokada po wielu blednych logowaniach oraz audit eventy auth.
 - Etap 3 jest domkniety w minimalnym zakresie `EVENT-001` i `MEMBER-001`: wydarzenia maja ownera, managerow, izolacje ownership, audyt oraz flow UI/API/E2E.
+- Etap 4 jest domkniety w zakresie `GALLERY-001`: wiele galerii na wydarzenie ma bezpieczne management API, stabilne slugi, kolejnosc, lifecycle, soft delete, audyt oraz flow UI/E2E dla ownera i managera.
 - Nie wszystkie elementy docelowego systemu sa jeszcze zaimplementowane end-to-end.
 
 ## Stan docelowy
@@ -29,7 +30,7 @@ System sluzy do zbierania, organizowania i bezpiecznego udostepniania zdjec oraz
 - Backend obecnie: Java 25, Spring Boot 4, Spring Security, Spring Data JPA i MySQL.
 - Frontend obecnie: React, TypeScript, Vite i Material UI jako glowny system UI.
 - Identity obecnie: sesje serwerowe, CSRF dla SPA, admin-only tworzenie kont, logout, blokada po blednych logowaniach i podstawowy audyt auth.
-- Domena obecnie: prywatne wydarzenia, role kontekstowe `OWNER`/`MANAGER`, soft delete, archiwizacja, bezposrednie membership istniejacych kont i transfer ownership.
+- Domena obecnie: prywatne wydarzenia, role kontekstowe `OWNER`/`MANAGER`, bezposrednie membership istniejacych kont, transfer ownership oraz uwierzytelnione zarzadzanie wieloma galeriami z lifecycle i soft delete.
 - Infrastruktura docelowo: Docker Compose, Nginx, Linux VPS, lokalny storage z mozliwoscia przejscia na storage obiektowy.
 
 ## Mapa dokumentacji

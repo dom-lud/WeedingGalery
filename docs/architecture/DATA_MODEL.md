@@ -11,7 +11,7 @@ Opisuje docelowy model danych, główne encje, relacje, indeksy i zasady ownersh
 ## Stan obecny
 - Zaimplementowane sa tabele `users`, `events`, `event_memberships`, `galleries` i `audit_events` zarzadzane przez Flyway.
 - Etap 3 dodal `privacy_mode`, lifecycle/soft delete i optimistic version wydarzenia oraz historyczne membership managerow.
-- `Gallery` ma jedynie techniczny szkielet encji, repozytorium i tabeli odziedziczony z fundamentu; bezpieczny use case, API, ownership, UI i testy GALLERY-001 nie sa jeszcze zaimplementowane.
+- Etap 4 zaimplementowal `Gallery` w zakresie GALLERY-001: scoped management API, stabilny slug, kolejnosc, lifecycle, soft delete, optimistic version i audyt.
 - Pozostale encje opisane ponizej nadal stanowia stan docelowy.
 
 ## Stan docelowy
@@ -66,9 +66,10 @@ Opisuje docelowy model danych, główne encje, relacje, indeksy i zasady ownersh
 
 ### Gallery
 - Przeznaczenie: galeria w ramach wydarzenia.
-- Pola: `id`, `event_id`, `name`, `slug`, `description`, `cover_media_file_id`, `status`, `sort_order`, `access_code_hash`, `visibility_mode`, `upload_enabled`, `download_enabled`, `public_view_enabled`, `moderation_mode`, `published_at`, `expires_at`, `theme_key`, `created_at`, `updated_at`, `deleted_at`.
-- Ograniczenia: unikalny `slug` globalnie lub w obrębie wydarzenia zgodnie z decyzją implementacyjną.
-- Indeksy: `event_id`, `(event_id, status)`, `slug`.
+- Pola zaimplementowane: `id`, `event_id`, `name`, `slug`, `description`, `status`, `sort_order`, `archived_at`, `deleted_at`, `created_at`, `updated_at`, `version`.
+- Pola planowane w kolejnych etapach: `cover_media_file_id`, `access_code_hash`, `visibility_mode`, `upload_enabled`, `download_enabled`, `public_view_enabled`, `moderation_mode`, `published_at`, `expires_at`, `theme_key`.
+- Ograniczenia: `slug` jest globalnie unikalny i pozostaje zarezerwowany po soft delete; galeria zawsze nalezy do jednego wydarzenia.
+- Indeksy: `(event_id, status)`, `(event_id, deleted_at, sort_order)`, `deleted_at`, unikalny `slug`.
 
 ### GalleryAccess
 - Przeznaczenie: kontrola dostępu publicznego.
@@ -181,4 +182,4 @@ erDiagram
 - [../product/PERMISSIONS_MATRIX.md](../product/PERMISSIONS_MATRIX.md)
 
 ## Decyzje otwarte
-- Czy `Gallery.slug` ma być globalnie unikalny, czy unikalny względem wydarzenia z dodatkowym publicznym aliasem.
+- Publiczne znaczenie slugu i dodatkowy alias moga zostac rozszerzone dopiero wraz z zaakceptowaniem ADR 0010; GALLERY-001 utrzymuje globalna unikalnosc.

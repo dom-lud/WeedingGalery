@@ -33,6 +33,9 @@ public class AuditEvent {
 	@Column(name = "target_user_id", length = 36)
 	private String targetUserId;
 
+	@Column(name = "gallery_id", length = 36)
+	private String galleryId;
+
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
@@ -53,5 +56,13 @@ public class AuditEvent {
 		this.eventId = eventId;
 		this.targetUserId = targetUserId;
 		this.details = details;
+	}
+
+	public static AuditEvent galleryEvent(EventType eventType, String userEmail, String eventId, String galleryId,
+			String details) {
+		AuditEvent event = new AuditEvent(eventType, userEmail, details);
+		event.setEventId(eventId);
+		event.setGalleryId(galleryId);
+		return event;
 	}
 }

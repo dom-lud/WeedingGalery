@@ -72,10 +72,17 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 ## Etap 4 - Galerie
 - Cel: wdrozenie bezpiecznego zarzadzania wieloma galeriami w kontekscie wydarzenia.
 - Zaleznosci: etap 3. ADR 0010 jest wymagany dopiero dla publicznego dostepu w kolejnym rozszerzeniu.
-- Status: przygotowany do rozpoczecia w minimalnym zakresie `GALLERY-001`.
+- Status: zakonczony w minimalnym zakresie `GALLERY-001`.
 - Pierwszy zakres: uwierzytelnione listowanie, tworzenie, odczyt, edycja, kolejnosc, archiwizacja i soft delete galerii z ownership dziedziczonym po wydarzeniu.
 - Poza pierwszym zakresem: `GALLERY-002`, `PUBLIC-001`, QR, tokeny, kody dostepu, upload, download, media, moderacja i personalizacja.
 - Kryterium ukonczenia pierwszego zakresu: owner i manager moga zarzadzac dozwolonymi metadanymi wielu galerii, owner kontroluje lifecycle, a API i UI bronia scoping `eventId + galleryId`.
+- Potwierdzenie:
+  - management API dziedziczy ownership i role z wydarzenia oraz maskuje cross-event IDOR,
+  - owner i aktywny manager moga listowac, odczytywac, tworzyc i edytowac metadane,
+  - tylko owner moze idempotentnie archiwizowac i wykonywac soft delete,
+  - slug jest generowany przez serwer, globalnie unikalny, stabilny i pozostaje zarezerwowany po usunieciu,
+  - mutacje sa chronione sesja i CSRF oraz zapisuja wymagany audyt,
+  - flow zostal potwierdzony testami backendowymi, frontendowymi i Playwright E2E na MySQL/Docker Compose.
 - Glowne ryzyka: enumeracja galerii, bledny model widocznosci i slugow.
 
 ## Etap 5 - Upload i storage
