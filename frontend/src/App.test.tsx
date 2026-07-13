@@ -1,22 +1,31 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { ThemeProvider } from '@mui/material/styles'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { appTheme } from './theme'
 
+vi.mock('./api', () => {
+  return {
+    default: {
+      get: vi.fn(() => Promise.reject(new Error('Network Error'))),
+      post: vi.fn(),
+    },
+  }
+})
+
 describe('App foundation shell', () => {
-  it('renders the startup shell and keeps the counter interactive', () => {
+  it('renders the loading state and then redirects to login', async () => {
     render(
       <ThemeProvider theme={appTheme}>
         <App />
       </ThemeProvider>,
     )
 
-    expect(screen.getByRole('heading', { level: 1, name: /get started/i })).toBeInTheDocument()
+    // Initially loading
+    expect(screen.getByText(/Loading\.\.\./i)).toBeInTheDocument()
 
-    const counterButton = screen.getByRole('button', { name: /count is 0/i })
-    fireEvent.click(counterButton)
-
-    expect(screen.getByRole('button', { name: /count is 1/i })).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /Welcome Back/i })).toBeInTheDocument()
+    })
   })
 })

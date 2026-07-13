@@ -15,3 +15,7 @@ spring:
     open-in-view: false
   flyway:
     enabled: false
+app:
+  security:
+    csrf:
+      enabled: false

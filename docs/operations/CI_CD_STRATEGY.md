@@ -1,44 +1,45 @@
 # Strategia CI/CD
 
 ## Cel dokumentu
-Opisuje docelową strategię CI/CD dla GitHub Actions bez implementowania workflow YAML.
+Opisuje docelowa strategie CI/CD dla GitHub Actions oraz aktualne repo truth dla workflow walidacyjnych.
 
 ## Status dokumentu
 - Status: draft
 - Zakres: pull request flow, quality gates, pipeline build/test/deploy, artefakty i rollback
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
 - Repozytorium ma workflow PR validation oraz workflow buildowy dla `main`.
-- Backend testy, frontend lint/test/build, walidacja `docker compose config` i budowa obrazów backendu oraz frontendu są egzekwowane automatycznie w GitHub Actions.
-- Quality gates są częściowo zautomatyzowane; obszary biznesowe, security review i przyszłe E2E nadal wymagają dalszej rozbudowy.
+- Backend testy, frontend lint/test/build, walidacja `docker compose config` i budowa obrazow backendu oraz frontendu sa egzekwowane automatycznie w GitHub Actions.
+- Workflow PR validation uruchamia tez testy Playwright E2E, publikuje artefakt `playwright-report` i aktualizuje komentarz w PR z podsumowaniem wyniku.
+- Quality gates sa czesciowo zautomatyzowane; obszary biznesowe, security review i dalsza rozbudowa zakresu E2E nadal wymagaja pracy.
 
 ## Stan docelowy
-- Każda zmiana przechodzi przez pull request, automatyczne quality gates i review.
-- `main` jest zawsze w stanie możliwym do zbudowania.
-- Deployment wykonuje się z wersjonowanych artefaktów po przejściu kontroli jakości.
+- Kazda zmiana przechodzi przez pull request, automatyczne quality gates i review.
+- `main` jest zawsze w stanie mozliwym do zbudowania.
+- Deployment wykonuje sie z wersjonowanych artefaktow po przejsciu kontroli jakosci.
 
 ## Pull request flow
-Każda zmiana powinna przechodzić przez pull request.
+Kazda zmiana powinna przechodzic przez pull request.
 
-Zakładany flow:
+Zakladany flow:
 
 ```text
 feature branch
-→ pull request
-→ automatyczne quality gates
-→ code review
-→ opcjonalny Codex review
-→ merge do main
-→ build artefaktów
-→ deployment na środowisko docelowe
-→ smoke tests
+-> pull request
+-> automatyczne quality gates
+-> code review
+-> opcjonalny Codex review
+-> merge do main
+-> build artefaktow
+-> deployment na srodowisko docelowe
+-> smoke tests
 ```
 
 ## Workflow
 
 ### PR validation
-Uruchamiany dla pull requestów do `main`.
+Uruchamiany dla pull requestow do `main`.
 
 Zakres:
 - checkout,
@@ -48,7 +49,10 @@ Zakres:
 - frontend format (Prettier check), lint, testy i build,
 - walidacja `docker compose config`,
 - budowa obrazu backendu,
-- budowa obrazu frontendu.
+- budowa obrazu frontendu,
+- start backendu i frontendu dla Playwright E2E,
+- publikacja artefaktu `playwright-report`,
+- komentarz w PR z podsumowaniem jobow i wyniku Playwright.
 
 ### Main build
 Uruchamiany po merge do `main`.
@@ -58,107 +62,109 @@ Zakres:
 - frontend format (Prettier check), lint, testy i build,
 - testy backendowe,
 - testy frontendowe,
-- budowa obrazów Docker,
-- publikacja artefaktów CI jako GitHub Actions artifacts,
-- przygotowanie pod późniejszą publikację do registry, jeśli registry zostanie wybrane.
+- budowa obrazow Docker,
+- publikacja artefaktow CI jako GitHub Actions artifacts,
+- przygotowanie pod pozniejsza publikacje do registry, jesli registry zostanie wybrane.
 
 ### Deployment
-Uruchamiany ręcznie albo po zatwierdzeniu środowiska.
+Uruchamiany recznie albo po zatwierdzeniu srodowiska.
 
 Zakres:
-- pobranie wersjonowanych artefaktów,
-- weryfikacja konfiguracji i sekretów,
-- backup przed migracją, jeśli zmiana dotyczy danych,
+- pobranie wersjonowanych artefaktow,
+- weryfikacja konfiguracji i sekretow,
+- backup przed migracja, jesli zmiana dotyczy danych,
 - migracje,
-- aktualizacja kontenerów,
+- aktualizacja kontenerow,
 - health checks,
 - smoke tests,
-- monitoring po wdrożeniu,
-- możliwość rollbacku.
+- monitoring po wdrozeniu,
+- mozliwosc rollbacku.
 
-## Obowiązkowe quality gates
+## Obowiazkowe quality gates
 
 ### Backend
 - Maven build przechodzi.
-- Testy jednostkowe przechodzą.
-- Testy integracyjne przechodzą, jeśli zmiana dotyczy API, bazy, security, storage lub background jobs.
-- Testy security i ownership przechodzą, jeśli zmiana dotyczy autoryzacji lub danych użytkowników.
-- Migracje schematu są walidowane, jeśli zmiana dotyczy danych i repozytorium zawiera już aktywny mechanizm migracji.
-- Brak znanych krytycznych podatności w zależnościach.
+- Testy jednostkowe przechodza.
+- Testy integracyjne przechodza, jesli zmiana dotyczy API, bazy, security, storage lub background jobs.
+- Testy security i ownership przechodza, jesli zmiana dotyczy autoryzacji lub danych uzytkownikow.
+- Migracje schematu sa walidowane, jesli zmiana dotyczy danych i repozytorium zawiera juz aktywny mechanizm migracji.
+- Brak znanych krytycznych podatnosci w zaleznosciach.
 
 ### Frontend
 - TypeScript build przechodzi.
 - Lint przechodzi.
-- Testy frontendu przechodzą.
-- Testy komponentów, hooków lub widoków przechodzą, jeśli zmiana dotyczy UI.
-- Kluczowe stany UI są pokryte: loading, empty, error, retry, forbidden i offline, jeśli dotyczą przepływu.
-- Mobile-first i accessibility są sprawdzone zgodnie z dokumentacją.
-- Frontend używa MUI zgodnie z [../frontend/UI_SYSTEM.md](../frontend/UI_SYSTEM.md).
+- Testy frontendu przechodza.
+- Testy komponentow, hookow lub widokow przechodza, jesli zmiana dotyczy UI.
+- Kluczowe stany UI sa pokryte: loading, empty, error, retry, forbidden i offline, jesli dotycza przeplywu.
+- Mobile-first i accessibility sa sprawdzone zgodnie z dokumentacja.
+- Frontend uzywa MUI zgodnie z [../frontend/UI_SYSTEM.md](../frontend/UI_SYSTEM.md).
 
 ### Docker i operacje
 - `docker compose config` przechodzi.
-- Obrazy backendu i frontendu budują się.
-- Health checks są zdefiniowane dla usług runtime, gdy zostaną wdrożone.
-- Zmiany deploymentu mają plan rollbacku.
-- Zmiany wymagające sekretów nie zapisują sekretów w repozytorium.
+- Obrazy backendu i frontendu buduja sie.
+- Health checks sa zdefiniowane dla uslug runtime, gdy zostana wdrozone.
+- Zmiany deploymentu maja plan rollbacku.
+- Zmiany wymagajace sekretow nie zapisuja sekretow w repozytorium.
 
 ### Dokumentacja
-- Dokumentacja jest zaktualizowana, jeśli zmiana wpływa na architekturę, API, model danych, security, operacje, workflow lub UX.
-- ADR jest dodany lub zaktualizowany, jeśli decyzja wpływa na architekturę, bezpieczeństwo, dane albo operacje.
-- Linki względne w nowych dokumentach są poprawne.
+- Dokumentacja jest zaktualizowana, jesli zmiana wplywa na architekture, API, model danych, security, operacje, workflow lub UX.
+- ADR jest dodany lub zaktualizowany, jesli decyzja wplywa na architekture, bezpieczenstwo, dane albo operacje.
+- Linki wzgledne w nowych dokumentach sa poprawne.
 
-## Gates blokujące i ostrzegawcze
-Docelowo blokujące:
+## Gates blokujace i ostrzegawcze
+Docelowo blokujace:
 - backend build,
 - frontend build,
 - lint,
 - testy wymagane zakresem zmiany,
 - Docker build dla zmian infrastrukturalnych lub release,
-- brak sekretów w repo,
-- brak krytycznych podatności.
+- brak sekretow w repo,
+- brak krytycznych podatnosci.
 
-Początkowo ostrzegawcze mogą być:
-- pełne E2E,
+Poczatkowo ostrzegawcze moga byc:
+- pelne E2E,
 - skanowanie licencji,
-- rozbudowane testy wydajnościowe,
-- automatyczne sprawdzanie linków dokumentacji.
+- rozbudowane testy wydajnosciowe,
+- automatyczne sprawdzanie linkow dokumentacji.
 
-Zmiana gate z ostrzegawczego na blokujący powinna zostać odnotowana w dokumentacji.
+Zmiana gate z ostrzegawczego na blokujacy powinna zostac odnotowana w dokumentacji.
 
 ## Cache i artefakty
-- Cache Maven powinien być oparty o `backend/pom.xml`.
-- Cache npm powinien być oparty o `frontend/package-lock.json`.
-- Artefakty builda muszą być powiązane z commit SHA.
-- Artefakty backendu i frontendu na `main` powinny być dostępne do pobrania z workflow jako punkt odniesienia dla dalszych etapów delivery.
-- Obrazy Docker powinny być tagowane co najmniej przez commit SHA; tag `latest` nie może być jedynym identyfikatorem produkcyjnym.
+- Cache Maven powinien byc oparty o `backend/pom.xml`.
+- Cache npm powinien byc oparty o `frontend/package-lock.json`.
+- Cache przegladarek Playwright powinien byc utrzymywany oddzielnie od cache npm.
+- Artefakty builda musza byc powiazane z commit SHA.
+- Artefakt `playwright-report` powinien byc publikowany dla kazdego przebiegu E2E, tak aby review mialo dostep do HTML reportu i trace.
+- Artefakty backendu i frontendu na `main` powinny byc dostepne do pobrania z workflow jako punkt odniesienia dla dalszych etapow delivery.
+- Obrazy Docker powinny byc tagowane co najmniej przez commit SHA; tag `latest` nie moze byc jedynym identyfikatorem produkcyjnym.
 
 ## Sekrety CI
 - Sekrety przechowujemy w GitHub Actions secrets albo docelowym mechanizmie secret management.
-- Sekrety nie mogą trafiać do logów.
-- Workflow nie może wypisywać pełnych wartości env.
-- Środowiska produkcyjne powinny wymagać ręcznego zatwierdzenia lub environment protection rules.
+- Sekrety nie moga trafiac do logow.
+- Workflow nie moze wypisywac pelnych wartosci env.
+- Srodowiska produkcyjne powinny wymagac recznego zatwierdzenia albo environment protection rules.
 
 ## Migracje i dane
-- Migracje schematu uruchamiamy przed startem nowej wersji aplikacji albo jako jawny etap deploymentu, gdy mechanizm migracji zostanie wdrożony.
-- Destrukcyjne migracje wymagają planu danych, backupu i rollbacku.
-- Zmiany schematu muszą być kompatybilne z procesem rollbacku albo mieć osobny plan operacyjny.
+- Migracje schematu uruchamiamy przed startem nowej wersji aplikacji albo jako jawny etap deploymentu, gdy mechanizm migracji zostanie wdrozony.
+- Destrukcyjne migracje wymagaja planu danych, backupu i rollbacku.
+- Zmiany schematu musza byc kompatybilne z procesem rollbacku albo miec osobny plan operacyjny.
 
 ## Deployment i rollback
-- Deployment powinien używać wersjonowanych obrazów lub artefaktów.
+- Deployment powinien uzywac wersjonowanych obrazow lub artefaktow.
 - Przed deploymentem zmian danych wymagany jest backup.
-- Rollback musi wskazywać wersję aplikacji, migracje, konfigurację i wpływ na dane.
-- Po deploymentcie wymagane są smoke tests dla API, frontendu i krytycznych ścieżek.
+- Rollback musi wskazywac wersje aplikacji, migracje, konfiguracje i wplyw na dane.
+- Po deploymentcie wymagane sa smoke tests dla API, frontendu i krytycznych sciezek.
 
 ## Smoke tests
 Minimalne smoke tests po deploymentcie:
 - frontend odpowiada przez Nginx,
 - backend health endpoint odpowiada,
-- połączenie z bazą działa,
+- polaczenie z baza dziala,
 - endpoint publiczny galerii zwraca przewidywalny status,
-- logowanie lub endpoint auth zwraca przewidywalną odpowiedź,
-- upload testowy jest wykonywany na środowisku testowym, gdy jest dostępny.
+- logowanie lub endpoint auth zwraca przewidywalna odpowiedz,
+- upload testowy jest wykonywany na srodowisku testowym, gdy jest dostepny.
 
-## Powiązane dokumenty
+## Powiazane dokumenty
 - [DEPLOYMENT.md](DEPLOYMENT.md)
 - [CONFIGURATION.md](CONFIGURATION.md)
 - [ENVIRONMENTS.md](ENVIRONMENTS.md)
@@ -167,6 +173,6 @@ Minimalne smoke tests po deploymentcie:
 - [../development/WORKFLOW.md](../development/WORKFLOW.md)
 
 ## Decyzje otwarte
-- Docelowy registry obrazów Docker.
-- Czy staging będzie obowiązkowy przed pierwszym produkcyjnym wdrożeniem.
-- Kiedy E2E staną się gate blokującym.
+- Docelowy registry obrazow Docker.
+- Czy staging bedzie obowiazkowy przed pierwszym produkcyjnym wdrozeniem.
+- Kiedy E2E stana sie gate blokujacym.

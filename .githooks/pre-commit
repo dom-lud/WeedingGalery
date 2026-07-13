@@ -1,0 +1,34 @@
+#!/bin/sh
+
+set -eu
+
+run_frontend_check() {
+  echo "Running frontend format check..."
+
+  if command -v cmd.exe >/dev/null 2>&1; then
+    cmd.exe /c "cd /d %CD%\\frontend && npm.cmd run format:check"
+    return
+  fi
+
+  (
+    cd frontend
+    npm run format:check
+  )
+}
+
+run_backend_check() {
+  echo "Running backend Spotless check..."
+
+  if command -v cmd.exe >/dev/null 2>&1; then
+    cmd.exe /c "cd /d %CD%\\backend && mvnw.cmd -B spotless:check"
+    return
+  fi
+
+  (
+    cd backend
+    ./mvnw -B spotless:check
+  )
+}
+
+run_frontend_check
+run_backend_check

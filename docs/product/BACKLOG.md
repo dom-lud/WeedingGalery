@@ -6,7 +6,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 ## Status dokumentu
 - Status: draft
 - Zakres: backlog dla pełnej wizji produktu
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
 - Backlog opisuje planowane zadania i nie oznacza, że funkcje są już zaimplementowane.
@@ -50,23 +50,23 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 ## IDENTITY
 ### AUTH-001 - Rejestracja, logowanie i sesje użytkownika
 - Cel: wdrożyć podstawową tożsamość użytkownika.
-- Opis: rejestracja, logowanie, wylogowanie, sesje lub tokeny sesyjne, blokady i polityka haseł.
+- Opis: administracyjne tworzenie kont, logowanie, wylogowanie, sesje serwerowe, CSRF dla SPA, blokady i polityka haseł.
 - Priorytet: wysoki.
 - Zależności: FND-002, ADR 0002.
-- Wymagania funkcjonalne: konto użytkownika, sesja, blokada po błędnych logowaniach.
-- Kryteria akceptacji: użytkownik może założyć konto, zalogować się i zakończyć sesję.
+- Wymagania funkcjonalne: konto użytkownika tworzone zgodnie z polityką admin-only, sesja, endpoint `/api/auth/me`, bootstrap CSRF, blokada po błędnych logowaniach.
+- Kryteria akceptacji: administrator może utworzyć konto, użytkownik może zalogować się i zakończyć sesję, a flow auth jest pokryte testami realistycznymi dla UI i API.
 - Wymagania bezpieczeństwa: bezpieczne hashowanie, rate limiting, brak enumeracji użytkowników.
-- Wymagane testy: testy auth, security, sesji i błędnych logowań.
+- Wymagane testy: testy auth, security, sesji, błędnych logowań, CSRF oraz E2E bez sztucznego stabilizowania flow logowania.
 - Dokumenty powiązane: [../backend/AUTHENTICATION_AND_AUTHORIZATION.md](../backend/AUTHENTICATION_AND_AUTHORIZATION.md).
-- Status początkowy: `IDEA`.
-- ADR wymagany: tak.
+- Status: `DONE`.
+- ADR wymagany: tak (ADR 0002).
 
 ### AUTH-002 - Weryfikacja e-mail i reset hasła
 - Cel: zapewnić odzyskiwanie dostępu i potwierdzenie tożsamości.
-- Opis: tokeny weryfikacyjne, reset hasła, wygasanie tokenów, unieważnianie po użyciu.
+- Opis: tokeny weryfikacyjne, reset hasła, wygasanie tokenów, unieważnianie po użyciu oraz transakcyjna wysyłka e-maili dla rejestracji, weryfikacji konta i odzyskiwania dostępu.
 - Priorytet: wysoki.
 - Zależności: AUTH-001.
-- Wymagania funkcjonalne: wysłanie i potwierdzenie tokenu, reset hasła.
+- Wymagania funkcjonalne: wysłanie i potwierdzenie tokenu, reset hasła, dostarczenie e-maila weryfikacyjnego po rejestracji oraz e-maila resetującego hasło.
 - Kryteria akceptacji: użytkownik może zweryfikować e-mail i bezpiecznie zresetować hasło.
 - Wymagania bezpieczeństwa: bezpieczne tokeny, brak ujawniania istnienia konta.
 - Wymagane testy: testy tokenów, wygasania i ścieżek błędów.
@@ -99,7 +99,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Wymagania bezpieczeństwa: pełna kontrola ownership wydarzenia.
 - Wymagane testy: testy use case, ownership, API i walidacji.
 - Dokumenty powiązane: [../architecture/DATA_MODEL.md](../architecture/DATA_MODEL.md), [../architecture/MULTI_TENANCY.md](../architecture/MULTI_TENANCY.md).
-- Status początkowy: `IDEA`.
+- Status: `READY`.
 - ADR wymagany: nie.
 
 ### EVENT-002 - Archiwizacja i retencja wydarzeń
@@ -126,7 +126,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Wymagania bezpieczeństwa: ownership, brak możliwości usunięcia właściciela przez managera.
 - Wymagane testy: testy autoryzacji, ownership i historii zmian.
 - Dokumenty powiązane: [USER_ROLES.md](USER_ROLES.md), [PERMISSIONS_MATRIX.md](PERMISSIONS_MATRIX.md).
-- Status początkowy: `IDEA`.
+- Status: `READY`.
 - ADR wymagany: nie.
 
 ## INVITATIONS
@@ -367,15 +367,15 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 ## AUDIT
 ### AUDIT-001 - Log audytowy działań użytkowników i administratorów
 - Cel: utrwalać krytyczne zdarzenia systemowe.
-- Opis: login, błędy loginu, zmiany ról, usunięcia, zmiany planów, akcje admina.
+- Opis: login, błędy loginu, wylogowania, zmiany ról, usunięcia, zmiany planów, akcje admina.
 - Priorytet: wysoki.
 - Zależności: AUTH-001, MEMBER-001, ADMIN-002.
-- Wymagania funkcjonalne: spójny model `AuditLog` i `AdminAction`.
+- Wymagania funkcjonalne: spojny model `AuditLog` i `AdminAction`, z katalogiem eventow rozwijanym razem ze zmianami wrazliwych flow.
 - Kryteria akceptacji: każda wrażliwa akcja zostawia ślad audytowy z wynikiem i kontekstem.
 - Wymagania bezpieczeństwa: ograniczony dostęp do logu audytowego i retencja zgodna z prywatnością.
-- Wymagane testy: testy zapisu audytu i filtrowania wpisów.
+- Wymagane testy: testy zapisu audytu, filtrowania wpisow oraz regresji dla nowych eventow.
 - Dokumenty powiązane: [../architecture/DATA_MODEL.md](../architecture/DATA_MODEL.md), [../operations/LOGGING.md](../operations/LOGGING.md).
-- Status początkowy: `IDEA`.
+- Status: `IN PROGRESS`.
 - ADR wymagany: nie.
 
 ## SECURITY

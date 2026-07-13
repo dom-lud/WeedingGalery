@@ -9,7 +9,8 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Stan obecny
-- Dokumentacja opisuje planowany system i proces pracy; nie potwierdza istnienia implementacji.
+- Dokumentacja opisuje planowany system i proces pracy, ale czesc dokumentow zawiera juz takze precyzyjny stan zaimplementowany.
+- Przy zmianach identity, auth, testow i audytu trzeba utrzymywac spojnosc miedzy dokumentami produktowymi, backendowymi, operacyjnymi i skillami.
 
 ## Stan docelowy
 - Nowa osoba lub agent AI może szybko znaleźć właściwy dokument do konkretnego typu zadania.
@@ -23,7 +24,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | Functional requirements | Docelowe funkcje systemu | wszyscy | przy zmianie zakresu produktu | [docs/product/FUNCTIONAL_REQUIREMENTS.md](product/FUNCTIONAL_REQUIREMENTS.md) |
 | Non-functional requirements | Wymagania jakościowe | architekt, backend, ops | przy zmianie wymagań jakościowych | [docs/product/NON_FUNCTIONAL_REQUIREMENTS.md](product/NON_FUNCTIONAL_REQUIREMENTS.md) |
 | Permissions matrix | Macierz uprawnień | backend, security, QA | przy zmianie auth | [docs/product/PERMISSIONS_MATRIX.md](product/PERMISSIONS_MATRIX.md) |
-| Feature roadmap | Etapy implementacji | product, tech lead, AI | przy zmianie etapów | [docs/product/FEATURE_ROADMAP.md](product/FEATURE_ROADMAP.md) |
+| Feature roadmap | Etapy implementacji | product, tech lead, AI | przy zmianie etapu, jego statusu lub zakresu | [docs/product/FEATURE_ROADMAP.md](product/FEATURE_ROADMAP.md) |
 | Backlog | Zadania i epiki | product, AI, programiści | przy dodaniu lub zmianie zadań | [docs/product/BACKLOG.md](product/BACKLOG.md) |
 | Glossary | Terminologia projektu | wszyscy | przy nowych pojęciach | [docs/product/GLOSSARY.md](product/GLOSSARY.md) |
 
@@ -47,7 +48,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | API endpoints | Katalog endpointów | backend, frontend, QA | przy dodaniu endpointów | [docs/backend/API_ENDPOINTS.md](backend/API_ENDPOINTS.md) |
 | Database conventions | Zasady schematu, migracji i pracy z relacyjną bazą danych | backend, DBA | przy zmianie zasad danych | [docs/backend/DATABASE_CONVENTIONS.md](backend/DATABASE_CONVENTIONS.md) |
 | Error handling | Format błędów | backend, frontend | przy zmianie błędów API | [docs/backend/ERROR_HANDLING.md](backend/ERROR_HANDLING.md) |
-| Authentication and authorization | Model authN/authZ | backend, security | przy zmianie auth | [docs/backend/AUTHENTICATION_AND_AUTHORIZATION.md](backend/AUTHENTICATION_AND_AUTHORIZATION.md) |
+| Authentication and authorization | Model authN/authZ oraz aktualny stan Etapu 2 | backend, security | przy zmianie auth, sesji, rol lub audit eventow identity | [docs/backend/AUTHENTICATION_AND_AUTHORIZATION.md](backend/AUTHENTICATION_AND_AUTHORIZATION.md) |
 | Media processing | Pipeline mediów | backend, ops | przy zmianie processingu | [docs/backend/MEDIA_PROCESSING.md](backend/MEDIA_PROCESSING.md) |
 
 ## Frontend
@@ -77,8 +78,8 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | --- | --- | --- | --- | --- |
 | Test strategy | Strategia testów | backend, frontend, QA | przy zmianie modelu testów | [docs/testing/TEST_STRATEGY.md](testing/TEST_STRATEGY.md) |
 | Backend testing | Zasady testów backendu | backend | przy zmianie standardów testów backendu | [docs/testing/BACKEND_TESTING.md](testing/BACKEND_TESTING.md) |
-| Frontend testing | Zasady testów frontendu | frontend | przy zmianie standardów testów UI | [docs/testing/FRONTEND_TESTING.md](testing/FRONTEND_TESTING.md) |
-| E2E scenarios | Kluczowe scenariusze E2E | QA, frontend, backend | przy zmianie krytycznych flow | [docs/testing/E2E_SCENARIOS.md](testing/E2E_SCENARIOS.md) |
+| Frontend testing | Zasady testow frontendu | frontend | przy zmianie standardow testow UI lub page object pattern | [docs/testing/FRONTEND_TESTING.md](testing/FRONTEND_TESTING.md) |
+| E2E scenarios | Kluczowe scenariusze E2E | QA, frontend, backend | przy zmianie krytycznych flow auth, UX lub kontraktu | [docs/testing/E2E_SCENARIOS.md](testing/E2E_SCENARIOS.md) |
 | Quality gates | Warunki jakości | wszyscy | przy zmianie procesu release | [docs/testing/QUALITY_GATES.md](testing/QUALITY_GATES.md) |
 
 ## Operacje
@@ -90,7 +91,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | Configuration | Zasady konfiguracji | ops, backend | przy zmianie env i sekretów | [docs/operations/CONFIGURATION.md](operations/CONFIGURATION.md) |
 | Backup and restore | Procedury backup i restore | ops | przy zmianie backupu | [docs/operations/BACKUP_AND_RESTORE.md](operations/BACKUP_AND_RESTORE.md) |
 | Monitoring | Monitoring i observability | ops, backend | przy zmianie metryk i alertów | [docs/operations/MONITORING.md](operations/MONITORING.md) |
-| Logging | Logi operacyjne | backend, ops | przy zmianie logowania | [docs/operations/LOGGING.md](operations/LOGGING.md) |
+| Logging | Logi operacyjne i audytowe | backend, ops | przy zmianie logowania technicznego lub audit eventow | [docs/operations/LOGGING.md](operations/LOGGING.md) |
 | Incident response | Obsługa incydentów | ops, security | przy zmianie procedur incydentowych | [docs/operations/INCIDENT_RESPONSE.md](operations/INCIDENT_RESPONSE.md) |
 | Maintenance | Rutyny utrzymaniowe | ops | przy zmianie maintenance | [docs/operations/MAINTENANCE.md](operations/MAINTENANCE.md) |
 
@@ -162,6 +163,8 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | Frontend feature skill | Realizacja funkcji frontendowej | AI, frontend | przy zmianie standardów frontendu | [.agents/skills/frontend-feature/SKILL.md](../.agents/skills/frontend-feature/SKILL.md) |
 | Project foundation skill | Etap 0 i techniczne fundamenty repozytorium | AI, tech lead | przy starcie implementacji i stabilizacji repo | [.agents/skills/project-foundation/SKILL.md](../.agents/skills/project-foundation/SKILL.md) |
 | Stage 1 foundation skill | Etap 1 – szkielet techniczny monorepo (FND-002) | AI, backend, tech lead | przy realizacji Etapu 1 i rozszerzaniu fundamentów | [.agents/skills/stage-1-foundation/SKILL.md](../.agents/skills/stage-1-foundation/SKILL.md) |
+| Stage 2 identity skill | Etap 2 - auth, sesje, CSRF, testy auth i audyt identity | AI, backend, frontend, QA | przy realizacji lub rozszerzaniu Etapu 2 | [.agents/skills/stage-2-identity/SKILL.md](../.agents/skills/stage-2-identity/SKILL.md) |
+| Stage 3 events and memberships skill | Etap 3 - wydarzenia, ownership i czlonkostwo | AI, backend, frontend, QA | przy starcie lub rozszerzaniu Etapu 3 | [.agents/skills/stage-3-events-and-memberships/SKILL.md](../.agents/skills/stage-3-events-and-memberships/SKILL.md) |
 | Task orchestration skill | Koordynacja subagentów i integracja wyników | AI, reviewer | przy zmianie standardu orkiestracji | [.agents/skills/task-orchestration/SKILL.md](../.agents/skills/task-orchestration/SKILL.md) |
 | Database migration skill | Zmiany danych i migracje | AI, backend | przy zmianie standardów danych | [.agents/skills/database-migration/SKILL.md](../.agents/skills/database-migration/SKILL.md) |
 | API design skill | Projektowanie API | AI, backend | przy zmianie API conventions | [.agents/skills/api-design/SKILL.md](../.agents/skills/api-design/SKILL.md) |

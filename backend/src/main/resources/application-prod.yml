@@ -6,11 +6,12 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
+      # Produkcja waliduje schemat zarządzany przez Flyway, nie mutuje go przez Hibernate.
       ddl-auto: validate
     open-in-view: false
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    locations: classpath:db/migration,classpath:db/seed
 
 server:
   port: 8080

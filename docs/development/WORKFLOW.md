@@ -19,8 +19,10 @@ Opisuje standardowy proces realizacji każdej funkcji, poprawki lub zmiany archi
 - Nie zakładaj, że opisane funkcje już istnieją w kodzie.
 - Wykonuj minimalny spójny zakres zamiast szerokiej, niesprawdzonej zmiany.
 - Aktualizacja dokumentacji jest częścią zadania, a nie etapem opcjonalnym.
+- Zmiany w API muszą być projektowane i aktualizowane w `api-contract/API_CONTRACT.md` zanim powstaną w kodzie.
+- Przed implementacją testów, zaplanuj scenariusze (w tym edge case'y). Nie pisz testów wyłącznie "pod napisaną już logikę".
 - Decyzja o użyciu albo nieużyciu subagentów musi być jawna dla każdego zadania nietrywialnego.
-- Self-review po implementacji jest obowiązkowy i ma być wykonany z perspektywy review, nie autora.
+- Self-review po implementacji jest obowiązkowy i ma być wykonany z perspektywy review, nie autora (wykonywany w pętli do skutku, aż wszystkie błędy zostaną poprawione).
 - Workflow jest pętlą: jeśli testy, review albo checklista wykryją problem, zadanie wraca do implementacji aż do domknięcia albo jawnego opisania blokera.
 - Zamknięcie zadania wymaga sprawdzenia spełnienia wymagań, DoD i właściwych checklist punkt po punkcie.
 
@@ -58,7 +60,8 @@ Przed implementacją należy jawnie odpowiedzieć:
 - Czy frontend wymaga nowych widoków, stanów loading/error/empty lub guardów?
 - Czy zmiana wpływa na ownership, role albo dostęp publiczny?
 - Czy zmiana wpływa na limity, storage, retencję lub backup?
-- Czy trzeba dodać monitoring, logowanie albo audyt?
+- Czy trzeba dodać monitoring, logowanie techniczne (@Slf4j) albo biznesowy audyt (AuditService)?
+- Czy kod tworzy nowe ścieżki awaryjne wymagające rzucania dedykowanych wyjątków domenowych i aktualizacji `GlobalExceptionHandler`?
 - Czy trzeba zmienić dokumentację domenową, checklisty lub prompt templates?
 - Czy zadanie wymaga subagentów, czy wystarczy jeden agent?
 - Czy zmiana wpływa na CI/CD lub quality gates?

@@ -1,70 +1,71 @@
-# Role Użytkowników
+# Role Uzytkownikow
 
 ## Cel dokumentu
-Definiuje role systemowe i role kontekstowe oraz zakres ich odpowiedzialności.
+Definiuje role systemowe i role kontekstowe oraz zakres ich odpowiedzialnosci.
 
 ## Status dokumentu
 - Status: draft
-- Zakres: role produktu i odpowiedzialności
-- Ostatnia aktualizacja: 2026-07-12
+- Zakres: role produktu i odpowiedzialnosci
+- Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
-- Role nie są jeszcze zaimplementowane.
+- W kodzie istnieja aktualnie tylko role systemowe `USER` i `ADMIN`.
+- Role wydarzenia, takie jak `EventOwner` i `EventManager`, nie sa jeszcze zaimplementowane i stanowia wejscie do Etapu 3.
 
 ## Stan docelowy
-- System rozróżnia role systemowe i role w kontekście wydarzenia.
+- System rozroznia role systemowe i role w kontekscie wydarzenia.
 
-## Podział ról
+## Podzial rol
 | Rola | Typ | Zakres | Opis |
 | --- | --- | --- | --- |
-| Guest | kontekstowa | pojedyncza galeria | Osoba bez konta z ograniczonym dostępem przez link, QR lub token |
-| User | systemowa | konto | Zarejestrowany użytkownik platformy |
-| EventOwner | kontekstowa | wydarzenie | Właściciel wydarzenia z pełną kontrolą biznesową |
-| EventManager | kontekstowa | wydarzenie | Współzarządzający z delegowanymi uprawnieniami |
-| SystemAdministrator | systemowa | cała platforma | Operator panelu administracyjnego |
-| SuperAdministrator | systemowa | cała platforma | Rola nadrzędna do zarządzania administracją i ustawieniami krytycznymi |
+| Guest | kontekstowa | pojedyncza galeria | Osoba bez konta z ograniczonym dostepem przez link, QR lub token |
+| User | systemowa | konto | Zarejestrowany uzytkownik platformy |
+| EventOwner | kontekstowa | wydarzenie | Wlasciciel wydarzenia z pelna kontrola biznesowa |
+| EventManager | kontekstowa | wydarzenie | Wspolzarzadzajacy z delegowanymi uprawnieniami |
+| SystemAdministrator | systemowa | cala platforma | Operator panelu administracyjnego |
+| SuperAdministrator | systemowa | cala platforma | Rola nadrzedna do zarzadzania administracja i ustawieniami krytycznymi |
 
 ## Guest
 - Nie posiada konta.
-- Może wejść do galerii przez slug, link, QR lub token.
-- Może zostać poproszony o kod dostępu.
-- Może uploadować pliki, przeglądać opublikowane materiały i pobierać pliki tylko w granicach ustawień galerii.
-- Nie ma dostępu do panelu użytkownika ani panelu administracyjnego.
+- Moze wejsc do galerii przez slug, link, QR lub token.
+- Moze zostac poproszony o kod dostepu.
+- Moze uploadowac pliki, przegladac opublikowane materialy i pobierac pliki tylko w granicach ustawien galerii.
+- Nie ma dostepu do panelu uzytkownika ani panelu administracyjnego.
 
 ## User
-- Posiada konto i własny profil.
-- Może tworzyć wydarzenia lub otrzymywać zaproszenia do cudzych wydarzeń.
-- Może mieć wiele wydarzeń i wiele ról w różnych wydarzeniach.
+- Posiada konto i wlasny profil.
+- Moze tworzyc wydarzenia lub otrzymywac zaproszenia do cudzych wydarzen.
+- Moze miec wiele wydarzen i wiele rol w roznych wydarzeniach.
 
 ## EventOwner
-- Tworzy wydarzenie albo otrzymuje własność wydarzenia.
-- Zarządza galeriami, ustawieniami prywatności, współzarządzającymi, limitami wynikającymi z planu i publikacją materiałów.
-- Może przenieść własność wydarzenia.
+- Tworzy wydarzenie albo otrzymuje wlasnosc wydarzenia.
+- Zarzadza galeriami, ustawieniami prywatnosci, wspolzarzadzajacymi, limitami wynikajacymi z planu i publikacja materialow.
+- Moze przeniesc wlasnosc wydarzenia.
 
 ## EventManager
-- Działa w granicach delegacji właściciela.
+- Dziala w granicach delegacji wlasciciela.
 - Typowy zakres: galerie, moderacja, pobieranie, personalizacja, statystyki.
-- Domyślnie bez uprawnień do usunięcia właściciela, zmiany subskrypcji właściciela lub usunięcia całego konta.
+- Domyslnie bez uprawnien do usuniecia wlasciciela, zmiany subskrypcji wlasciciela lub usuniecia calego konta.
 
 ## SystemAdministrator
-- Zarządza użytkownikami, wydarzeniami, galeriami, limitami i konfiguracją.
-- Każda wrażliwa akcja musi być audytowana.
-- Nie powinien używać uprawnień administracyjnych do działań operacyjnych bez uzasadnienia.
+- Zarzadza uzytkownikami, wydarzeniami, galeriami, limitami i konfiguracja.
+- Kazda wrazliwa akcja musi byc audytowana.
+- Nie powinien uzywac uprawnien administracyjnych do dzialan operacyjnych bez uzasadnienia.
 
 ## SuperAdministrator
-- Zarządza kontami administratorów i ustawieniami krytycznymi.
-- Wymaga dodatkowej kontroli dostępu, silniejszego audytu i najniższego możliwego grona użytkowników.
+- Zarzadza kontami administratorow i ustawieniami krytycznymi.
+- Wymaga dodatkowej kontroli dostepu, silniejszego audytu i najnizszego mozliwego grona uzytkownikow.
 
-## Zasady modelu ról
-- Role systemowe nie zastępują ownership zasobów.
-- Autoryzacja musi uwzględniać zarówno rolę, jak i relację użytkownika do wydarzenia.
-- Guest nie może eskalować do roli użytkownika bez jawnego przepływu rejestracji.
-- Rola EventManager może być w przyszłości parametryzowana zestawem uprawnień szczegółowych.
+## Zasady modelu rol
+- Role systemowe nie zastepuja ownership zasobow.
+- Autoryzacja musi uwzgledniac zarowno role, jak i relacje uzytkownika do wydarzenia.
+- Guest nie moze eskalowac do roli uzytkownika bez jawnego przeplywu rejestracji.
+- Rola EventManager moze byc w przyszlosci parametryzowana zestawem uprawnien szczegolowych.
 
-## Powiązane dokumenty
+## Powiazane dokumenty
 - [PERMISSIONS_MATRIX.md](PERMISSIONS_MATRIX.md)
 - [../backend/AUTHENTICATION_AND_AUTHORIZATION.md](../backend/AUTHENTICATION_AND_AUTHORIZATION.md)
 - [../architecture/MULTI_TENANCY.md](../architecture/MULTI_TENANCY.md)
 
 ## Decyzje otwarte
-- Czy EventManager ma mieć profil z predefiniowanymi wariantami uprawnień, czy zestaw granularnych flag.
+- Czy EventManager ma miec profil z predefiniowanymi wariantami uprawnien, czy zestaw granularnych flag.

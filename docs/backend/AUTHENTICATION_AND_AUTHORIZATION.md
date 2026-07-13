@@ -1,75 +1,112 @@
 # Uwierzytelnianie i Autoryzacja
 
 ## Cel dokumentu
-Opisuje docelowy model tożsamości użytkownika, sesji oraz reguł autoryzacji na poziomie API i logiki biznesowej.
+Opisuje aktualny i docelowy model tozsamosci uzytkownika, sesji oraz reguly autoryzacji na poziomie API i logiki biznesowej.
 
 ## Status dokumentu
 - Status: draft
-- Zakres: authN i authZ dla stanu docelowego
-- Ostatnia aktualizacja: 2026-07-12
+- Zakres: authN i authZ dla stanu obecnego i docelowego
+- Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
-- Strategia końcowa nie została jeszcze zatwierdzona.
+- Backend korzysta ze Spring Security oraz sesji serwerowej opartej o cookie `JSESSIONID`.
+- SPA korzysta z ochrony CSRF i pobiera token przez `GET /api/auth/csrf`, a backend wystawia cookie `XSRF-TOKEN`.
+- Dostepne sa endpointy `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` oraz `GET /api/auth/csrf`.
+- `POST /api/auth/register` nie jest publicznym signupem. Konto moze utworzyc tylko zalogowany administrator.
+- Aktualnie zaimplementowane role systemowe w kodzie to `ADMIN` i `USER`.
+- Podstawowy audyt zapisuje wpisy do tabeli `audit_events` przez `AuditService`.
+- Logowanie zlicza nieudane proby dla istniejacego konta i czasowo blokuje konto po przekroczeniu limitu.
+- Aktualnie zaimplementowane eventy audytowe to `USER_REGISTERED`, `USER_LOGGED_IN`, `USER_LOGIN_FAILED`, `USER_LOGIN_BLOCKED` oraz `USER_LOGGED_OUT`.
 
 ## Stan docelowy
-- Bezpieczny system uwierzytelniania użytkowników i oddzielny model dostępu gości do galerii.
+- Bezpieczny system uwierzytelniania uzytkownikow oraz oddzielny model dostepu gosci do galerii.
+- Pelny zestaw flow identity ma obejmowac takze weryfikacje e-mail, reset hasla, wylogowanie, zarzadzanie sesjami i rozszerzony audyt.
 
-## Zakres uwierzytelniania
-- Rejestracja użytkownika
-- Weryfikacja e-mail
-- Logowanie i wylogowanie
-- Reset i zmiana hasła
-- Sesje użytkownika oraz ewentualne odświeżanie
-- Tokeny publicznego dostępu do galerii i pobrań
+## Aktualny kontrakt auth
+- `GET /api/auth/csrf` - przygotowanie tokenu CSRF dla klienta SPA.
+- `POST /api/auth/login` - logowanie uzytkownika do sesji.
+- `POST /api/auth/logout` - zakonczenie aktualnej sesji.
+- `GET /api/auth/me` - odczyt tozsamosci aktualnie zalogowanego uzytkownika.
+- `POST /api/auth/register` - utworzenie nowego konta przez administratora.
+
+SSOT kontraktu FE-BE znajduje sie w [../../api-contract/API_CONTRACT.md](../../api-contract/API_CONTRACT.md).
+
+## Zakres docelowego uwierzytelniania
+- Administracyjne tworzenie kont i dalsze zarzadzanie tozsamoscia.
+- Logowanie i wylogowanie.
+- Weryfikacja e-mail.
+- Reset i zmiana hasla.
+- Zarzadzanie sesjami uzytkownika.
+- Tokeny publicznego dostepu do galerii i pobran.
 
 ## Wymagania funkcjonalne
-- Hashowanie haseł Argon2id lub BCrypt.
-- Silne, losowe tokeny jednokrotnego użycia.
-- Blokada po wielu nieudanych logowaniach.
-- Możliwość unieważnienia pojedynczej sesji i wszystkich sesji użytkownika.
+- Hasla musza byc bezpiecznie hashowane.
+- Tokeny jednorazowe musza byc silne i losowe.
+- Flow oparty o sesje cookie musi pozostac zgodny z CSRF dla SPA.
+- Rozszerzenia auth musza utrzymywac rozroznienie miedzy administracyjnym tworzeniem kont a publicznym dostepem gosci do galerii.
 
 ## Autoryzacja systemowa
-- Role systemowe: `USER`, `SYSTEM_ADMINISTRATOR`, `SUPER_ADMINISTRATOR`.
-- Role wydarzenia: `EVENT_OWNER`, `EVENT_MANAGER`.
-- Uprawnienia wynikają z połączenia roli systemowej, relacji do wydarzenia i ownership.
+- Aktualnie zaimplementowane role systemowe: `ADMIN`, `USER`.
+- Docelowy model ról i uprawnien moze zostac rozszerzony, ale dokumentacja nie moze sugerowac istnienia ról, ktorych nie ma jeszcze w kodzie.
+- Uprawnienia wynikaja z polaczenia roli systemowej, relacji do wydarzenia i ownership zasobow.
 
 ## Autoryzacja publiczna
-- Publiczny dostęp nie daje roli systemowej.
-- Gość działa w kontekście `GalleryAccess`.
-- Upload, podgląd i pobieranie zależą od ustawień galerii oraz tokenu lub kodu dostępu.
+- Publiczny dostep do galerii nie daje roli systemowej.
+- Gosc dziala w osobnym kontekscie dostepu do galerii.
+- Upload, podglad i pobieranie zalezy od ustawien galerii oraz tokenu lub kodu dostepu.
 
 ## Poziomy kontroli
 - Endpoint: uwierzytelnienie, rola systemowa, podstawowe ograniczenia.
 - Use case: ownership, membership, plan, status zasobu.
-- Repozytorium: brak zakładania, że sam identyfikator zasobu jest wystarczający.
+- Repozytorium: brak zalozenia, ze sam identyfikator zasobu jest wystarczajacy.
 
-## Przepływ autoryzacji
+## Audyt zdarzen auth
+- Wazne operacje identity musza zapisywac biznesowy slad audytowy przez `AuditService`.
+- Aktualna tabela audytu to `audit_events`, a model kodowy to `AuditEvent`.
+- Obecny katalog eventow obejmuje:
+  - `USER_REGISTERED`
+  - `USER_LOGGED_IN`
+  - `USER_LOGIN_FAILED`
+  - `USER_LOGIN_BLOCKED`
+  - `USER_LOGGED_OUT`
+- Kazda nowa wrazliwa akcja w obszarze auth lub administracji musi przejsc przeglad pod katem:
+  - czy trzeba dodac nowy typ do `EventType`,
+  - czy trzeba rozszerzyc szczegoly wpisu audytowego,
+  - czy dokumentacja i testy odzwierciedlaja nowy slad audytowy.
+- W audycie nie wolno zapisywac hasel, tokenow, surowych danych CSRF ani innych sekretow.
+
+## Przeplyw autoryzacji
 ```mermaid
 sequenceDiagram
-    participant Client
+    participant Client as SPA
     participant API
-    participant Auth as Auth Layer
+    participant Auth as Spring Security
     participant UC as Use Case
     participant Repo as Repository
 
-    Client->>API: Request
-    API->>Auth: Weryfikacja sesji lub tokenu
+    Client->>API: GET /api/auth/csrf
+    API-->>Client: Cookie XSRF-TOKEN
+    Client->>API: POST /api/auth/login
+    API->>Auth: Weryfikacja danych i CSRF
     Auth->>UC: Principal + context
-    UC->>Repo: Pobranie zasobu z ownership
-    UC->>UC: Sprawdzenie policy
+    UC->>Repo: Pobranie danych uzytkownika lub zasobu
+    UC->>UC: Sprawdzenie policy i ownership
     UC-->>API: Result
-    API-->>Client: Response
+    API-->>Client: Response + JSESSIONID
 ```
 
-## Rekomendacja robocza
-- Rekomendacja na dziś: sesja HTTP po stronie serwera lub model tokenów sesyjnych przechowywanych serwerowo, ze względu na prostsze unieważnianie, CSRF-aware flow i administracyjne zarządzanie sesjami.
-- Ostateczna decyzja wymaga zatwierdzenia ADR.
+## Co zostalo do zrobienia
+- Ewentualne zarzadzanie wieloma sesjami i logout-all jako rozszerzenie ponad podstawowa identity.
+- Weryfikacja e-mail i reset hasla wraz z obsluga maili transakcyjnych w kolejnym zakresie identity.
+- Rate limiting na poziomie infrastrukturalnym lub aplikacyjnym jako dodatkowa warstwa ochrony.
+- Rozszerzenie audytu o zmiany rol i akcje administracyjne poza biezacym zakresem auth.
 
-## Powiązane dokumenty
+## Powiazane dokumenty
 - [../product/PERMISSIONS_MATRIX.md](../product/PERMISSIONS_MATRIX.md)
-- [../architecture/MULTI_TENANCY.md](../architecture/MULTI_TENANCY.md)
+- [../operations/LOGGING.md](../operations/LOGGING.md)
+- [../security/SECURITY_REQUIREMENTS.md](../security/SECURITY_REQUIREMENTS.md)
 - [../adr/0002-authentication-strategy.md](../adr/0002-authentication-strategy.md)
 
 ## Decyzje otwarte
-- Finalny wybór: sesja serwerowa vs JWT.
-- Czy gość ma otrzymywać długowieczny cookie galerii po jednorazowym wpisaniu kodu dostępu.
+- Jak szeroki ma byc katalog eventow audytowych w pierwszym zamknietym zakresie Etapu 2.
+- Czy po wdrozeniu pelnego logoutu potrzebny bedzie osobny model uniewazniania wszystkich sesji.

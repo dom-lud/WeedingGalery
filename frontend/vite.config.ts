@@ -18,5 +18,9 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    test: {
+      environment: 'jsdom',
+      include: ['src/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
+    },
   }
 })

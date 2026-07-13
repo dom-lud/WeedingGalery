@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: pr-validation-${{ github.event.pull_request.number || github.ref }}
@@ -55,9 +56,17 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Restore frontend node_modules cache
+        id: frontend-node-modules-cache
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node24-frontend-modules-${{ hashFiles('frontend/package-lock.json') }}
+
       - name: Install frontend dependencies
+        if: steps.frontend-node-modules-cache.outputs.cache-hit != 'true'
         working-directory: frontend
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Run frontend format check
         working-directory: frontend
@@ -94,3 +103,283 @@ jobs:
 
       - name: Build frontend image
         run: docker build -t wedding-gallery-frontend:ci frontend
+
+  e2e:
+    name: Playwright E2E Tests
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    outputs:
+      playwright_status: ${{ steps.playwright-summary.outputs.status }}
+      playwright_total: ${{ steps.playwright-summary.outputs.total }}
+      playwright_passed: ${{ steps.playwright-summary.outputs.passed }}
+      playwright_failed: ${{ steps.playwright-summary.outputs.failed }}
+      playwright_flaky: ${{ steps.playwright-summary.outputs.flaky }}
+      playwright_skipped: ${{ steps.playwright-summary.outputs.skipped }}
+      playwright_timed_out: ${{ steps.playwright-summary.outputs.timed_out }}
+      playwright_duration_ms: ${{ steps.playwright-summary.outputs.duration_ms }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Restore frontend node_modules cache
+        id: e2e-node-modules-cache
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node24-frontend-modules-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install frontend dependencies
+        if: steps.e2e-node-modules-cache.outputs.cache-hit != 'true'
+        working-directory: frontend
+        run: npm install --no-audit --no-fund
+
+      - name: Restore Playwright browser cache
+        id: playwright-browser-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install Playwright Browsers
+        if: steps.playwright-browser-cache.outputs.cache-hit != 'true'
+        working-directory: frontend
+        run: npx playwright install --with-deps
+
+      - name: Start Backend
+        working-directory: backend
+        run: |
+          chmod +x mvnw
+          ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev &
+
+      - name: Start Frontend
+        working-directory: frontend
+        run: npm run dev &
+
+      - name: Wait for services
+        run: npx wait-on http-get://localhost:8080/actuator/health http-get://localhost:5173 -t 60000
+
+      - name: Run Playwright tests
+        id: playwright
+        continue-on-error: true
+        working-directory: frontend
+        run: npx playwright test
+
+      - name: Summarize Playwright results
+        id: playwright-summary
+        if: always()
+        working-directory: frontend
+        shell: bash
+        env:
+          PLAYWRIGHT_OUTCOME: ${{ steps.playwright.outcome }}
+        run: |
+          node <<'EOF'
+          const fs = require('fs');
+
+          const reportPath = 'playwright-report/results.json';
+          const outputPath = process.env.GITHUB_OUTPUT;
+          const summary = {
+            status: process.env.PLAYWRIGHT_OUTCOME === 'success' ? 'passed' : 'failed',
+            total: 0,
+            passed: 0,
+            failed: 0,
+            flaky: 0,
+            skipped: 0,
+            timedOut: 0,
+            durationMs: 0,
+          };
+
+          const visitSuite = (suite) => {
+            for (const childSuite of suite.suites ?? []) {
+              visitSuite(childSuite);
+            }
+
+            for (const spec of suite.specs ?? []) {
+              for (const test of spec.tests ?? []) {
+                summary.total += 1;
+
+                const results = Array.isArray(test.results) ? test.results : [];
+                const lastResult = results.at(-1) ?? {};
+                const statuses = new Set(results.map((result) => result.status));
+                const outcome = test.outcome ?? lastResult.status ?? 'unknown';
+
+                summary.durationMs += results.reduce(
+                  (acc, result) => acc + (typeof result.duration === 'number' ? result.duration : 0),
+                  0
+                );
+
+                if (outcome === 'skipped' || lastResult.status === 'skipped') {
+                  summary.skipped += 1;
+                  continue;
+                }
+
+                if (outcome === 'flaky' || (statuses.has('failed') && lastResult.status === 'passed')) {
+                  summary.flaky += 1;
+                  continue;
+                }
+
+                if (lastResult.status === 'timedOut' || outcome === 'timedOut') {
+                  summary.timedOut += 1;
+                  continue;
+                }
+
+                if (lastResult.status === 'passed' || outcome === 'expected') {
+                  summary.passed += 1;
+                  continue;
+                }
+
+                summary.failed += 1;
+              }
+            }
+          };
+
+          if (fs.existsSync(reportPath)) {
+            const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+            for (const suite of report.suites ?? []) {
+              visitSuite(suite);
+            }
+          }
+
+          const lines = [
+            `status=${summary.status}`,
+            `total=${summary.total}`,
+            `passed=${summary.passed}`,
+            `failed=${summary.failed}`,
+            `flaky=${summary.flaky}`,
+            `skipped=${summary.skipped}`,
+            `timed_out=${summary.timedOut}`,
+            `duration_ms=${summary.durationMs}`,
+          ];
+
+          fs.appendFileSync(outputPath, `${lines.join('\n')}\n`);
+          EOF
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: warn
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7
+
+      - name: Fail job when Playwright tests fail
+        if: steps.playwright.outcome == 'failure'
+        run: exit 1
+
+  report-pr-status:
+    name: Report PR validation status
+    runs-on: ubuntu-latest
+    needs: [backend, frontend, docker, e2e]
+    if: always() && github.event_name == 'pull_request'
+
+    steps:
+      - name: Upsert PR status comment
+        uses: actions/github-script@v7
+        env:
+          BACKEND_RESULT: ${{ needs.backend.result }}
+          FRONTEND_RESULT: ${{ needs.frontend.result }}
+          DOCKER_RESULT: ${{ needs.docker.result }}
+          E2E_RESULT: ${{ needs.e2e.result }}
+          PLAYWRIGHT_STATUS: ${{ needs.e2e.outputs.playwright_status }}
+          PLAYWRIGHT_TOTAL: ${{ needs.e2e.outputs.playwright_total }}
+          PLAYWRIGHT_PASSED: ${{ needs.e2e.outputs.playwright_passed }}
+          PLAYWRIGHT_FAILED: ${{ needs.e2e.outputs.playwright_failed }}
+          PLAYWRIGHT_FLAKY: ${{ needs.e2e.outputs.playwright_flaky }}
+          PLAYWRIGHT_SKIPPED: ${{ needs.e2e.outputs.playwright_skipped }}
+          PLAYWRIGHT_TIMED_OUT: ${{ needs.e2e.outputs.playwright_timed_out }}
+          PLAYWRIGHT_DURATION_MS: ${{ needs.e2e.outputs.playwright_duration_ms }}
+        with:
+          script: |
+            const marker = '<!-- pr-validation-report -->';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const statuses = [
+              ['Backend', process.env.BACKEND_RESULT],
+              ['Frontend', process.env.FRONTEND_RESULT],
+              ['Docker', process.env.DOCKER_RESULT],
+              ['Playwright E2E', process.env.E2E_RESULT],
+            ];
+
+            const iconFor = (status) => {
+              if (status === 'success') return 'OK';
+              if (status === 'failure') return 'FAIL';
+              if (status === 'cancelled') return 'CANCELLED';
+              if (status === 'skipped') return 'SKIPPED';
+              return 'PENDING';
+            };
+
+            const overallFailed = statuses.some(([, status]) => status === 'failure');
+            const failures = statuses
+              .filter(([, status]) => status === 'failure')
+              .map(([name]) => `- ${name}`);
+            const durationMs = Number(process.env.PLAYWRIGHT_DURATION_MS || '0');
+            const durationSeconds = durationMs > 0 ? (durationMs / 1000).toFixed(1) : '0.0';
+
+            const bodyLines = [
+              marker,
+              '## PR validation report',
+              '',
+              overallFailed ? 'Status: FAIL' : 'Status: OK',
+              '',
+              '### Jobs',
+              ...statuses.map(([name, status]) => `- ${iconFor(status)} ${name}: ${status}`),
+              '',
+              '### Playwright summary',
+              `- Status: ${process.env.PLAYWRIGHT_STATUS || 'not-available'}`,
+              `- Total: ${process.env.PLAYWRIGHT_TOTAL || '0'}`,
+              `- Passed: ${process.env.PLAYWRIGHT_PASSED || '0'}`,
+              `- Failed: ${process.env.PLAYWRIGHT_FAILED || '0'}`,
+              `- Flaky: ${process.env.PLAYWRIGHT_FLAKY || '0'}`,
+              `- Skipped: ${process.env.PLAYWRIGHT_SKIPPED || '0'}`,
+              `- Timed out: ${process.env.PLAYWRIGHT_TIMED_OUT || '0'}`,
+              `- Duration: ${durationSeconds}s`,
+              '',
+              'Artifact: `playwright-report`',
+              `[Open workflow run](${runUrl})`,
+            ];
+
+            if (failures.length > 0) {
+              bodyLines.push('', '### Failing jobs', ...failures);
+            }
+
+            const body = bodyLines.join('\n');
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existingComment = comments.find((comment) =>
+              comment.user?.type === 'Bot' && comment.body?.includes(marker)
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body,
+              });
+              return;
+            }
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });

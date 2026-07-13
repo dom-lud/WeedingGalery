@@ -44,7 +44,8 @@ Poza zakresem:
 - [czego nie robić]
 
 Wymagania testowe:
-- [testy jednostkowe, integracyjne, E2E lub brak]
+- [testy jednostkowe, integracyjne, E2E]
+- OBOWIĄZKOWO dostarcz weryfikację E2E (Playwright) lub rzetelne testy kontraktów API (nie pisz testów "pod kod").
 - testy mają bronić wymagań, kontraktu i regresji,
 - uwzględnij scenariusze negatywne i graniczne tam, gdzie niosą ryzyko.
 
@@ -52,12 +53,13 @@ Wymagania bezpieczeństwa:
 - [auth, ownership, upload, dane osobowe, limity]
 
 Nie wychodź poza zakres zadania.
-Po implementacji wykonaj self-review i powtarzaj pętlę poprawki-testy-review aż wynik będzie akceptowalny albo blocker będzie jawnie opisany.
+Po implementacji wykonaj **OBOWIĄZKOWE self-review** jako "Code Reviewer" – udokumentuj je w postaci artefaktu lub listy błędów, szukając luk security i architektonicznych. Powtarzaj pętlę poprawki-testy-review aż wynik będzie akceptowalny albo blocker będzie jawnie opisany.
 
 Format końcowego podsumowania:
+- zadeklarowanie użycia (lub nie) subagentów,
 - wykonane zmiany,
-- uruchomione testy,
-- wynik self-review,
+- uruchomione testy API / E2E,
+- WYNIK rygorystycznego self-review (co znaleziono, co poprawiono),
 - zaktualizowane dokumenty,
 - ryzyka i nieweryfikowane obszary.
 ```

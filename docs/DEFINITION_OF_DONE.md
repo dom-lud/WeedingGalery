@@ -1,67 +1,69 @@
 # Definition of Done
 
 ## Cel dokumentu
-Definiuje kompletne kryteria ukończenia zadania dla zmian w projekcie.
+Definiuje kompletne kryteria ukonczenia zadania dla zmian w projekcie.
 
 ## Status dokumentu
 - Status: draft
-- Zakres: DoD dla stanu docelowego procesu wytwórczego
-- Ostatnia aktualizacja: 2026-07-12
+- Zakres: DoD dla stanu docelowego procesu wytworczego
+- Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
-- Część kryteriów nie może być jeszcze wykonywana automatycznie, ale nadal pozostaje wymagana projektowo.
+- Czesc kryteriow nie moze byc jeszcze wykonywana automatycznie, ale nadal pozostaje wymagana projektowo.
 
 ## Stan docelowy
-- Każde zadanie kończy się zmianą spójną technicznie, testowo i dokumentacyjnie.
+- Kazde zadanie konczy sie zmiana spojna technicznie, testowo i dokumentacyjnie.
 
 ## Kryteria funkcjonalne
-- [ ] Zakres funkcjonalny jest ukończony i spójny z wymaganiami.
-- [ ] Kryteria akceptacji zostały spełnione.
-- [ ] Przypadki brzegowe zostały przeanalizowane.
-- [ ] Obsługa błędów jest zdefiniowana.
-- [ ] Nieweryfikowane obszary zostały jawnie opisane.
-- [ ] Na końcu pracy wykonano jawne sprawdzenie wymagań punkt po punkcie.
+- [ ] Zakres funkcjonalny jest ukonczony i spojny z wymaganiami.
+- [ ] Kryteria akceptacji zostaly spelnione.
+- [ ] Przypadki brzegowe zostaly przeanalizowane.
+- [ ] Obsluga bledow jest zdefiniowana.
+- [ ] Nieweryfikowane obszary zostaly jawnie opisane.
+- [ ] Na koncu pracy wykonano jawne sprawdzenie wymagan punkt po punkcie.
 
-## Kryteria bezpieczeństwa i autoryzacji
-- [ ] Ownership zasobów został sprawdzony.
-- [ ] Autoryzacja endpointów i use case została sprawdzona.
-- [ ] Testy bezpieczeństwa lub security review zostały wykonane, jeśli zakres tego wymaga.
-- [ ] Brak nowych sekretów w repozytorium.
-- [ ] Zmiana nie osłabia wymagań bezpieczeństwa.
+## Kryteria bezpieczenstwa i autoryzacji
+- [ ] Ownership zasobow zostal sprawdzony.
+- [ ] Autoryzacja endpointow i use case zostala sprawdzona.
+- [ ] Testy bezpieczenstwa lub security review zostaly wykonane, jesli zakres tego wymaga.
+- [ ] Brak nowych sekretow w repozytorium.
+- [ ] Zmiana nie oslabi wymagan bezpieczenstwa.
 
 ## Kryteria danych i storage
-- [ ] Wpływ na migracje został przeanalizowany.
-- [ ] Nowe migracje zostały dodane zamiast modyfikowania starych, jeśli dotyczy.
-- [ ] Limity i storage zostały uwzględnione.
-- [ ] Retencja i usuwanie danych zostały uwzględnione, jeśli dotyczy.
+- [ ] Wplyw na migracje zostal przeanalizowany.
+- [ ] Nowe migracje zostaly dodane zamiast modyfikowania starych, jesli dotyczy.
+- [ ] Limity i storage zostaly uwzglednione.
+- [ ] Retencja i usuwanie danych zostaly uwzglednione, jesli dotyczy.
 
 ## Kryteria testowe
 - [ ] Dodano lub zaktualizowano testy adekwatne do zakresu.
-- [ ] Testy wynikają z wymagań, kontraktu, regresji i ryzyk, a nie z dopasowania do aktualnej implementacji.
-- [ ] Testy obejmują co najmniej jedną próbę obalenia błędnego zachowania, jeśli zakres zmiany to uzasadnia.
+- [ ] Testy wynikaja z wymagan, kontraktu, regresji i ryzyk, a nie z dopasowania do aktualnej implementacji.
+- [ ] Testy obejmuja co najmniej jedna probe obalenia blednego zachowania, jesli zakres zmiany to uzasadnia.
+- [ ] Testy sa projektowane niezaleznie od kodu i maja realna szanse wykryc bug, a nie tylko potwierdzic obecny sposob implementacji.
+- [ ] Dla krytycznych flow dodano warianty negatywne, brzegowe albo nieidealne zachowania uzytkownika, jesli takie ryzyko istnieje.
 - [ ] Build przechodzi.
 - [ ] Lint przechodzi.
-- [ ] Testy integracyjne zostały uruchomione, jeśli dotyczy.
-- [ ] Właściwe testy zostały uruchomione.
-- [ ] Smoke test został wykonany, jeśli zmiana wpływa na przepływ użytkownika lub wdrożenie.
+- [ ] Testy integracyjne zostaly uruchomione, jesli dotyczy.
+- [ ] Wlasciwe testy zostaly uruchomione.
+- [ ] Smoke test zostal wykonany, jesli zmiana wplywa na przeplyw uzytkownika lub wdrozenie.
 
 ## Kryteria operacyjne
-- [ ] Logowanie, monitoring lub audyt zostały uwzględnione, jeśli dotyczy.
-- [ ] Konfiguracja środowiskowa została opisana.
-- [ ] Monitoring został zaktualizowany, jeśli zmiana wpływa na obserwowalność.
-- [ ] Wpływ na backup i operacje został oceniony, jeśli dotyczy.
+- [ ] Logowanie, monitoring lub audyt zostaly uwzglednione, jesli dotyczy.
+- [ ] Konfiguracja srodowiskowa zostala opisana.
+- [ ] Monitoring zostal zaktualizowany, jesli zmiana wplywa na obserwowalnosc.
+- [ ] Wplyw na backup i operacje zostal oceniony, jesli dotyczy.
 
 ## Kryteria dokumentacyjne
-- [ ] Dokumentacja została zaktualizowana.
-- [ ] Zmiana jest zgodna z ADR albo uzupełniono nowy lub zaktualizowany ADR.
-- [ ] Self-review został wykonany po implementacji i przed finalnym podsumowaniem.
-- [ ] Code review został wykonany.
-- [ ] Podsumowanie wykonanych działań wskazuje, co zostało zweryfikowane.
+- [ ] Dokumentacja zostala zaktualizowana.
+- [ ] Zmiana jest zgodna z ADR albo uzupelniono nowy lub zaktualizowany ADR.
+- [ ] Self-review zostal wykonany po implementacji i przed finalnym podsumowaniem.
+- [ ] Code review zostal wykonany.
+- [ ] Podsumowanie wykonanych dzialan wskazuje, co zostalo zweryfikowane.
 
-## Zgodność z checklistami
-- [ ] Wykonano właściwe checklisty dla feature, review, bazy, API, bezpieczeństwa lub releasu, jeśli dotyczy.
+## Zgodnosc z checklistami
+- [ ] Wykonano wlasciwe checklisty dla feature, review, bazy, API, bezpieczenstwa lub releasu, jesli dotyczy.
 
-## Powiązane dokumenty
+## Powiazane dokumenty
 - [DEVELOPMENT_RULES.md](DEVELOPMENT_RULES.md)
 - [development/DEFINITION_OF_READY.md](development/DEFINITION_OF_READY.md)
 - [testing/QUALITY_GATES.md](testing/QUALITY_GATES.md)
@@ -69,4 +71,4 @@ Definiuje kompletne kryteria ukończenia zadania dla zmian w projekcie.
 - [checklists/FEATURE_CHECKLIST.md](checklists/FEATURE_CHECKLIST.md)
 
 ## Decyzje otwarte
-- Które elementy DoD będą automatycznie egzekwowane w CI w pierwszej iteracji.
+- Ktore elementy DoD beda automatycznie egzekwowane w CI w pierwszej iteracji.
