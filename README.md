@@ -79,3 +79,15 @@ Aktualna struktura i plan dalszego rozwoju znajduja sie w [docs/architecture/REP
 - [docs/product/FEATURE_ROADMAP.md](docs/product/FEATURE_ROADMAP.md)
 - [docs/DEVELOPMENT_RULES.md](docs/DEVELOPMENT_RULES.md)
 - [docs/DEFINITION_OF_DONE.md](docs/DEFINITION_OF_DONE.md)
+- [docs/development/GIT_HOOKS.md](docs/development/GIT_HOOKS.md)
+
+## Lokalne hooki Git
+Aktywacja repozytoryjnego `pre-commit`:
+
+```powershell
+git config core.hooksPath .githooks
+```
+
+Hook przed commitem uruchamia:
+- `frontend`: `npm run format:check`
+- `backend`: `mvnw.cmd -B spotless:check`

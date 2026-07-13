@@ -40,6 +40,7 @@ Platforma webowa do zbierania, organizowania i udostępniania zdjęć oraz film�
 - Operacje: [docs/operations/DEPLOYMENT.md](docs/operations/DEPLOYMENT.md)
 - CI/CD: [docs/operations/CI_CD_STRATEGY.md](docs/operations/CI_CD_STRATEGY.md)
 - Workflow: [docs/development/WORKFLOW.md](docs/development/WORKFLOW.md)
+- Git hooks: [docs/development/GIT_HOOKS.md](docs/development/GIT_HOOKS.md)
 - Orkiestracja subagentów: [docs/development/SUBAGENT_ORCHESTRATION.md](docs/development/SUBAGENT_ORCHESTRATION.md)
 - Definition of Ready: [docs/development/DEFINITION_OF_READY.md](docs/development/DEFINITION_OF_READY.md)
 - Definition of Done: [docs/DEFINITION_OF_DONE.md](docs/DEFINITION_OF_DONE.md)
