@@ -56,9 +56,17 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Restore frontend node_modules cache
+        id: frontend-node-modules-cache
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node24-frontend-modules-${{ hashFiles('frontend/package-lock.json') }}
+
       - name: Install frontend dependencies
+        if: steps.frontend-node-modules-cache.outputs.cache-hit != 'true'
         working-directory: frontend
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Run frontend format check
         working-directory: frontend
@@ -119,11 +127,27 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Restore frontend node_modules cache
+        id: e2e-node-modules-cache
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node24-frontend-modules-${{ hashFiles('frontend/package-lock.json') }}
+
       - name: Install frontend dependencies
+        if: steps.e2e-node-modules-cache.outputs.cache-hit != 'true'
         working-directory: frontend
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
+
+      - name: Restore Playwright browser cache
+        id: playwright-browser-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('frontend/package-lock.json') }}
 
       - name: Install Playwright Browsers
+        if: steps.playwright-browser-cache.outputs.cache-hit != 'true'
         working-directory: frontend
         run: npx playwright install --with-deps
 
