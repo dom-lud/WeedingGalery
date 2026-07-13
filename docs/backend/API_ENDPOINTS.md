@@ -6,10 +6,11 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 ## Status dokumentu
 - Status: draft
 - Zakres: katalog planowanych endpointów
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
-- Endpointy opisane w tym dokumencie są planowane; nie należy zakładać ich istnienia w kodzie.
+- Endpointy auth oraz minimalny zakres events/memberships oznaczony ponizej sa zaimplementowane.
+- Pozostale endpointy sa planowane; ich obecność na liscie nie oznacza istnienia w runtime.
 
 ## Stan docelowy
 - Spójne REST API dla użytkowników, gości i administratorów.
@@ -35,24 +36,25 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 - `GET /api/profile/invitations`
 
 ## Events
-- `GET /api/events`
-- `POST /api/events`
-- `GET /api/events/{eventId}`
-- `PATCH /api/events/{eventId}`
-- `POST /api/events/{eventId}/archive`
-- `DELETE /api/events/{eventId}`
+- `GET /api/events` - zaimplementowany
+- `POST /api/events` - zaimplementowany
+- `GET /api/events/{eventId}` - zaimplementowany
+- `PUT /api/events/{eventId}` - zaimplementowany
+- `POST /api/events/{eventId}/archive` - zaimplementowany
+- `DELETE /api/events/{eventId}` - zaimplementowany jako soft delete
 - `GET /api/events/{eventId}/statistics`
 
 ## Memberships i invitations
-- `GET /api/events/{eventId}/members`
+- `GET /api/events/{eventId}/members` - zaimplementowany
+- `POST /api/events/{eventId}/members` - zaimplementowane bezposrednie dodanie istniejacego konta
 - `POST /api/events/{eventId}/members/invitations`
 - `POST /api/events/{eventId}/members/invitations/{invitationId}/resend`
 - `DELETE /api/events/{eventId}/members/invitations/{invitationId}`
 - `POST /api/invitations/{token}/accept`
 - `POST /api/invitations/{token}/reject`
 - `PATCH /api/events/{eventId}/members/{membershipId}`
-- `DELETE /api/events/{eventId}/members/{membershipId}`
-- `POST /api/events/{eventId}/ownership-transfer`
+- `DELETE /api/events/{eventId}/members/{membershipId}` - zaimplementowany
+- `POST /api/events/{eventId}/ownership-transfer` - zaimplementowany
 
 ## Galleries
 - `GET /api/events/{eventId}/galleries`
@@ -131,7 +133,10 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 - `GET /api/admin/audit`
 
 ## Uwagi kontraktowe
-- Wszystkie listy wspierają filtrowanie i paginację.
+- SSOT dokladnych payloadow, statusow i rol dla zaimplementowanego Etapu 3 to [../../api-contract/API_CONTRACT.md](../../api-contract/API_CONTRACT.md).
+- Zwykly endpoint wydarzen nie daje administratorowi bypassu ownership.
+- Zaproszenia e-mail i tokeny pozostaja poza Etapem 3.
+- Docelowo listy wspieraja filtrowanie i paginacje; minimalne `GET /api/events` i `GET /api/events/{eventId}/members` w Etapie 3 zwracaja pelne tablice dostepnego zakresu bez paginacji.
 - Operacje publiczne muszą być ograniczane przez token, slug, kod dostępu i reguły galerii.
 - Endpointy administracyjne wymagają odrębnych ról systemowych.
 

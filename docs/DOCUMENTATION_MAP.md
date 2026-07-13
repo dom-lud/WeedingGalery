@@ -111,6 +111,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | Dokument | Przeznaczenie | Kto czyta | Kiedy aktualizować | Link |
 | --- | --- | --- | --- | --- |
 | Feature checklist | Checklista funkcji | autor, reviewer | przy realizacji funkcji | [docs/checklists/FEATURE_CHECKLIST.md](checklists/FEATURE_CHECKLIST.md) |
+| Stage 3 completion checklist | Wykonany DoD i dowody EVENT-001/MEMBER-001 | autor, reviewer | przy domknieciu Etapu 3 | [docs/checklists/STAGE_3_COMPLETION_CHECKLIST.md](checklists/STAGE_3_COMPLETION_CHECKLIST.md) |
 | Code review checklist | Checklista review | reviewer | przy review kodu | [docs/checklists/CODE_REVIEW_CHECKLIST.md](checklists/CODE_REVIEW_CHECKLIST.md) |
 | Security review checklist | Checklista security | reviewer, security | przy security review | [docs/checklists/SECURITY_REVIEW_CHECKLIST.md](checklists/SECURITY_REVIEW_CHECKLIST.md) |
 | Database change checklist | Checklista zmian bazy | backend, DBA | przy migracjach | [docs/checklists/DATABASE_CHANGE_CHECKLIST.md](checklists/DATABASE_CHANGE_CHECKLIST.md) |

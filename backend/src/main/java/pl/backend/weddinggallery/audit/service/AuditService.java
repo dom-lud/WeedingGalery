@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import pl.backend.weddinggallery.audit.model.AuditEvent;
@@ -20,7 +21,9 @@ public class AuditService {
 
 	public void logEvent(String userEmail, EventType eventType, String details) {
 		try {
-			new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+			TransactionTemplate transaction = new TransactionTemplate(transactionManager);
+			transaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+			transaction.executeWithoutResult(status -> {
 				AuditEvent event = new AuditEvent(eventType, userEmail, details);
 				auditEventRepository.saveAndFlush(event);
 			});

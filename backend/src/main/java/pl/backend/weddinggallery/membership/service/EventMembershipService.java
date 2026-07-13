@@ -96,6 +96,7 @@ public class EventMembershipService {
 				}).orElseGet(() -> EventMembership.builder().event(event).user(actor).role(EventRole.MANAGER).build());
 		membershipRepository.save(oldOwnerMembership);
 		event.setOwner(newOwner);
+		event.setUpdatedAt(java.time.LocalDateTime.now());
 		auditService.logRequiredEvent(actor.getEmail(), EventType.EVENT_OWNERSHIP_TRANSFERRED, eventId,
 				newOwner.getId(), "oldRole=OWNER;newRole=MANAGER;targetRole=OWNER");
 		return eventService.toResponse(event, EventRole.MANAGER);

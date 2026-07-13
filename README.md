@@ -12,6 +12,7 @@ Glowny punkt wejscia do repozytorium i dokumentacji projektowej planowanej platf
 - Repozytorium zawiera backend Spring Boot, frontend React/Vite oraz podstawowe pliki uruchomieniowe dla Dockera i Nginx.
 - Etap 1 zostal uruchomiony i repo ma dzialajacy szkielet techniczny zgodny z aktualnym stackiem.
 - Etap 2 jest domkniety w zakresie podstawowej identity: istnieje logowanie i wylogowanie oparte o sesje, CSRF dla SPA, endpoint `GET /api/auth/me`, administracyjne tworzenie kont, blokada po wielu blednych logowaniach oraz audit eventy auth.
+- Etap 3 jest domkniety w minimalnym zakresie `EVENT-001` i `MEMBER-001`: wydarzenia maja ownera, managerow, izolacje ownership, audyt oraz flow UI/API/E2E.
 - Nie wszystkie elementy docelowego systemu sa jeszcze zaimplementowane end-to-end.
 
 ## Stan docelowy
@@ -28,6 +29,7 @@ System sluzy do zbierania, organizowania i bezpiecznego udostepniania zdjec oraz
 - Backend obecnie: Java 25, Spring Boot 4, Spring Security, Spring Data JPA i MySQL.
 - Frontend obecnie: React, TypeScript, Vite i Material UI jako glowny system UI.
 - Identity obecnie: sesje serwerowe, CSRF dla SPA, admin-only tworzenie kont, logout, blokada po blednych logowaniach i podstawowy audyt auth.
+- Domena obecnie: prywatne wydarzenia, role kontekstowe `OWNER`/`MANAGER`, soft delete, archiwizacja, bezposrednie membership istniejacych kont i transfer ownership.
 - Infrastruktura docelowo: Docker Compose, Nginx, Linux VPS, lokalny storage z mozliwoscia przejscia na storage obiektowy.
 
 ## Mapa dokumentacji
@@ -71,7 +73,7 @@ Aktualna struktura i plan dalszego rozwoju znajduja sie w [docs/architecture/REP
 6. Przy zadaniach zlozonych sprawdz [docs/development/SUBAGENT_ORCHESTRATION.md](docs/development/SUBAGENT_ORCHESTRATION.md).
 
 ## Decyzje otwarte
-- Dokladny pierwszy zakres implementacyjny Etapu 3.
+- Zakres kolejnego Etapu 4 dotyczacego galerii i dostepu publicznego.
 - Konkretny mechanizm background jobs w pierwszej wersji implementacyjnej.
 - Zakres pierwszego wydania produkcyjnego wzgledem funkcji rozszerzonych.
 

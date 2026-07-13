@@ -93,13 +93,13 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Cel: wdrożyć główny byt biznesowy systemu.
 - Opis: tworzenie, edycja, archiwizacja i usuwanie wydarzeń przez właściciela.
 - Priorytet: wysoki.
-- Zależności: AUTH-001, USER-001.
+- Zależności: AUTH-001. Rozbudowany profil z `USER-001` nie jest wymagany do ownership wydarzenia.
 - Wymagania funkcjonalne: nazwa, typ, data, opis, status i prywatność wydarzenia.
 - Kryteria akceptacji: użytkownik może utworzyć i zarządzać wieloma wydarzeniami.
 - Wymagania bezpieczeństwa: pełna kontrola ownership wydarzenia.
 - Wymagane testy: testy use case, ownership, API i walidacji.
 - Dokumenty powiązane: [../architecture/DATA_MODEL.md](../architecture/DATA_MODEL.md), [../architecture/MULTI_TENANCY.md](../architecture/MULTI_TENANCY.md).
-- Status: `READY`.
+- Status: `DONE`.
 - ADR wymagany: nie.
 
 ### EVENT-002 - Archiwizacja i retencja wydarzeń
@@ -122,11 +122,12 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Priorytet: wysoki.
 - Zależności: EVENT-001.
 - Wymagania funkcjonalne: dodawanie, zmiana roli, usunięcie członka, transfer własności.
+- Mapowanie pierwszego zakresu: membership ma role `MANAGER`, a zmiana roli `MANAGER` na `OWNER` odbywa sie atomowo przez transfer ownership; stary owner zostaje managerem.
 - Kryteria akceptacji: członkostwo determinuje realny dostęp do zasobów wydarzenia.
 - Wymagania bezpieczeństwa: ownership, brak możliwości usunięcia właściciela przez managera.
 - Wymagane testy: testy autoryzacji, ownership i historii zmian.
 - Dokumenty powiązane: [USER_ROLES.md](USER_ROLES.md), [PERMISSIONS_MATRIX.md](PERMISSIONS_MATRIX.md).
-- Status: `READY`.
+- Status: `DONE`.
 - ADR wymagany: nie.
 
 ## INVITATIONS

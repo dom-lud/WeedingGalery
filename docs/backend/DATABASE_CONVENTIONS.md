@@ -6,11 +6,12 @@ Opisuje standardy projektowania relacyjnego schematu danych, migracji i zapytań
 ## Status dokumentu
 - Status: draft
 - Zakres: standardy danych i migracji
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
 - Repozytorium używa obecnie MySQL w konfiguracji runtime backendu i Docker Compose.
-- W projekcie nie ma jeszcze wdrożonego narzędzia migracji schematu.
+- Flyway jest wdrozony i zarzadza forward migrations w vendorowych lokalizacjach `db/migration/common`, `db/migration/mysql`, `db/migration/h2` oraz seedem developerskim w `db/seed`.
+- Istniejace lokalne schematy V1/V2 bez historii sa przejmowane przez baseline version 2, a kolejne migracje wykonuja sie normalnie.
 
 ## Stan docelowy
 - Stabilny, audytowalny model danych rozwijany przez jawny mechanizm migracji schematu po jego wprowadzeniu do kodu.
@@ -34,7 +35,7 @@ Opisuje standardy projektowania relacyjnego schematu danych, migracji i zapytań
 
 ## Indeksy
 - Każdy klucz obcy wymaga analizy indeksu.
-- Tabele wielotenantowe muszą mieć indeksy wspierające filtrowanie po `owner_id`, `event_id`, `gallery_id`.
+- Tabele wielotenantowe muszą mieć indeksy wspierające filtrowanie po `owner_user_id`, `event_id`, `gallery_id`.
 - Rozważaj indeksy częściowe dla statusów aktywnych.
 
 ## Soft delete

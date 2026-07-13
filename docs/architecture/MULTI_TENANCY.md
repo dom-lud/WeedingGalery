@@ -9,7 +9,9 @@ Definiuje model logicznej separacji danych wielu użytkowników, wydarzeń i gal
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Stan obecny
-- Wieloużytkownikowość nie jest jeszcze zaimplementowana.
+- Izolacja wydarzen jest zaimplementowana przez `events.owner_user_id` i aktywne `event_memberships`.
+- Scoped queries, use case i testy IDOR maskuja cudzy oraz nieistniejacy `eventId` tym samym `404`.
+- Izolacja galerii, mediow i dostepu publicznego pozostaje zakresem kolejnych etapow.
 
 ## Stan docelowy
 - Jedna instancja aplikacji i jedna baza obsługują wiele niezależnych kont z logiczną izolacją danych.

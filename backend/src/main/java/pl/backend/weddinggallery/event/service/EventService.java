@@ -65,6 +65,7 @@ public class EventService {
 		event.setEventDate(request.eventDate());
 		event.setDescription(normalizeDescription(request.description()));
 		event.setPrivacyMode(request.privacyMode());
+		event.setUpdatedAt(LocalDateTime.now());
 		auditService.logRequiredEvent(actor.getEmail(), EventType.EVENT_UPDATED, event.getId(), null,
 				"metadata=updated");
 		return toResponse(event, roleFor(event, actor));
@@ -77,6 +78,7 @@ public class EventService {
 		if (event.getStatus() != EventStatus.ARCHIVED) {
 			event.setStatus(EventStatus.ARCHIVED);
 			event.setArchivedAt(LocalDateTime.now());
+			event.setUpdatedAt(LocalDateTime.now());
 			auditService.logRequiredEvent(actor.getEmail(), EventType.EVENT_ARCHIVED, event.getId(), null,
 					"status=ARCHIVED");
 		}
@@ -89,6 +91,7 @@ public class EventService {
 		Event event = requireOwnedEvent(eventId, actor);
 		event.setStatus(EventStatus.DELETED);
 		event.setDeletedAt(LocalDateTime.now());
+		event.setUpdatedAt(LocalDateTime.now());
 		auditService.logRequiredEvent(actor.getEmail(), EventType.EVENT_DELETED, event.getId(), null, "status=DELETED");
 	}
 
