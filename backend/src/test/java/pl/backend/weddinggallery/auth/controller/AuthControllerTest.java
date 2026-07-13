@@ -21,6 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
+import pl.backend.weddinggallery.audit.model.EventType;
+import pl.backend.weddinggallery.audit.repository.AuditEventRepository;
 import pl.backend.weddinggallery.user.model.SystemRole;
 import pl.backend.weddinggallery.user.model.User;
 import pl.backend.weddinggallery.user.repository.UserRepository;
@@ -38,11 +40,15 @@ public class AuthControllerTest {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
+	@Autowired
+	private AuditEventRepository auditEventRepository;
+
 	private final RestTemplate restTemplate = new RestTemplate();
 
 	@BeforeEach
 	void setUp() {
 		userRepository.deleteAll();
+		auditEventRepository.deleteAll();
 		restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 			@Override
 			public boolean hasError(ClientHttpResponse response) {
@@ -278,5 +284,53 @@ public class AuthControllerTest {
 				String.class);
 
 		assertThat(meResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	void shouldLogoutInvalidateSessionAndAuditLogout() {
+		createUser("admin@example.com", "password123", SystemRole.ADMIN);
+		HttpHeaders authenticatedHeaders = getAuthenticatedHeaders("admin@example.com", "password123");
+
+		ResponseEntity<String> logoutResponse = restTemplate.exchange(getBaseUrl() + "/logout", HttpMethod.POST,
+				new HttpEntity<>(null, authenticatedHeaders), String.class);
+
+		assertThat(logoutResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+		ResponseEntity<String> meResponse = restTemplate.exchange(getBaseUrl() + "/me", HttpMethod.GET,
+				new HttpEntity<>(null, authenticatedHeaders), String.class);
+
+		assertThat(meResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assertThat(auditEventRepository.findAll()).extracting("eventType").contains(EventType.USER_LOGGED_OUT);
+	}
+
+	@Test
+	void shouldLockAccountAfterFiveFailedAttemptsAndRejectCorrectPasswordWhileLocked() {
+		createUser("locked@example.com", "password123", SystemRole.USER);
+
+		for (int attempt = 1; attempt <= 5; attempt++) {
+			HttpHeaders headers = getHeadersWithCsrf();
+			Map<String, String> loginRequest = Map.of("email", "locked@example.com", "password", "wrongpass");
+			HttpEntity<Map<String, String>> entity = new HttpEntity<>(loginRequest, headers);
+
+			ResponseEntity<String> loginResponse = restTemplate.exchange(getBaseUrl() + "/login", HttpMethod.POST,
+					entity, String.class);
+
+			assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		}
+
+		User lockedUser = userRepository.findByEmail("locked@example.com").orElseThrow();
+		assertThat(lockedUser.getFailedLoginAttempts()).isEqualTo(5);
+		assertThat(lockedUser.getLockedUntil()).isNotNull();
+
+		HttpHeaders headers = getHeadersWithCsrf();
+		Map<String, String> loginRequest = Map.of("email", "locked@example.com", "password", "password123");
+		HttpEntity<Map<String, String>> entity = new HttpEntity<>(loginRequest, headers);
+
+		ResponseEntity<String> loginResponse = restTemplate.exchange(getBaseUrl() + "/login", HttpMethod.POST, entity,
+				String.class);
+
+		assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+		assertThat(auditEventRepository.findAll()).extracting("eventType")
+				.contains(EventType.USER_LOGIN_FAILED, EventType.USER_LOGIN_BLOCKED);
 	}
 }

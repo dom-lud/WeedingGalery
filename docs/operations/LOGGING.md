@@ -11,7 +11,7 @@ Opisuje zasady logowania aplikacyjnego, strukturalnego i audytowego.
 ## Stan obecny
 - W kodzie istnieje juz techniczne logowanie przez `@Slf4j` oraz podstawowy biznesowy audyt oparty o `AuditService`.
 - Aktualna tabela audytu to `audit_events`.
-- Obecnie zapisywane eventy audytowe to `USER_REGISTERED` i `USER_LOGGED_IN`.
+- Obecnie zapisywane eventy audytowe to `USER_REGISTERED`, `USER_LOGGED_IN`, `USER_LOGIN_FAILED`, `USER_LOGIN_BLOCKED` i `USER_LOGGED_OUT`.
 
 ## Stan docelowy
 - Logi strukturalne z correlation ID, kontrola danych wrazliwych oraz rozszerzony log audytowy dla wszystkich krytycznych operacji.
@@ -31,10 +31,11 @@ Opisuje zasady logowania aplikacyjnego, strukturalnego i audytowego.
 ## Minimalny zakres audytu aktualnie zaimplementowany
 - Udane utworzenie konta przez administratora.
 - Udane zalogowanie uzytkownika.
+- Nieudane logowania dla istniejacego konta.
+- Blokada konta po wielu blednych logowaniach.
+- Wylogowanie i zakonczenie sesji.
 
 ## Zakres audytu do dalszego rozszerzenia
-- Nieudane logowania.
-- Wylogowania i uniewaznienia sesji.
 - Zmiany rol i innych uprawnien.
 - Akcje administracyjne wykonywane na kontach i zasobach.
 

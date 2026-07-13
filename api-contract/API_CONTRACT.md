@@ -47,6 +47,11 @@ Logowanie. Zadanie wymaga poprawnego tokenu CSRF (`X-XSRF-TOKEN`).
   ```
 - `401 Unauthorized`: Bledne dane logowania.
 
+Uwagi:
+- Backend normalizuje e-mail do malych liter przed uwierzytelnieniem.
+- Backend zlicza nieudane proby logowania dla istniejacych kont i czasowo blokuje konto po przekroczeniu limitu.
+- Odpowiedz `401 Unauthorized` pozostaje celowo generyczna rowniez dla kont czasowo zablokowanych, aby nie ulatwiac enumeracji kont.
+
 ### `GET /api/auth/me`
 Pobranie profilu aktualnie zalogowanego uzytkownika.
 
@@ -65,3 +70,11 @@ Endpoint do recznego wyzwolenia wygenerowania tokenu CSRF. Uzywany przez aplikac
 
 **Responses:**
 - `200 OK`: Sukces. Ciasteczko zostalo wyslane.
+
+### `POST /api/auth/logout`
+Wylogowanie aktualnego uzytkownika. Zadanie wymaga aktywnej sesji oraz poprawnego tokenu CSRF (`X-XSRF-TOKEN`).
+
+**Responses:**
+- `200 OK`: Sesja zostala uniewazniona, a cookie `JSESSIONID` jest czyszczone.
+- `401 Unauthorized`: Brak aktywnej sesji.
+- `403 Forbidden`: Brak tokenu CSRF lub niepoprawny token.

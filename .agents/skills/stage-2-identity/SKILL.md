@@ -6,7 +6,7 @@ description: "Skill prowadzacy przez Etap 2 - Tozsamosc uzytkownika i autoryzacj
 # Etap 2 - Tozsamosc i Autoryzacja
 
 ## Kiedy uzywac?
-Uzyj tego skilla, gdy repozytorium ma juz dzialajacy szkielet techniczny, a Twoim celem jest implementacja lub rozszerzenie obszaru identity: logowanie, sesje, CSRF, zarzadzanie kontami, testy auth albo audyt zdarzen identity.
+Uzyj tego skilla, gdy repozytorium ma juz dzialajacy szkielet techniczny, a Twoim celem jest utrzymanie, uszczelnienie albo rozszerzenie obszaru identity: logowanie, sesje, CSRF, zarzadzanie kontami, testy auth albo audyt zdarzen identity.
 
 ## Decyzja o subagentach
 Domyslnie nie uruchamiaj subagentow, jesli zmiana miesci sie w jednym spojnym obszarze auth + frontend + testy + dokumentacja i da sie ja zweryfikowac w jednym przebiegu.
@@ -21,11 +21,13 @@ Uruchom subagentow tylko wtedy, gdy:
 - Aktualne endpointy identity w kodzie i kontrakcie to:
   - `GET /api/auth/csrf`
   - `POST /api/auth/login`
+  - `POST /api/auth/logout`
   - `GET /api/auth/me`
   - `POST /api/auth/register`
 - `POST /api/auth/register` nie jest publiczna rejestracja. Konto tworzy zalogowany administrator.
 - Frontend nie powinien eksponowac publicznego przycisku rejestracji.
-- Aktualny audyt auth obejmuje `USER_REGISTERED` i `USER_LOGGED_IN`.
+- Aktualny audyt auth obejmuje `USER_REGISTERED`, `USER_LOGGED_IN`, `USER_LOGIN_FAILED`, `USER_LOGIN_BLOCKED` i `USER_LOGGED_OUT`.
+- Podstawowy zakres Etapu 2 jest domkniety; dalsze prace w tym skillu dotycza utrzymania albo przyszlych rozszerzen identity.
 
 ## Cel
 Wdrozenie i dalsze uszczelnianie tozsamosci uzytkownika, tak aby przyszle endpointy panelu wydarzen i administracji byly chronione, zgodne z kontraktem FE-BE i pokryte testami, ktore realnie wykrywaja regresje.
@@ -87,9 +89,9 @@ Wdrozenie i dalsze uszczelnianie tozsamosci uzytkownika, tak aby przyszle endpoi
 - Rozszerzenie auth bez dopisania audit eventu albo bez aktualizacji dokumentacji.
 - Aktualizacja kodu bez aktualizacji kontraktu FE-BE.
 
-## Co jeszcze nie jest domkniete w Etapie 2
+## Co pozostaje poza zamknietym zakresem Etapu 2
 - Weryfikacja e-mail.
 - Reset hasla.
-- Pelny logout i ewentualne zarzadzanie wieloma sesjami.
+- Zarzadzanie wieloma sesjami i logout-all.
 - Obsluga maili transakcyjnych.
-- Szerszy katalog audit eventow, np. nieudane logowania i akcje administracyjne na kontach.
+- Dalsze rozszerzenia audytu, np. akcje administracyjne na kontach i zmiany rol.

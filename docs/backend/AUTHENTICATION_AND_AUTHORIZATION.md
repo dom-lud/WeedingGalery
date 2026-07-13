@@ -11,11 +11,12 @@ Opisuje aktualny i docelowy model tozsamosci uzytkownika, sesji oraz reguly auto
 ## Stan obecny
 - Backend korzysta ze Spring Security oraz sesji serwerowej opartej o cookie `JSESSIONID`.
 - SPA korzysta z ochrony CSRF i pobiera token przez `GET /api/auth/csrf`, a backend wystawia cookie `XSRF-TOKEN`.
-- Dostepne sa endpointy `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` oraz `GET /api/auth/csrf`.
+- Dostepne sa endpointy `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` oraz `GET /api/auth/csrf`.
 - `POST /api/auth/register` nie jest publicznym signupem. Konto moze utworzyc tylko zalogowany administrator.
 - Aktualnie zaimplementowane role systemowe w kodzie to `ADMIN` i `USER`.
 - Podstawowy audyt zapisuje wpisy do tabeli `audit_events` przez `AuditService`.
-- Aktualnie zaimplementowane eventy audytowe to `USER_REGISTERED` oraz `USER_LOGGED_IN`.
+- Logowanie zlicza nieudane proby dla istniejacego konta i czasowo blokuje konto po przekroczeniu limitu.
+- Aktualnie zaimplementowane eventy audytowe to `USER_REGISTERED`, `USER_LOGGED_IN`, `USER_LOGIN_FAILED`, `USER_LOGIN_BLOCKED` oraz `USER_LOGGED_OUT`.
 
 ## Stan docelowy
 - Bezpieczny system uwierzytelniania uzytkownikow oraz oddzielny model dostepu gosci do galerii.
@@ -24,6 +25,7 @@ Opisuje aktualny i docelowy model tozsamosci uzytkownika, sesji oraz reguly auto
 ## Aktualny kontrakt auth
 - `GET /api/auth/csrf` - przygotowanie tokenu CSRF dla klienta SPA.
 - `POST /api/auth/login` - logowanie uzytkownika do sesji.
+- `POST /api/auth/logout` - zakonczenie aktualnej sesji.
 - `GET /api/auth/me` - odczyt tozsamosci aktualnie zalogowanego uzytkownika.
 - `POST /api/auth/register` - utworzenie nowego konta przez administratora.
 
@@ -64,6 +66,9 @@ SSOT kontraktu FE-BE znajduje sie w [../../api-contract/API_CONTRACT.md](../../a
 - Obecny katalog eventow obejmuje:
   - `USER_REGISTERED`
   - `USER_LOGGED_IN`
+  - `USER_LOGIN_FAILED`
+  - `USER_LOGIN_BLOCKED`
+  - `USER_LOGGED_OUT`
 - Kazda nowa wrazliwa akcja w obszarze auth lub administracji musi przejsc przeglad pod katem:
   - czy trzeba dodac nowy typ do `EventType`,
   - czy trzeba rozszerzyc szczegoly wpisu audytowego,
@@ -91,10 +96,10 @@ sequenceDiagram
 ```
 
 ## Co zostalo do zrobienia
-- Wylogowanie i ewentualne zarzadzanie wieloma sesjami jako czesc pelnego flow identity.
-- Weryfikacja e-mail i reset hasla wraz z obsluga maili transakcyjnych.
-- Rate limiting i polityka dla blednych logowan.
-- Rozszerzenie audytu o nieudane logowania, wylogowania, zmiany rol i akcje administracyjne.
+- Ewentualne zarzadzanie wieloma sesjami i logout-all jako rozszerzenie ponad podstawowa identity.
+- Weryfikacja e-mail i reset hasla wraz z obsluga maili transakcyjnych w kolejnym zakresie identity.
+- Rate limiting na poziomie infrastrukturalnym lub aplikacyjnym jako dodatkowa warstwa ochrony.
+- Rozszerzenie audytu o zmiany rol i akcje administracyjne poza biezacym zakresem auth.
 
 ## Powiazane dokumenty
 - [../product/PERMISSIONS_MATRIX.md](../product/PERMISSIONS_MATRIX.md)

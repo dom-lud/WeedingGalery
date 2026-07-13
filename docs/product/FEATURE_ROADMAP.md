@@ -12,7 +12,8 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 - Roadmapa opisuje planowany rozwoj.
 - Etap 0 jest zamkniety na poziomie dokumentacji i procesu.
 - Etap 1 zostal uruchomiony jako techniczny fundament repozytorium.
-- Etap 2 jest w realizacji, ale nie jest jeszcze zakonczony.
+- Etap 2 jest domkniety w zakresie podstawowej identity.
+- Etap 3 ma przygotowane wejscie wykonawcze, ale nie jest jeszcze rozpoczety implementacyjnie.
 
 ## Stan docelowy
 - Sekwencja etapow prowadzaca od dokumentacji i procesow do stabilnej produkcji pelnej platformy wielouzytkownikowej.
@@ -31,29 +32,32 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 - Kryterium ukonczenia: repozytorium ma spojny szkielet techniczny zgodny z dokumentacja i ADR.
 - Glowne ryzyka: rozjazd miedzy implementacja a architektura, bledne decyzje startowe dla konfiguracji i storage.
 
-## Etap 2 - Identity
+## Etap 2 - Core Identity
 - Cel: wdrozenie tozsamosci uzytkownika i bezpiecznego logowania.
 - Zaleznosci: etap 1, ADR dot. auth.
-- Rezultat docelowy: administracyjne tworzenie kont, logowanie, wylogowanie, sesje, weryfikacja e-mail, reset hasla, profil uzytkownika, podstawowa obsluga sesji oraz transakcyjna obsluga e-maili dla rejestracji i odzyskiwania dostepu.
-- Stan realizacji:
-  - wdrozone sa sesje serwerowe, CSRF dla SPA, `GET /api/auth/csrf`, `POST /api/auth/login`, `GET /api/auth/me` oraz administracyjne `POST /api/auth/register`,
+- Rezultat: administracyjne tworzenie kont, logowanie, wylogowanie, sesje, CSRF dla SPA, `/api/auth/me`, blokada po wielu blednych logowaniach oraz podstawowy audyt auth.
+- Status: zakonczony.
+- Potwierdzenie:
+  - wdrozone sa sesje serwerowe, `GET /api/auth/csrf`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` oraz administracyjne `POST /api/auth/register`,
   - frontend korzysta z flow logowania bez publicznego przycisku rejestracji,
-  - istnieje podstawowy audyt auth dla `USER_REGISTERED` i `USER_LOGGED_IN`,
-  - testy auth zostaly rozszerzone o bardziej realistyczne scenariusze UI i page object pattern.
-- Co zostalo do domkniecia:
-  - pelny logout i ewentualne zarzadzanie wieloma sesjami,
-  - weryfikacja e-mail i reset hasla,
-  - obsluga maili transakcyjnych,
-  - polityka rate limiting / blokad dla blednych logowan,
-  - rozszerzenie audytu o nieudane logowania, wylogowania i akcje administracyjne.
-- Kryterium ukonczenia: uzytkownik moze bezpiecznie korzystac z podstawowej tozsamosci, a administrator moze zarzadzac tworzeniem kont zgodnie z przyjeta polityka.
-- Glowne ryzyka: zla strategia auth, niedoszacowanie wymagan bezpieczenstwa i sesji oraz zbyt waski katalog eventow audytowych.
+  - istnieje audyt auth dla rejestracji, logowania, nieudanych logowan, blokady konta i wylogowania,
+  - flow jest pokryte testami backendowymi, frontendowymi i E2E.
+- Poza zamknietym zakresem:
+  - weryfikacja e-mail,
+  - reset hasla,
+  - maile transakcyjne,
+  - zarzadzanie wieloma sesjami i logout-all.
+- Glowne ryzyka po etapie: dalsza rozbudowa identity nie moze rozszczelnic braku enumeracji kont, CSRF ani audytu.
 
 ## Etap 3 - Wydarzenia i czlonkowie
 - Cel: wdrozenie rdzenia domenowego wydarzen i wspolzarzadzania.
 - Zaleznosci: etap 2.
-- Rezultat: wydarzenia, owner, manager, role, zaproszenia i ownership.
-- Kryterium ukonczenia: wlasciciel moze tworzyc wydarzenia i zarzadzac czlonkami.
+- Rezultat: wydarzenia, owner, manager, role wydarzenia i ownership.
+- Zakres pierwszego wejscia do etapu:
+  - `EVENT-001` jako tworzenie i zarzadzanie wydarzeniami,
+  - `MEMBER-001` jako role i czlonkostwo w wydarzeniu,
+  - bez e-mailowych zaproszen, dopoki `AUTH-002` nie dostarczy pelnego flow mail/token.
+- Kryterium ukonczenia: wlasciciel moze tworzyc wydarzenia i zarzadzac czlonkami, a ownership jest egzekwowany w API i logice biznesowej.
 - Glowne ryzyka: bledy ownership, niespojne role, brak audytu zmian czlonkostwa.
 
 ## Etap 4 - Galerie

@@ -1,56 +1,58 @@
-# Macierz Uprawnień
+# Macierz Uprawnien
 
 ## Cel dokumentu
-Prezentuje wysokopoziomową macierz uprawnień dla ról systemowych i ról wydarzenia.
+Prezentuje wysokopoziomowa macierz uprawnien dla rol systemowych i rol wydarzenia.
 
 ## Status dokumentu
 - Status: draft
-- Zakres: matryca uprawnień produktu
-- Ostatnia aktualizacja: 2026-07-12
+- Zakres: matryca uprawnien produktu
+- Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
-- Uprawnienia nie są jeszcze zaimplementowane.
+- Zaimplementowany jest podstawowy model auth dla kont systemowych.
+- W praktyce wdrozone sa obecnie tylko uprawnienia potrzebne do logowania, wylogowania, odczytu `/api/auth/me` i administracyjnego tworzenia kont.
+- Uprawnienia wydarzenia oraz ownership zasobow wydarzenia pozostaja do wdrozenia w Etapie 3.
 
 ## Stan docelowy
-- Spójny model autoryzacji oparty o role systemowe, role wydarzenia i ownership zasobów.
+- Spojny model autoryzacji oparty o role systemowe, role wydarzenia i ownership zasobow.
 
 ## Zasady interpretacji
-- `TAK` oznacza możliwość wykonania akcji w typowym przypadku.
-- `OGR` oznacza dostęp warunkowy zależny od konfiguracji galerii lub delegacji.
+- `TAK` oznacza mozliwosc wykonania akcji w typowym przypadku.
+- `OGR` oznacza dostep warunkowy zalezny od konfiguracji galerii lub delegacji.
 - `NIE` oznacza brak uprawnienia.
 
 | Akcja | Guest | User | EventManager | EventOwner | SystemAdministrator | SuperAdministrator |
 | --- | --- | --- | --- | --- | --- | --- |
 | Rejestracja konta | NIE | TAK | TAK | TAK | TAK | TAK |
-| Logowanie do panelu użytkownika | NIE | TAK | TAK | TAK | TAK | TAK |
+| Logowanie do panelu uzytkownika | NIE | TAK | TAK | TAK | TAK | TAK |
 | Tworzenie wydarzenia | NIE | TAK | TAK | TAK | TAK | TAK |
-| Edycja własnego profilu | NIE | TAK | TAK | TAK | TAK | TAK |
-| Przegląd własnych wydarzeń | NIE | TAK | TAK | TAK | TAK | TAK |
-| Wejście do publicznej galerii | OGR | NIE | NIE | NIE | OGR | OGR |
+| Edycja wlasnego profilu | NIE | TAK | TAK | TAK | TAK | TAK |
+| Przeglad wlasnych wydarzen | NIE | TAK | TAK | TAK | TAK | TAK |
+| Wejscie do publicznej galerii | OGR | NIE | NIE | NIE | OGR | OGR |
 | Upload do galerii | OGR | OGR | OGR | OGR | OGR | OGR |
-| Przegląd opublikowanych mediów | OGR | OGR | TAK | TAK | TAK | TAK |
-| Pobieranie plików z galerii | OGR | OGR | TAK | TAK | TAK | TAK |
+| Przeglad opublikowanych mediow | OGR | OGR | TAK | TAK | TAK | TAK |
+| Pobieranie plikow z galerii | OGR | OGR | TAK | TAK | TAK | TAK |
 | Tworzenie galerii | NIE | NIE | TAK | TAK | TAK | TAK |
-| Zmiana ustawień galerii | NIE | NIE | OGR | TAK | TAK | TAK |
-| Moderacja materiałów | NIE | NIE | OGR | TAK | TAK | TAK |
-| Zarządzanie członkami wydarzenia | NIE | NIE | OGR | TAK | TAK | TAK |
-| Transfer własności wydarzenia | NIE | NIE | NIE | TAK | TAK | TAK |
-| Usunięcie wydarzenia | NIE | NIE | NIE | TAK | TAK | TAK |
-| Zmiana planu użytkownika | NIE | NIE | NIE | NIE | TAK | TAK |
-| Zarządzanie administratorami | NIE | NIE | NIE | NIE | OGR | TAK |
-| Przegląd audytu systemowego | NIE | NIE | NIE | NIE | TAK | TAK |
-| Zmiana ustawień krytycznych | NIE | NIE | NIE | NIE | OGR | TAK |
+| Zmiana ustawien galerii | NIE | NIE | OGR | TAK | TAK | TAK |
+| Moderacja materialow | NIE | NIE | OGR | TAK | TAK | TAK |
+| Zarzadzanie czlonkami wydarzenia | NIE | NIE | OGR | TAK | TAK | TAK |
+| Transfer wlasnosci wydarzenia | NIE | NIE | NIE | TAK | TAK | TAK |
+| Usuniecie wydarzenia | NIE | NIE | NIE | TAK | TAK | TAK |
+| Zmiana planu uzytkownika | NIE | NIE | NIE | NIE | TAK | TAK |
+| Zarzadzanie administratorami | NIE | NIE | NIE | NIE | OGR | TAK |
+| Przeglad audytu systemowego | NIE | NIE | NIE | NIE | TAK | TAK |
+| Zmiana ustawien krytycznych | NIE | NIE | NIE | NIE | OGR | TAK |
 
 ## Uwagi domenowe
-- Guest nie ma stałej tożsamości systemowej; jego uprawnienia wynikają z `GalleryAccess`.
-- User bez członkostwa w wydarzeniu nie ma dostępu do cudzych zasobów.
-- EventManager działa w granicach delegacji zapisanej w członkostwie.
-- Administrator nie zastępuje ownership w logice biznesowej; używa odrębnego toru administracyjnego.
+- Guest nie ma stalej tozsamosci systemowej; jego uprawnienia wynikaja z `GalleryAccess`.
+- User bez czlonkostwa w wydarzeniu nie ma dostepu do cudzych zasobow.
+- EventManager dziala w granicach delegacji zapisanej w czlonkostwie.
+- Administrator nie zastepuje ownership w logice biznesowej; uzywa odrebnego toru administracyjnego.
 
-## Powiązane dokumenty
+## Powiazane dokumenty
 - [USER_ROLES.md](USER_ROLES.md)
 - [../backend/AUTHENTICATION_AND_AUTHORIZATION.md](../backend/AUTHENTICATION_AND_AUTHORIZATION.md)
 - [../architecture/MULTI_TENANCY.md](../architecture/MULTI_TENANCY.md)
 
 ## Decyzje otwarte
-- Czy administrator powinien móc przejmować widok właściciela wydarzenia, czy wyłącznie wykonywać jawne akcje administracyjne.
+- Czy administrator powinien moc przejmowac widok wlasciciela wydarzenia, czy wylacznie wykonywac jawne akcje administracyjne.

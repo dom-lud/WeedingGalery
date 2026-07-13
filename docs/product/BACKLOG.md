@@ -6,7 +6,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 ## Status dokumentu
 - Status: draft
 - Zakres: backlog dla pełnej wizji produktu
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
 - Backlog opisuje planowane zadania i nie oznacza, że funkcje są już zaimplementowane.
@@ -58,7 +58,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Wymagania bezpieczeństwa: bezpieczne hashowanie, rate limiting, brak enumeracji użytkowników.
 - Wymagane testy: testy auth, security, sesji, błędnych logowań, CSRF oraz E2E bez sztucznego stabilizowania flow logowania.
 - Dokumenty powiązane: [../backend/AUTHENTICATION_AND_AUTHORIZATION.md](../backend/AUTHENTICATION_AND_AUTHORIZATION.md).
-- Status: `IN PROGRESS`.
+- Status: `DONE`.
 - ADR wymagany: tak (ADR 0002).
 
 ### AUTH-002 - Weryfikacja e-mail i reset hasła
@@ -99,7 +99,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Wymagania bezpieczeństwa: pełna kontrola ownership wydarzenia.
 - Wymagane testy: testy use case, ownership, API i walidacji.
 - Dokumenty powiązane: [../architecture/DATA_MODEL.md](../architecture/DATA_MODEL.md), [../architecture/MULTI_TENANCY.md](../architecture/MULTI_TENANCY.md).
-- Status początkowy: `IDEA`.
+- Status: `READY`.
 - ADR wymagany: nie.
 
 ### EVENT-002 - Archiwizacja i retencja wydarzeń
@@ -126,7 +126,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Wymagania bezpieczeństwa: ownership, brak możliwości usunięcia właściciela przez managera.
 - Wymagane testy: testy autoryzacji, ownership i historii zmian.
 - Dokumenty powiązane: [USER_ROLES.md](USER_ROLES.md), [PERMISSIONS_MATRIX.md](PERMISSIONS_MATRIX.md).
-- Status początkowy: `IDEA`.
+- Status: `READY`.
 - ADR wymagany: nie.
 
 ## INVITATIONS

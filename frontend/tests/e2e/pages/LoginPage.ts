@@ -8,9 +8,7 @@ export class LoginPage {
   }
 
   async goto() {
-    const csrfPromise = this.page.waitForResponse((r) => r.url().includes('/api/auth/csrf'))
     await this.page.goto('/login')
-    await csrfPromise
   }
 
   async gotoWithoutWaitingForCsrf() {

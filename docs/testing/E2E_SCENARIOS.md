@@ -54,10 +54,24 @@ Ten dokument gromadzi i opisuje zaplanowane scenariusze testow End-to-End (E2E) 
   - Wymuszenie bezposrednich zapytan do API `/api/auth/me` powinno konczyc sie `401 Unauthorized`.
   - Wejscie na nieistniejaca publiczna sciezke rejestracji nie moze odslonic flow tworzenia konta i powinno skonczyc sie przekierowaniem do logowania albo widokiem niedostepnosci.
 
-### 4. Stabilnosc scenariuszy auth
+### 4. Wylogowanie i uniewaznienie sesji
+**Krytycznosc:** Wysoka
+- **Warunki poczatkowe:** Uzytkownik jest zalogowany i znajduje sie na stronie chronionej.
+- **Kroki:**
+  1. Klikniecie przycisku wylogowania.
+  2. Oczekiwanie na odpowiedz `POST /api/auth/logout`.
+  3. Ponowne wejscie na strone chroniona.
+- **Oczekiwany rezultat:**
+  - Backend zwraca `200 OK`.
+  - Sesja zostaje uniewazniona.
+  - Uzytkownik wraca do `/login`.
+  - Ponowna proba wejscia na `/dashboard` konczy sie przekierowaniem do `/login`.
+
+### 5. Stabilnosc scenariuszy auth
 **Krytycznosc:** Wysoka
 - **Zasada:** Testy E2E maja odtwarzac realne zachowanie uzytkownika, a nie idealny przebieg zsynchronizowany z implementacja.
 - **Wymagania:**
   - Strona obiektu Page Object moze kapsulkowac selektory i ergonomie akcji, ale nie moze ukrywac bledow przez sztuczne oczekiwanie na odpowiedzi API, ktorych uzytkownik nie wyzwolil jeszcze swoim dzialaniem.
   - W scenariuszach logowania musza istniec warianty szybkie i mniej idealne, w tym szybki klik po otwarciu widoku oraz ponowna proba po bledzie.
+  - Dla podstawowej identity warto utrzymywac tez przypadek blokady po wielu blednych logowaniach na poziomie API lub pelnego testu integracyjnego.
   - Testy maja znajdowac regresje w synchronizacji UI, a nie stabilizowac aplikacje samym oczekiwaniem testu.

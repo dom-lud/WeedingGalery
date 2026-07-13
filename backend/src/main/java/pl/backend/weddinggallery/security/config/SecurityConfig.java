@@ -1,6 +1,7 @@
 package pl.backend.weddinggallery.security.config;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,20 +14,23 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
-import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import pl.backend.weddinggallery.security.handler.AuditLogoutSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
 	@Value("${app.security.csrf.enabled:true}")
 	private boolean csrfEnabled;
+
+	private final AuditLogoutSuccessHandler auditLogoutSuccessHandler;
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -44,7 +48,7 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.POST, "/api/auth/register").hasRole("ADMIN")
 						.requestMatchers("/actuator/health").permitAll().anyRequest().authenticated())
 				.logout(logout -> logout.logoutUrl("/api/auth/logout")
-						.logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK))
+						.logoutSuccessHandler(auditLogoutSuccessHandler)
 						.invalidateHttpSession(true).deleteCookies("JSESSIONID"));
 
 		return http.build();

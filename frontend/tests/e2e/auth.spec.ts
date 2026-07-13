@@ -49,4 +49,21 @@ test.describe('Authentication Flow E2E', () => {
     await dashboardPage.goto()
     await dashboardPage.expectRedirectedToLogin()
   })
+
+  test('should logout, invalidate session and redirect back to login', async ({
+    loginPage,
+    dashboardPage,
+  }) => {
+    await loginPage.goto()
+    const loginResponse = await loginPage.login('admin@example.com', 'password123')
+    expect(loginResponse.status()).toBe(200)
+    await dashboardPage.verifyIsLoaded()
+
+    const logoutResponse = await dashboardPage.logout()
+    expect(logoutResponse.status()).toBe(200)
+    await dashboardPage.expectRedirectedToLogin()
+
+    await dashboardPage.goto()
+    await dashboardPage.expectRedirectedToLogin()
+  })
 })
