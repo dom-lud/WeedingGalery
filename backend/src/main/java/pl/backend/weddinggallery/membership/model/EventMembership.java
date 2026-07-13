@@ -8,7 +8,8 @@ import pl.backend.weddinggallery.event.model.Event;
 import pl.backend.weddinggallery.user.model.User;
 
 @Entity
-@Table(name = "event_memberships", uniqueConstraints = @UniqueConstraint(name = "uk_event_membership_event_user", columnNames = {"event_id", "user_id"}))
+@Table(name = "event_memberships", uniqueConstraints = @UniqueConstraint(name = "uk_event_membership_event_user", columnNames = {
+		"event_id", "user_id"}))
 @Getter
 @Setter
 @NoArgsConstructor

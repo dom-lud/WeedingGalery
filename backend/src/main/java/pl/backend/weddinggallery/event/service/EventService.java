@@ -32,8 +32,8 @@ public class EventService {
 	public EventResponse create(EventWriteRequest request, String actorEmail) {
 		User actor = requireUser(actorEmail);
 		Event event = Event.builder().name(request.name().trim()).type(request.type()).eventDate(request.eventDate())
-				.description(normalizeDescription(request.description())).privacyMode(request.privacyMode()).owner(actor)
-				.status(EventStatus.DRAFT).build();
+				.description(normalizeDescription(request.description())).privacyMode(request.privacyMode())
+				.owner(actor).status(EventStatus.DRAFT).build();
 		eventRepository.save(event);
 		auditService.logRequiredEvent(actor.getEmail(), EventType.EVENT_CREATED, event.getId(), null, "status=DRAFT");
 		return toResponse(event, EventRole.OWNER);

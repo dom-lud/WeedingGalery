@@ -15,9 +15,7 @@ test.describe('Events and memberships E2E', () => {
     await dashboardPage.verifyIsLoaded()
 
     const csrfToken = await page.evaluate(() => {
-      const cookie = document.cookie
-        .split('; ')
-        .find((entry) => entry.startsWith('XSRF-TOKEN='))
+      const cookie = document.cookie.split('; ').find((entry) => entry.startsWith('XSRF-TOKEN='))
       return cookie ? decodeURIComponent(cookie.split('=')[1]) : null
     })
     expect(csrfToken).not.toBeNull()
@@ -45,8 +43,9 @@ test.describe('Events and memberships E2E', () => {
     await loginPage.login('admin@example.com', 'password123')
     await dashboardPage.manageEvent(eventName)
     const managerRow = page.getByText(managerEmail, { exact: true }).locator('xpath=ancestor::li')
-    const transferResponsePromise = page.waitForResponse((response) =>
-      response.url().includes('/ownership-transfer') && response.request().method() === 'POST',
+    const transferResponsePromise = page.waitForResponse(
+      (response) =>
+        response.url().includes('/ownership-transfer') && response.request().method() === 'POST',
     )
     await managerRow.getByRole('button', { name: /transfer ownership/i }).click()
     expect((await transferResponsePromise).status()).toBe(200)

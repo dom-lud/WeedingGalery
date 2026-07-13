@@ -94,14 +94,15 @@ class EventFlowIntegrationTest {
 				Map.of("email", "outsider@example.com", "role", "MANAGER"), true).getStatusCode())
 				.isEqualTo(HttpStatus.FORBIDDEN);
 
-		ResponseEntity<String> secondCreate = owner.exchange(HttpMethod.POST, "/api/events", eventPayload("Other"), true);
+		ResponseEntity<String> secondCreate = owner.exchange(HttpMethod.POST, "/api/events", eventPayload("Other"),
+				true);
 		String secondEventId = jsonValue(secondCreate, "id");
-		assertThat(owner.exchange(HttpMethod.DELETE,
-				"/api/events/" + secondEventId + "/members/" + membershipId, null, true).getStatusCode())
-				.isEqualTo(HttpStatus.NOT_FOUND);
+		assertThat(owner
+				.exchange(HttpMethod.DELETE, "/api/events/" + secondEventId + "/members/" + membershipId, null, true)
+				.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 
-		assertThat(owner.exchange(HttpMethod.DELETE, "/api/events/" + eventId + "/members/" + membershipId, null,
-				true).getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(owner.exchange(HttpMethod.DELETE, "/api/events/" + eventId + "/members/" + membershipId, null, true)
+				.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 		assertThat(manager.exchange(HttpMethod.GET, "/api/events/" + eventId, null, false).getStatusCode())
 				.isEqualTo(HttpStatus.NOT_FOUND);
 
@@ -179,8 +180,9 @@ class EventFlowIntegrationTest {
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			if (!cookies.isEmpty()) {
-				headers.set(HttpHeaders.COOKIE, cookies.entrySet().stream()
-						.map(entry -> entry.getKey() + "=" + entry.getValue()).reduce((a, b) -> a + "; " + b).orElse(""));
+				headers.set(HttpHeaders.COOKIE,
+						cookies.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue())
+								.reduce((a, b) -> a + "; " + b).orElse(""));
 			}
 			if (includeCsrf && cookies.containsKey("XSRF-TOKEN")) {
 				headers.set("X-XSRF-TOKEN", cookies.get("XSRF-TOKEN"));

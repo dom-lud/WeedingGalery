@@ -122,9 +122,10 @@ export default function Dashboard() {
 
   const saveEvent = async () => {
     try {
-      const response = selected && form.name !== ''
-        ? await eventsApi.update(selected.id, form)
-        : await eventsApi.create(form)
+      const response =
+        selected && form.name !== ''
+          ? await eventsApi.update(selected.id, form)
+          : await eventsApi.create(form)
       setDialogOpen(false)
       setSelectedId(response.data.id)
       setMessage(selected ? 'Event updated.' : 'Event created.')
@@ -195,18 +196,30 @@ export default function Dashboard() {
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 } }}>
       <Stack spacing={3}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'space-between' }}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          sx={{ justifyContent: 'space-between' }}
+        >
           <Box>
-            <Typography variant="h4" component="h1">My Events</Typography>
+            <Typography variant="h4" component="h1">
+              My Events
+            </Typography>
             <Typography color="text.secondary">{user?.email}</Typography>
           </Box>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <Button variant="contained" onClick={openCreate}>Create event</Button>
-            <Button variant="outlined" onClick={() => void logout()}>Log out</Button>
+            <Button variant="contained" onClick={openCreate}>
+              Create event
+            </Button>
+            <Button variant="outlined" onClick={() => void logout()}>
+              Log out
+            </Button>
           </Stack>
         </Stack>
 
-        {loading ? <CircularProgress aria-label="Loading events" /> : events.length === 0 ? (
+        {loading ? (
+          <CircularProgress aria-label="Loading events" />
+        ) : events.length === 0 ? (
           <Card variant="outlined">
             <CardContent>
               <Typography variant="h6">No events yet</Typography>
@@ -219,11 +232,15 @@ export default function Dashboard() {
               <Card key={event.id} variant="outlined" sx={{ minWidth: { md: 280 }, flex: 1 }}>
                 <CardContent>
                   <Typography variant="h6">{event.name}</Typography>
-                  <Typography color="text.secondary">{event.currentUserRole} · {event.status}</Typography>
+                  <Typography color="text.secondary">
+                    {event.currentUserRole} · {event.status}
+                  </Typography>
                 </CardContent>
                 <CardActions>
                   <Button onClick={() => setSelectedId(event.id)}>Manage</Button>
-                  <Button onClick={() => openEdit(event)} disabled={event.status === 'ARCHIVED'}>Edit</Button>
+                  <Button onClick={() => openEdit(event)} disabled={event.status === 'ARCHIVED'}>
+                    Edit
+                  </Button>
                 </CardActions>
               </Card>
             ))}
@@ -236,7 +253,9 @@ export default function Dashboard() {
               <Stack spacing={2}>
                 <Box>
                   <Typography variant="h5">{selected.name}</Typography>
-                  <Typography color="text.secondary">{selected.type} · {selected.status}</Typography>
+                  <Typography color="text.secondary">
+                    {selected.type} · {selected.status}
+                  </Typography>
                 </Box>
                 <Divider />
                 <Typography variant="h6">People</Typography>
@@ -245,12 +264,24 @@ export default function Dashboard() {
                     <ListItem
                       key={member.id ?? `owner-${member.userId}`}
                       disableGutters
-                      secondaryAction={selected.currentUserRole === 'OWNER' && member.role === 'MANAGER' && member.id ? (
-                        <Stack direction="row" spacing={1}>
-                          <Button size="small" onClick={() => void transfer(member.id!)}>Transfer ownership</Button>
-                          <Button color="error" size="small" onClick={() => void removeManager(member.id!)}>Remove</Button>
-                        </Stack>
-                      ) : null}
+                      secondaryAction={
+                        selected.currentUserRole === 'OWNER' &&
+                        member.role === 'MANAGER' &&
+                        member.id ? (
+                          <Stack direction="row" spacing={1}>
+                            <Button size="small" onClick={() => void transfer(member.id!)}>
+                              Transfer ownership
+                            </Button>
+                            <Button
+                              color="error"
+                              size="small"
+                              onClick={() => void removeManager(member.id!)}
+                            >
+                              Remove
+                            </Button>
+                          </Stack>
+                        ) : null
+                      }
                     >
                       <ListItemText primary={member.email} secondary={member.role} />
                     </ListItem>
@@ -264,13 +295,26 @@ export default function Dashboard() {
                       onChange={(event) => setManagerEmail(event.target.value)}
                       fullWidth
                     />
-                    <Button variant="contained" onClick={() => void addManager()} disabled={!managerEmail}>Add manager</Button>
+                    <Button
+                      variant="contained"
+                      onClick={() => void addManager()}
+                      disabled={!managerEmail}
+                    >
+                      Add manager
+                    </Button>
                   </Stack>
                 )}
                 {selected.currentUserRole === 'OWNER' && (
                   <Stack direction="row" spacing={1}>
-                    <Button onClick={() => void archive()} disabled={selected.status === 'ARCHIVED'}>Archive</Button>
-                    <Button color="error" onClick={() => void removeEvent()}>Delete event</Button>
+                    <Button
+                      onClick={() => void archive()}
+                      disabled={selected.status === 'ARCHIVED'}
+                    >
+                      Archive
+                    </Button>
+                    <Button color="error" onClick={() => void removeEvent()}>
+                      Delete event
+                    </Button>
                   </Stack>
                 )}
               </Stack>
@@ -283,35 +327,61 @@ export default function Dashboard() {
         <DialogTitle>{selected ? 'Edit event' : 'Create event'}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
-            <TextField label="Event name" value={form.name} slotProps={{ htmlInput: { maxLength: 255 } }}
-              onChange={(event) => setForm({ ...form, name: event.target.value })} required />
+            <TextField
+              label="Event name"
+              value={form.name}
+              slotProps={{ htmlInput: { maxLength: 255 } }}
+              onChange={(event) => setForm({ ...form, name: event.target.value })}
+              required
+            />
             <FormControl>
               <InputLabel id="event-type-label">Event type</InputLabel>
-              <Select labelId="event-type-label" label="Event type" value={form.type}
-                onChange={(event) => setForm({ ...form, type: event.target.value as EventType })}>
+              <Select
+                labelId="event-type-label"
+                label="Event type"
+                value={form.type}
+                onChange={(event) => setForm({ ...form, type: event.target.value as EventType })}
+              >
                 <MenuItem value="WEDDING">Wedding</MenuItem>
                 <MenuItem value="BIRTHDAY">Birthday</MenuItem>
                 <MenuItem value="CORPORATE">Corporate</MenuItem>
                 <MenuItem value="OTHER">Other</MenuItem>
               </Select>
             </FormControl>
-            <TextField label="Event date" type="date" value={form.eventDate ?? ''} slotProps={{ inputLabel: { shrink: true } }}
-              onChange={(event) => setForm({ ...form, eventDate: event.target.value || null })} />
-            <TextField label="Description" multiline minRows={3} value={form.description ?? ''} slotProps={{ htmlInput: { maxLength: 5000 } }}
-              onChange={(event) => setForm({ ...form, description: event.target.value || null })} />
+            <TextField
+              label="Event date"
+              type="date"
+              value={form.eventDate ?? ''}
+              slotProps={{ inputLabel: { shrink: true } }}
+              onChange={(event) => setForm({ ...form, eventDate: event.target.value || null })}
+            />
+            <TextField
+              label="Description"
+              multiline
+              minRows={3}
+              value={form.description ?? ''}
+              slotProps={{ htmlInput: { maxLength: 5000 } }}
+              onChange={(event) => setForm({ ...form, description: event.target.value || null })}
+            />
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={() => void saveEvent()} disabled={!form.name.trim()}>Save</Button>
+          <Button variant="contained" onClick={() => void saveEvent()} disabled={!form.name.trim()}>
+            Save
+          </Button>
         </DialogActions>
       </Dialog>
 
       <Snackbar open={message !== null} autoHideDuration={4000} onClose={() => setMessage(null)}>
-        <Alert severity="success" onClose={() => setMessage(null)}>{message}</Alert>
+        <Alert severity="success" onClose={() => setMessage(null)}>
+          {message}
+        </Alert>
       </Snackbar>
       <Snackbar open={error !== null} autoHideDuration={6000} onClose={() => setError(null)}>
-        <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>
+        <Alert severity="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
       </Snackbar>
     </Container>
   )

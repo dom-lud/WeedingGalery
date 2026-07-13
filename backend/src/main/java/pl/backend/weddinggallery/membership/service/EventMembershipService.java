@@ -37,8 +37,8 @@ public class EventMembershipService {
 		List<EventMemberResponse> result = new ArrayList<>();
 		result.add(new EventMemberResponse(null, event.getOwner().getId(), event.getOwner().getEmail(), EventRole.OWNER,
 				event.getCreatedAt().toInstant(ZoneOffset.UTC)));
-		membershipRepository.findByEventIdAndRemovedAtIsNullOrderByJoinedAtAsc(eventId).stream()
-				.map(this::toResponse).forEach(result::add);
+		membershipRepository.findByEventIdAndRemovedAtIsNullOrderByJoinedAtAsc(eventId).stream().map(this::toResponse)
+				.forEach(result::add);
 		return result;
 	}
 
