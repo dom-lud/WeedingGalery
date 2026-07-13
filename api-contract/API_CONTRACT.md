@@ -78,7 +78,6 @@ Wylogowanie aktualnego uzytkownika. Zadanie wymaga aktywnej sesji oraz poprawneg
 - `200 OK`: Sesja zostala uniewazniona, a cookie `JSESSIONID` jest czyszczone.
 - `401 Unauthorized`: Brak aktywnej sesji.
 - `403 Forbidden`: Brak tokenu CSRF lub niepoprawny token.
-
 ## Wydarzenia (EVENT-001)
 
 Wszystkie endpointy w tej sekcji wymagaja aktywnej sesji. Kazde zadanie
