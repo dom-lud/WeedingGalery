@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -39,8 +40,8 @@ public class SecurityConfig {
 		}
 
 		http.exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/csrf").permitAll()
+				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/login", "/api/auth/csrf").permitAll()
+						.requestMatchers(HttpMethod.POST, "/api/auth/register").hasRole("ADMIN")
 						.requestMatchers("/actuator/health").permitAll().anyRequest().authenticated())
 				.logout(logout -> logout.logoutUrl("/api/auth/logout")
 						.logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK))

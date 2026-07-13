@@ -2,9 +2,12 @@ package pl.backend.weddinggallery.auth.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -13,13 +16,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
-
-import org.springframework.web.client.RestTemplate;
-
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.DefaultResponseErrorHandler;
-import org.junit.jupiter.api.BeforeEach;
+import org.springframework.web.client.RestTemplate;
+import pl.backend.weddinggallery.user.model.SystemRole;
+import pl.backend.weddinggallery.user.model.User;
+import pl.backend.weddinggallery.user.repository.UserRepository;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -28,10 +32,17 @@ public class AuthControllerTest {
 	@LocalServerPort
 	private int port;
 
+	@Autowired
+	private UserRepository userRepository;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
 	private final RestTemplate restTemplate = new RestTemplate();
 
 	@BeforeEach
 	void setUp() {
+		userRepository.deleteAll();
 		restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 			@Override
 			public boolean hasError(ClientHttpResponse response) {
@@ -45,7 +56,6 @@ public class AuthControllerTest {
 	}
 
 	private HttpHeaders getHeadersWithCsrf() {
-		// Fetch CSRF token by doing a GET to a public endpoint
 		ResponseEntity<String> initResponse = restTemplate.getForEntity("http://localhost:" + port + "/api/auth/csrf",
 				String.class);
 		HttpHeaders headers = new HttpHeaders();
@@ -59,25 +69,20 @@ public class AuthControllerTest {
 				}
 			}
 		}
-		headers.add("Content-Type", "application/json");
+		headers.add(HttpHeaders.CONTENT_TYPE, "application/json");
 		return headers;
 	}
 
-	@Test
-	void shouldRegisterAndLoginSuccessfully() {
+	private void createUser(String email, String password, SystemRole role) {
+		User user = User.builder().email(email.toLowerCase()).passwordHash(passwordEncoder.encode(password))
+				.systemRole(role).failedLoginAttempts(0).lockedUntil(null).createdAt(LocalDateTime.now())
+				.updatedAt(LocalDateTime.now()).build();
+		userRepository.save(user);
+	}
+
+	private HttpHeaders loginAndGetSessionHeaders(String email, String password) {
 		HttpHeaders headers = getHeadersWithCsrf();
-
-		// 1. Register
-		Map<String, String> registerRequest = Map.of("email", "test@example.com", "password", "password123");
-		HttpEntity<Map<String, String>> registerEntity = new HttpEntity<>(registerRequest, headers);
-
-		ResponseEntity<String> regResponse = restTemplate.exchange(getBaseUrl() + "/register", HttpMethod.POST,
-				registerEntity, String.class);
-
-		assertThat(regResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-		// 2. Login
-		Map<String, String> loginRequest = Map.of("email", "test@example.com", "password", "password123");
+		Map<String, String> loginRequest = Map.of("email", email, "password", password);
 		HttpEntity<Map<String, String>> loginEntity = new HttpEntity<>(loginRequest, headers);
 
 		ResponseEntity<String> loginResponse = restTemplate.exchange(getBaseUrl() + "/login", HttpMethod.POST,
@@ -85,7 +90,52 @@ public class AuthControllerTest {
 
 		assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-		// 3. Me with session
+		HttpHeaders sessionHeaders = new HttpHeaders();
+		List<String> loginCookies = loginResponse.getHeaders().get(HttpHeaders.SET_COOKIE);
+		if (loginCookies != null) {
+			for (String cookie : loginCookies) {
+				sessionHeaders.add(HttpHeaders.COOKIE, cookie);
+			}
+		}
+		sessionHeaders.add(HttpHeaders.CONTENT_TYPE, "application/json");
+		return sessionHeaders;
+	}
+
+	private HttpHeaders getAuthenticatedHeaders(String email, String password) {
+		HttpHeaders csrfHeaders = getHeadersWithCsrf();
+		HttpHeaders sessionHeaders = loginAndGetSessionHeaders(email, password);
+		List<String> csrfCookies = csrfHeaders.get(HttpHeaders.COOKIE);
+		if (csrfCookies != null) {
+			for (String cookie : csrfCookies) {
+				sessionHeaders.add(HttpHeaders.COOKIE, cookie);
+			}
+		}
+		sessionHeaders.add("X-XSRF-TOKEN", csrfHeaders.getFirst("X-XSRF-TOKEN"));
+		return sessionHeaders;
+	}
+
+	@Test
+	void shouldAllowAdminToRegisterAndNewUserToLoginSuccessfully() {
+		createUser("admin@example.com", "password123", SystemRole.ADMIN);
+		HttpHeaders adminHeaders = getAuthenticatedHeaders("admin@example.com", "password123");
+
+		Map<String, String> registerRequest = Map.of("email", "test@example.com", "password", "password123");
+		HttpEntity<Map<String, String>> registerEntity = new HttpEntity<>(registerRequest, adminHeaders);
+
+		ResponseEntity<String> regResponse = restTemplate.exchange(getBaseUrl() + "/register", HttpMethod.POST,
+				registerEntity, String.class);
+
+		assertThat(regResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+		HttpHeaders loginHeaders = getHeadersWithCsrf();
+		Map<String, String> loginRequest = Map.of("email", "test@example.com", "password", "password123");
+		HttpEntity<Map<String, String>> loginEntity = new HttpEntity<>(loginRequest, loginHeaders);
+
+		ResponseEntity<String> loginResponse = restTemplate.exchange(getBaseUrl() + "/login", HttpMethod.POST,
+				loginEntity, String.class);
+
+		assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+
 		HttpHeaders sessionHeaders = new HttpHeaders();
 		List<String> loginCookies = loginResponse.getHeaders().get(HttpHeaders.SET_COOKIE);
 		if (loginCookies != null) {
@@ -102,20 +152,45 @@ public class AuthControllerTest {
 	}
 
 	@Test
-	void shouldFailRegistrationWhenEmailExists() {
+	void shouldRejectRegistrationWithoutAuthenticatedAdmin() {
 		HttpHeaders headers = getHeadersWithCsrf();
-		Map<String, String> registerRequest = Map.of("email", "existing@example.com", "password", "password123");
+		Map<String, String> registerRequest = Map.of("email", "blocked@example.com", "password", "password123");
 		HttpEntity<Map<String, String>> entity = new HttpEntity<>(registerRequest, headers);
 
-		// First registration
-		restTemplate.exchange(getBaseUrl() + "/register", HttpMethod.POST, entity, String.class);
-
-		// Second registration
-		ResponseEntity<String> regResponse2 = restTemplate.exchange(getBaseUrl() + "/register", HttpMethod.POST, entity,
+		ResponseEntity<String> regResponse = restTemplate.exchange(getBaseUrl() + "/register", HttpMethod.POST, entity,
 				String.class);
 
-		assertThat(regResponse2.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-		assertThat(regResponse2.getBody()).contains("EMAIL_ALREADY_IN_USE");
+		assertThat(regResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	void shouldRejectRegistrationForAuthenticatedNonAdminUser() {
+		createUser("user@example.com", "password123", SystemRole.USER);
+		HttpHeaders userHeaders = getAuthenticatedHeaders("user@example.com", "password123");
+
+		Map<String, String> registerRequest = Map.of("email", "blocked@example.com", "password", "password123");
+		HttpEntity<Map<String, String>> entity = new HttpEntity<>(registerRequest, userHeaders);
+
+		ResponseEntity<String> regResponse = restTemplate.exchange(getBaseUrl() + "/register", HttpMethod.POST, entity,
+				String.class);
+
+		assertThat(regResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+	}
+
+	@Test
+	void shouldFailRegistrationWhenEmailExists() {
+		createUser("admin@example.com", "password123", SystemRole.ADMIN);
+		createUser("existing@example.com", "password123", SystemRole.USER);
+		HttpHeaders adminHeaders = getAuthenticatedHeaders("admin@example.com", "password123");
+
+		Map<String, String> registerRequest = Map.of("email", "existing@example.com", "password", "password123");
+		HttpEntity<Map<String, String>> entity = new HttpEntity<>(registerRequest, adminHeaders);
+
+		ResponseEntity<String> regResponse = restTemplate.exchange(getBaseUrl() + "/register", HttpMethod.POST, entity,
+				String.class);
+
+		assertThat(regResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(regResponse.getBody()).contains("EMAIL_ALREADY_IN_USE");
 	}
 
 	@Test

@@ -17,7 +17,6 @@ Opisuje planowane trasy SPA i zasady ochrony widoków.
 ## Trasy publiczne
 - `/`
 - `/login`
-- `/register`
 - `/password-reset`
 - `/gallery/:slug`
 - `/gallery/:slug/access`

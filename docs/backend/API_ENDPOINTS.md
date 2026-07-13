@@ -15,7 +15,7 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 - Spójne REST API dla użytkowników, gości i administratorów.
 
 ## Authentication
-- `POST /api/auth/register`
+- `POST /api/auth/register` - utworzenie konta przez administratora
 - `POST /api/auth/verify-email`
 - `POST /api/auth/login`
 - `POST /api/auth/logout`

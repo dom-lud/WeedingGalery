@@ -1,12 +1,10 @@
 import { test as base } from '@playwright/test'
 import { LoginPage } from '../pages/LoginPage'
-import { RegisterPage } from '../pages/RegisterPage'
 import { DashboardPage } from '../pages/DashboardPage'
 
 // Declare the types of your fixtures.
 type AuthFixtures = {
   loginPage: LoginPage
-  registerPage: RegisterPage
   dashboardPage: DashboardPage
 }
 
@@ -19,12 +17,6 @@ export const test = base.extend<AuthFixtures>({
     // Use the fixture value in the test.
     // eslint-disable-next-line react-hooks/rules-of-hooks
     await use(loginPage)
-  },
-
-  registerPage: async ({ page }, use) => {
-    const registerPage = new RegisterPage(page)
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    await use(registerPage)
   },
 
   dashboardPage: async ({ page }, use) => {
