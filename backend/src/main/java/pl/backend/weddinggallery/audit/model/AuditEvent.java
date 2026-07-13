@@ -27,6 +27,12 @@ public class AuditEvent {
 	@Column(name = "details")
 	private String details;
 
+	@Column(name = "event_id", length = 36)
+	private String eventId;
+
+	@Column(name = "target_user_id", length = 36)
+	private String targetUserId;
+
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
@@ -38,6 +44,14 @@ public class AuditEvent {
 	public AuditEvent(EventType eventType, String userEmail, String details) {
 		this.eventType = eventType;
 		this.userEmail = userEmail;
+		this.details = details;
+	}
+
+	public AuditEvent(EventType eventType, String userEmail, String eventId, String targetUserId, String details) {
+		this.eventType = eventType;
+		this.userEmail = userEmail;
+		this.eventId = eventId;
+		this.targetUserId = targetUserId;
 		this.details = details;
 	}
 }

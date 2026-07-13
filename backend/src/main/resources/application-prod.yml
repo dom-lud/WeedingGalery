@@ -12,6 +12,11 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration,classpath:db/seed
+    # Etap 1 pozostawil lokalne wolumeny z wykonanym schematem V1/V2 bez tabeli
+    # historii Flyway. Puste bazy nadal wykonuja wszystkie migracje; istniejacy
+    # schemat jest bezpiecznie przejmowany od wersji 2, a nastepnie dostaje V3+.
+    baseline-on-migrate: true
+    baseline-version: 2
 
 server:
   port: 8080

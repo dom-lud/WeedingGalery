@@ -1,0 +1,1 @@
+ALTER TABLE audit_events MODIFY COLUMN event_type VARCHAR(255) NOT NULL;

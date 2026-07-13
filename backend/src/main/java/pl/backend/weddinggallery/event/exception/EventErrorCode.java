@@ -4,8 +4,9 @@ import org.springframework.http.HttpStatus;
 import pl.backend.weddinggallery.common.exception.ErrorCode;
 
 public enum EventErrorCode implements ErrorCode {
-	EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Event with the given ID was not found."), UNAUTHORIZED_ACCESS(
-			HttpStatus.FORBIDDEN, "You do not have permission to access this event.");
+	EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Event was not found."),
+	EVENT_OWNER_REQUIRED(HttpStatus.FORBIDDEN, "Only the event owner can perform this operation."),
+	EVENT_ARCHIVED(HttpStatus.CONFLICT, "Archived event cannot be modified.");
 
 	private final HttpStatus status;
 	private final String message;
