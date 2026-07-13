@@ -63,10 +63,10 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 
 ### AUTH-002 - Weryfikacja e-mail i reset hasła
 - Cel: zapewnić odzyskiwanie dostępu i potwierdzenie tożsamości.
-- Opis: tokeny weryfikacyjne, reset hasła, wygasanie tokenów, unieważnianie po użyciu.
+- Opis: tokeny weryfikacyjne, reset hasła, wygasanie tokenów, unieważnianie po użyciu oraz transakcyjna wysyłka e-maili dla rejestracji, weryfikacji konta i odzyskiwania dostępu.
 - Priorytet: wysoki.
 - Zależności: AUTH-001.
-- Wymagania funkcjonalne: wysłanie i potwierdzenie tokenu, reset hasła.
+- Wymagania funkcjonalne: wysłanie i potwierdzenie tokenu, reset hasła, dostarczenie e-maila weryfikacyjnego po rejestracji oraz e-maila resetującego hasło.
 - Kryteria akceptacji: użytkownik może zweryfikować e-mail i bezpiecznie zresetować hasło.
 - Wymagania bezpieczeństwa: bezpieczne tokeny, brak ujawniania istnienia konta.
 - Wymagane testy: testy tokenów, wygasania i ścieżek błędów.

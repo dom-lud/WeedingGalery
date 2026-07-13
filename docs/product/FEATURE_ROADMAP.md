@@ -31,7 +31,7 @@ Porządkuje rozwój pełnej platformy w logiczne etapy implementacyjne bez reduk
 ## Etap 2 - Identity
 - Cel: wdrożenie tożsamości użytkownika i bezpiecznego logowania.
 - Zależności: etap 1, ADR dot. auth.
-- Rezultat: rejestracja, logowanie, sesje lub JWT, weryfikacja e-mail, reset hasła, profil użytkownika.
+- Rezultat: rejestracja, logowanie, sesje lub JWT, weryfikacja e-mail, reset hasła, profil użytkownika oraz transakcyjna obsługa e-maili dla rejestracji, weryfikacji konta i odzyskiwania dostępu.
 - Kryterium ukończenia: użytkownik może utworzyć konto, zalogować się i zarządzać podstawową tożsamością.
 - Główne ryzyka: zła strategia auth, niedoszacowanie wymagań bezpieczeństwa i sesji.
 
@@ -94,7 +94,7 @@ Porządkuje rozwój pełnej platformy w logiczne etapy implementacyjne bez reduk
 ## Etap 11 - Statystyki i powiadomienia
 - Cel: dostarczenie informacji zwrotnej dla użytkowników i operatorów.
 - Zależności: etapy 5-10.
-- Rezultat: dashboard, wykorzystanie miejsca, powiadomienia e-mail i alerty o limitach.
+- Rezultat: dashboard, wykorzystanie miejsca, powiadomienia produktowe i operacyjne, alerty o limitach oraz pozostałe notyfikacje niezwiązane z podstawowym flow tożsamości.
 - Kryterium ukończenia: właściciel i administrator widzą kluczowe metryki i zdarzenia.
 - Główne ryzyka: naruszenie prywatności przez statystyki, spam notyfikacyjny.
 
