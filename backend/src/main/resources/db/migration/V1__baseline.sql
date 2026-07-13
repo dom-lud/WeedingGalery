@@ -51,12 +51,30 @@ CREATE TABLE event_memberships (
     CONSTRAINT fk_event_memberships_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+CREATE TABLE galleries (
+    id VARCHAR(36) PRIMARY KEY,
+    event_id VARCHAR(36) NOT NULL,
+    slug VARCHAR(255) NOT NULL UNIQUE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status VARCHAR(50) NOT NULL,
+    visibility VARCHAR(50) NOT NULL,
+    allow_upload BOOLEAN NOT NULL,
+    allow_download BOOLEAN NOT NULL,
+    require_approval BOOLEAN NOT NULL,
+    expires_at TIMESTAMP NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    CONSTRAINT fk_galleries_event FOREIGN KEY (event_id) REFERENCES events(id)
+);
+
 CREATE INDEX idx_events_owner_status ON events (owner_user_id, status);
 CREATE INDEX idx_events_deleted_at ON events (deleted_at);
 CREATE INDEX idx_event_memberships_user_role ON event_memberships (user_id, role);
 CREATE INDEX idx_event_memberships_event_role ON event_memberships (event_id, role);
 CREATE INDEX idx_event_memberships_event_removed ON event_memberships (event_id, removed_at);
 CREATE INDEX idx_audit_events_event_id ON audit_events (event_id);
+CREATE INDEX idx_galleries_event_status ON galleries (event_id, status);
 
 INSERT INTO users (id, email, password_hash, system_role, failed_login_attempts, created_at, updated_at)
 VALUES (

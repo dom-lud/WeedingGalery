@@ -321,3 +321,100 @@ Udane mutacje zapisuja audyt biznesowy: `EVENT_CREATED`, `EVENT_UPDATED`,
 aktora, `eventId`, identyfikator celu (jesli dotyczy) i zmiane roli, ale nie
 zawiera hasel, tokenow, danych CSRF ani innych sekretow. Operacja wrazliwa nie
 moze zostac uznana za udana, jesli wymagany wpis audytowy nie zostal zapisany.
+
+## Planowany kontrakt GALLERY-001 - Etap 4
+
+Status: `PLANNED`, jeszcze niezaimplementowany. Ta sekcja zamraza pierwszy
+zakres przed rozpoczeciem kodu Etapu 4. Nie definiuje publicznego dostepu.
+
+Wszystkie endpointy wymagaja aktywnej sesji. Mutacje wymagaja CSRF. Galeria
+zawsze dziedziczy ownership z wydarzenia; payload nie przyjmuje `eventId`,
+`ownerId`, `slug`, statusu ani roli.
+
+### Uprawnienia
+- `OWNER` i aktywny `MANAGER`: list, get, create, update.
+- tylko `OWNER`: archive i delete.
+- rola systemowa `ADMIN` nie omija ownership w management API.
+- obcy, nieistniejacy, soft-deleted i cross-event `galleryId` zwracaja ten sam
+  `404 Not Found`.
+
+### Model odpowiedzi galerii
+```json
+{
+  "id": "c213ed1d-d10e-4a90-91ee-aa7416b8b2bb",
+  "eventId": "5ab7b146-10b4-40c9-9517-b0678860ac52",
+  "name": "Przygotowania",
+  "slug": "przygotowania-7f3a2c",
+  "description": "Zdjecia sprzed ceremonii",
+  "sortOrder": 10,
+  "status": "ACTIVE",
+  "currentUserRole": "OWNER",
+  "createdAt": "2026-07-13T12:00:00Z",
+  "updatedAt": "2026-07-13T12:00:00Z"
+}
+```
+
+Zasady:
+- `name`: wymagane, po przycieciu 1-255 znakow;
+- `description`: opcjonalne, maksymalnie 5000 znakow;
+- `sortOrder`: liczba calkowita `0..100000`;
+- `slug`: generowany przez serwer, globalnie unikalny, stabilny i
+  nieedytowalny; nie jest mechanizmem autoryzacji i pozostaje zarezerwowany po
+  soft delete;
+- `status`: `ACTIVE` albo `ARCHIVED`; usunieta galeria nie jest zwracana.
+
+### `GET /api/events/{eventId}/galleries`
+Zwraca aktywne i zarchiwizowane galerie widocznego wydarzenia, sortowane po
+`sortOrder ASC`, a nastepnie `createdAt ASC` i `id ASC`.
+
+Responses: `200`, `401`, `404`.
+
+### `POST /api/events/{eventId}/galleries`
+Tworzy galerie ze statusem `ACTIVE`. `eventId` oraz aktor pochodza z kontekstu
+zadania, a slug generuje serwer.
+
+```json
+{
+  "name": "Przygotowania",
+  "description": "Zdjecia sprzed ceremonii",
+  "sortOrder": 10
+}
+```
+
+Responses: `201` z `Location`, `400`, `401`, `403` dla CSRF, `404`, `409` dla
+nieusuwalnego konfliktu slugu lub optimistic locking.
+
+### `GET /api/events/{eventId}/galleries/{galleryId}`
+Responses: `200`, `401`, `404`.
+
+### `PUT /api/events/{eventId}/galleries/{galleryId}`
+Pelna aktualizacja `name`, `description` i `sortOrder`. Nie zmienia slugu,
+eventu ani lifecycle. Zarchiwizowanej galerii nie mozna edytowac.
+
+Responses: `200`, `400`, `401`, `403` dla CSRF, `404`, `409`.
+
+### `POST /api/events/{eventId}/galleries/{galleryId}/archive`
+Idempotentnie archiwizuje galerie. Dostepne tylko dla ownera wydarzenia.
+
+Responses: `200`, `401`, `403`, `404`, `409`.
+
+### `DELETE /api/events/{eventId}/galleries/{galleryId}`
+Soft delete dostepny tylko dla ownera. Natychmiast usuwa galerie z management
+API. Slug pozostaje zarezerwowany.
+
+Responses: `204`, `401`, `403`, `404`, `409`.
+
+### Bledy i audyt GALLERY-001
+Stabilne kody: `GALLERY_NOT_FOUND`, `GALLERY_OWNER_REQUIRED`,
+`GALLERY_ARCHIVED`, `GALLERY_SLUG_CONFLICT`, `CONCURRENT_MODIFICATION`,
+`VALIDATION_ERROR`.
+
+Udane mutacje wymagaja fail-closed audit eventow: `GALLERY_CREATED`,
+`GALLERY_UPDATED`, `GALLERY_ARCHIVED`, `GALLERY_DELETED`. Audyt zawiera aktora,
+`eventId` i `galleryId`, ale nie zapisuje payloadu galerii ani przyszlych
+sekretow dostepu.
+
+### Jawnie poza kontraktem GALLERY-001
+Publiczne API, `GALLERY-002`, tokeny, access code, QR, upload, download, media,
+moderacja, cover i personalizacja. Ich dodanie wymaga osobnej aktualizacji tego
+SSOT oraz - dla publicznego dostepu - zaakceptowanego ADR 0010.

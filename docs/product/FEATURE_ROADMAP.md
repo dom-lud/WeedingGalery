@@ -70,10 +70,12 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 - Glowne ryzyka: bledy ownership, niespojne role, brak audytu zmian czlonkostwa.
 
 ## Etap 4 - Galerie
-- Cel: wdrozenie galerii i podstawowego modelu publikacji.
-- Zaleznosci: etap 3, ADR dot. dostepu do galerii.
-- Rezultat: galerie per wydarzenie, slug, dostep publiczny, ustawienia prywatnosci i QR.
-- Kryterium ukonczenia: wydarzenie moze posiadac wiele galerii z konfigurowalnym dostepem.
+- Cel: wdrozenie bezpiecznego zarzadzania wieloma galeriami w kontekscie wydarzenia.
+- Zaleznosci: etap 3. ADR 0010 jest wymagany dopiero dla publicznego dostepu w kolejnym rozszerzeniu.
+- Status: przygotowany do rozpoczecia w minimalnym zakresie `GALLERY-001`.
+- Pierwszy zakres: uwierzytelnione listowanie, tworzenie, odczyt, edycja, kolejnosc, archiwizacja i soft delete galerii z ownership dziedziczonym po wydarzeniu.
+- Poza pierwszym zakresem: `GALLERY-002`, `PUBLIC-001`, QR, tokeny, kody dostepu, upload, download, media, moderacja i personalizacja.
+- Kryterium ukonczenia pierwszego zakresu: owner i manager moga zarzadzac dozwolonymi metadanymi wielu galerii, owner kontroluje lifecycle, a API i UI bronia scoping `eventId + galleryId`.
 - Glowne ryzyka: enumeracja galerii, bledny model widocznosci i slugow.
 
 ## Etap 5 - Upload i storage

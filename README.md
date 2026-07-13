@@ -73,7 +73,7 @@ Aktualna struktura i plan dalszego rozwoju znajduja sie w [docs/architecture/REP
 6. Przy zadaniach zlozonych sprawdz [docs/development/SUBAGENT_ORCHESTRATION.md](docs/development/SUBAGENT_ORCHESTRATION.md).
 
 ## Decyzje otwarte
-- Zakres kolejnego Etapu 4 dotyczacego galerii i dostepu publicznego.
+- Rozszerzenie Etapu 4 poza gotowy zakres `GALLERY-001` o publiczny dostep po zaakceptowaniu ADR 0010.
 - Konkretny mechanizm background jobs w pierwszej wersji implementacyjnej.
 - Zakres pierwszego wydania produkcyjnego wzgledem funkcji rozszerzonych.
 

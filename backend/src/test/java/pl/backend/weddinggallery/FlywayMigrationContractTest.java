@@ -21,9 +21,10 @@ class FlywayMigrationContractTest {
 				var membership = connection.prepareStatement("SELECT removed_at, version FROM event_memberships");
 				var audit = connection.prepareStatement("SELECT event_id, target_user_id FROM audit_events");
 				var galleries = connection.prepareStatement(
-						"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_NAME = 'GALLERIES'");
+						"SELECT event_id, slug, status, visibility FROM galleries");
 				var history = connection
-						.prepareStatement("SELECT \"version\" FROM \"flyway_schema_history\" WHERE \"success\" = TRUE")) {
+						.prepareStatement("SELECT \"version\" FROM \"flyway_schema_history\" "
+								+ "WHERE \"success\" = TRUE AND \"version\" IS NOT NULL ORDER BY \"installed_rank\"")) {
 			assertThat(users.executeQuery()).satisfies(result -> {
 				assertThat(result.next()).isTrue();
 				assertThat(result.getInt(1)).isEqualTo(1);
@@ -31,10 +32,7 @@ class FlywayMigrationContractTest {
 			assertThat(events.executeQuery()).isNotNull();
 			assertThat(membership.executeQuery()).isNotNull();
 			assertThat(audit.executeQuery()).isNotNull();
-			assertThat(galleries.executeQuery()).satisfies(result -> {
-				assertThat(result.next()).isTrue();
-				assertThat(result.getInt(1)).isZero();
-			});
+			assertThat(galleries.executeQuery()).isNotNull();
 			var versions = history.executeQuery();
 			assertThat(versions.next()).isTrue();
 			assertThat(versions.getString(1)).isEqualTo("1");

@@ -152,10 +152,12 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Zależności: EVENT-001.
 - Wymagania funkcjonalne: wiele galerii per wydarzenie i konfiguracja ich ustawień.
 - Kryteria akceptacji: wydarzenie może zawierać wiele galerii o różnych ustawieniach.
+- Zakres pierwszego wejścia: uwierzytelnione zarządzanie galeriami, stabilny slug, kolejność, podstawowy lifecycle i soft delete; bez publicznego dostępu, tokenów, kodów, QR, uploadu i mediów.
+- Uprawnienia pierwszego wejścia: owner i aktywny manager mogą listować, odczytywać, tworzyć i edytować metadane; tylko owner może archiwizować i usuwać galerie.
 - Wymagania bezpieczeństwa: dostęp tylko w kontekście wydarzenia i membership.
 - Wymagane testy: testy CRUD galerii, ownership i walidacji.
 - Dokumenty powiązane: [../architecture/DATA_MODEL.md](../architecture/DATA_MODEL.md).
-- Status początkowy: `IDEA`.
+- Status: `READY`.
 - ADR wymagany: nie.
 
 ### GALLERY-002 - Ustawienia widoczności i publikacji galerii
