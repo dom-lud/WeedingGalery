@@ -47,4 +47,31 @@ describe('CSRF request preparation', () => {
     resolveRequest?.()
     await Promise.all([firstCall, secondCall])
   })
+
+  it('does not fetch csrf cookie for read-only requests', async () => {
+    const getSpy = vi.spyOn(axios, 'get')
+    const config = {
+      method: 'get',
+      headers: new AxiosHeaders(),
+    } as InternalAxiosRequestConfig
+
+    const preparedConfig = await prepareCsrfProtectedRequest(config)
+
+    expect(getSpy).not.toHaveBeenCalled()
+    expect(AxiosHeaders.from(preparedConfig.headers).get('X-XSRF-TOKEN')).toBeUndefined()
+  })
+
+  it('does not refetch csrf cookie when it already exists', async () => {
+    document.cookie = 'XSRF-TOKEN=existing-token; path=/'
+    const getSpy = vi.spyOn(axios, 'get')
+    const config = {
+      method: 'post',
+      headers: new AxiosHeaders(),
+    } as InternalAxiosRequestConfig
+
+    const preparedConfig = await prepareCsrfProtectedRequest(config)
+
+    expect(getSpy).not.toHaveBeenCalled()
+    expect(AxiosHeaders.from(preparedConfig.headers).get('X-XSRF-TOKEN')).toBe('existing-token')
+  })
 })

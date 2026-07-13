@@ -25,7 +25,7 @@ import pl.backend.weddinggallery.user.model.SystemRole;
 import pl.backend.weddinggallery.user.model.User;
 import pl.backend.weddinggallery.user.repository.UserRepository;
 
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = "app.security.csrf.enabled=true")
 @ActiveProfiles("test")
 public class AuthControllerTest {
 
@@ -164,6 +164,20 @@ public class AuthControllerTest {
 	}
 
 	@Test
+	void shouldRejectRegistrationWhenCsrfTokenIsMissing() {
+		createUser("admin@example.com", "password123", SystemRole.ADMIN);
+		HttpHeaders adminHeaders = loginAndGetSessionHeaders("admin@example.com", "password123");
+
+		Map<String, String> registerRequest = Map.of("email", "blocked@example.com", "password", "password123");
+		HttpEntity<Map<String, String>> entity = new HttpEntity<>(registerRequest, adminHeaders);
+
+		ResponseEntity<String> regResponse = restTemplate.exchange(getBaseUrl() + "/register", HttpMethod.POST, entity,
+				String.class);
+
+		assertThat(regResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+	}
+
+	@Test
 	void shouldRejectRegistrationForAuthenticatedNonAdminUser() {
 		createUser("user@example.com", "password123", SystemRole.USER);
 		HttpHeaders userHeaders = getAuthenticatedHeaders("user@example.com", "password123");
@@ -194,6 +208,46 @@ public class AuthControllerTest {
 	}
 
 	@Test
+	void shouldRejectRegistrationWhenPayloadIsInvalid() {
+		createUser("admin@example.com", "password123", SystemRole.ADMIN);
+		HttpHeaders adminHeaders = getAuthenticatedHeaders("admin@example.com", "password123");
+
+		Map<String, String> registerRequest = Map.of("email", "not-an-email", "password", "short");
+		HttpEntity<Map<String, String>> entity = new HttpEntity<>(registerRequest, adminHeaders);
+
+		ResponseEntity<String> regResponse = restTemplate.exchange(getBaseUrl() + "/register", HttpMethod.POST, entity,
+				String.class);
+
+		assertThat(regResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(regResponse.getBody()).contains("VALIDATION_ERROR");
+	}
+
+	@Test
+	void shouldNormalizeEmailDuringRegistrationAndLogin() {
+		createUser("admin@example.com", "password123", SystemRole.ADMIN);
+		HttpHeaders adminHeaders = getAuthenticatedHeaders("admin@example.com", "password123");
+
+		Map<String, String> registerRequest = Map.of("email", "MixedCaseUser@Example.com", "password", "password123");
+		HttpEntity<Map<String, String>> registerEntity = new HttpEntity<>(registerRequest, adminHeaders);
+
+		ResponseEntity<String> regResponse = restTemplate.exchange(getBaseUrl() + "/register", HttpMethod.POST,
+				registerEntity, String.class);
+
+		assertThat(regResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(userRepository.findByEmail("mixedcaseuser@example.com")).isPresent();
+
+		HttpHeaders loginHeaders = getHeadersWithCsrf();
+		Map<String, String> loginRequest = Map.of("email", "MIXEDCASEUSER@EXAMPLE.COM", "password", "password123");
+		HttpEntity<Map<String, String>> loginEntity = new HttpEntity<>(loginRequest, loginHeaders);
+
+		ResponseEntity<String> loginResponse = restTemplate.exchange(getBaseUrl() + "/login", HttpMethod.POST,
+				loginEntity, String.class);
+
+		assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(loginResponse.getBody()).contains("mixedcaseuser@example.com");
+	}
+
+	@Test
 	void shouldFailLoginWithBadCredentials() {
 		HttpHeaders headers = getHeadersWithCsrf();
 		Map<String, String> loginRequest = Map.of("email", "wrong@example.com", "password", "wrongpass");
@@ -203,5 +257,26 @@ public class AuthControllerTest {
 				String.class);
 
 		assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	void shouldRejectLoginWhenPayloadIsInvalid() {
+		HttpHeaders headers = getHeadersWithCsrf();
+		Map<String, String> loginRequest = Map.of("email", "not-an-email", "password", "");
+		HttpEntity<Map<String, String>> entity = new HttpEntity<>(loginRequest, headers);
+
+		ResponseEntity<String> loginResponse = restTemplate.exchange(getBaseUrl() + "/login", HttpMethod.POST, entity,
+				String.class);
+
+		assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(loginResponse.getBody()).contains("VALIDATION_ERROR");
+	}
+
+	@Test
+	void shouldReturnUnauthorizedForCurrentUserWithoutSession() {
+		ResponseEntity<String> meResponse = restTemplate.exchange(getBaseUrl() + "/me", HttpMethod.GET, null,
+				String.class);
+
+		assertThat(meResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 }

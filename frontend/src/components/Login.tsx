@@ -36,8 +36,11 @@ const Login: React.FC = () => {
         <p className="subtitle">Sign in to your gallery</p>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Email</label>
+            <label className="form-label" htmlFor="login-email">
+              Email
+            </label>
             <input
+              id="login-email"
               type="email"
               className="form-input"
               value={email}
@@ -46,9 +49,12 @@ const Login: React.FC = () => {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label" htmlFor="login-password">
+              Password
+            </label>
             <div className="password-input-wrapper">
               <input
+                id="login-password"
                 type={showPassword ? 'text' : 'password'}
                 className="form-input"
                 value={password}

@@ -19,6 +19,8 @@ Ten dokument gromadzi i opisuje zaplanowane scenariusze testow End-to-End (E2E) 
   - Proba utworzenia konta na e-mail, ktory juz istnieje. Oczekiwany blad walidacji i komunikat.
   - Proba wywolania endpointu bez aktywnej sesji administratora. Oczekiwany `401 Unauthorized`.
   - Proba wywolania endpointu przez zwyklego uzytkownika. Oczekiwany `403 Forbidden`.
+  - Proba wyslania formularza bez poprawnego tokenu CSRF. Oczekiwany brak utworzenia konta i odpowiedz odmowna.
+  - Proba wyslania niepoprawnego payloadu, np. bledny e-mail albo zbyt krotkie haslo. Oczekiwany blad walidacji.
 
 ### 2. Logowanie poprawne i dostep do chronionych zasobow
 **Krytycznosc:** Wysoka
@@ -32,14 +34,19 @@ Ten dokument gromadzi i opisuje zaplanowane scenariusze testow End-to-End (E2E) 
   - Ustawienie sesji (`JSESSIONID`) i zapisanie profilu uzytkownika na frontendzie.
   - Natychmiastowe przekierowanie na panel (`/dashboard`).
   - Wyswietlenie widoku panelu ze stanem zalogowanego uzytkownika.
+- **Warianty obowiazkowe:**
+  - Uzytkownik wpisuje poprawne dane bardzo szybko, bez czekania na "ustabilizowanie" strony po otwarciu `/login`.
+  - Uzytkownik loguje sie e-mailem zapisanym innym casingiem niz w bazie, ale semantycznie tym samym adresem.
+  - Uzytkownik podaje bledne haslo i pozostaje na stronie logowania z czytelnym komunikatem bledu.
 
 ### 3. Brak dostepu dla niezalogowanych
 **Krytycznosc:** Wysoka
 - **Warunki poczatkowe:** Uzytkownik nie jest zalogowany.
 - **Kroki:**
-  1. Bezposrednie otwarcie strony chronionej (np. `/dashboard`).
+  1. Bezposrednie otwarcie strony chronionej, np. `/dashboard`.
 - **Oczekiwany rezultat:**
   - Wykrycie braku tozsamosci w kontekscie bezpieczenstwa.
   - Natychmiastowe przekierowanie do strony logowania (`/login`).
 - **Edge cases:**
   - Wymuszenie bezposrednich zapytan do API `/api/auth/me` powinno konczyc sie `401 Unauthorized`.
+  - Wejscie na nieistniejaca publiczna sciezke rejestracji nie moze odslonic flow tworzenia konta i powinno skonczyc sie przekierowaniem do logowania.
