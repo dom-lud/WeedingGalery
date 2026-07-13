@@ -9,9 +9,9 @@ Opisuje docelowy model danych, główne encje, relacje, indeksy i zasady ownersh
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Stan obecny
-- Zaimplementowane sa tabele `users`, `events`, `event_memberships`, `galleries` i `audit_events` zarzadzane przez Flyway.
+- Zaimplementowane sa tabele `users`, `events`, `event_memberships` i `audit_events` zarzadzane przez Flyway.
 - Etap 3 dodal `privacy_mode`, lifecycle/soft delete i optimistic version wydarzenia oraz historyczne membership managerow.
-- Pozostale encje opisane ponizej nadal stanowia stan docelowy.
+- `Gallery` i pozostale encje opisane ponizej nadal stanowia stan docelowy.
 
 ## Stan docelowy
 - Relacyjny model danych zoptymalizowany pod wieloużytkownikowość, audyt i pracę na plikach.

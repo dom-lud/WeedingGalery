@@ -10,8 +10,9 @@ Opisuje standardy projektowania relacyjnego schematu danych, migracji i zapytań
 
 ## Stan obecny
 - Repozytorium używa obecnie MySQL w konfiguracji runtime backendu i Docker Compose.
-- Flyway jest wdrozony i zarzadza forward migrations w vendorowych lokalizacjach `db/migration/common`, `db/migration/mysql`, `db/migration/h2` oraz seedem developerskim w `db/seed`.
-- Istniejace lokalne schematy V1/V2 bez historii sa przejmowane przez baseline version 2, a kolejne migracje wykonuja sie normalnie.
+- Flyway jest wdrozony i zarzadza migracjami z jednej lokalizacji `db/migration`.
+- Poniewaz system nie byl wdrozony produkcyjnie, przed Etapem 4 schemat Etapow 1-3 i lokalne dane startowe skonsolidowano do `V1__baseline.sql`.
+- `baseline-on-migrate` jest wylaczone. Od obecnego V1 wszystkie kolejne zmiany sa wylacznie migracjami do przodu.
 
 ## Stan docelowy
 - Stabilny, audytowalny model danych rozwijany przez jawny mechanizm migracji schematu po jego wprowadzeniu do kodu.

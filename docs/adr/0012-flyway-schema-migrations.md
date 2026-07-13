@@ -9,8 +9,9 @@ Opisuje decyzję o wyborze Flyway jako narzędzia migracji schematu relacyjnej b
 
 ## Stan obecny
 - Flyway jest aktywny w profilach dev i prod.
-- V1 tworzy schemat fundamentu, V2 dostarcza seed developerski, V3 dodaje events/memberships Etapu 3, a V4 naprawia historyczny typ kolumny audytu.
-- Lokalny wolumen powstaly przed wlaczeniem historii Flyway jest bezpiecznie baseline'owany na wersji 2.
+- Projekt nie byl wdrozony produkcyjnie, dlatego przed Etapem 4 historia lokalnych migracji zostala swiadomie skonsolidowana.
+- Pojedyncza migracja `V1__baseline.sql` tworzy kompletny, faktycznie zaimplementowany schemat Etapow 1-3 oraz lokalne konto startowe.
+- `baseline-on-migrate` jest wylaczone; nowa baza zawsze wykonuje V1 od zera.
 
 ## Stan docelowy
 - Flyway zarządza schematem bazy przez wersjonowane migracje SQL.
@@ -34,9 +35,9 @@ Konfiguracja:
 - **dev** (H2): Flyway enabled, `spring.jpa.hibernate.ddl-auto=none`
 - **test** (JUnit): Flyway disabled, `spring.jpa.hibernate.ddl-auto=create-drop`
 - **prod** (MySQL): Flyway enabled, `spring.jpa.hibernate.ddl-auto=validate`
-- **prod z istniejacym lokalnym schematem V1/V2**: `baseline-on-migrate=true`, `baseline-version=2`; pusta baza nadal wykonuje caly lancuch.
+- **prod** (MySQL): `baseline-on-migrate=false`; wymagany jest pusty schemat albo historia zgodna z repozytorium.
 
-Lokalizacje wspolne i vendorowe: `db/migration/common`, `db/migration/mysql`, `db/migration/h2` oraz developerski `db/seed`. Wersje MySQL i H2 realizuja ten sam kontrakt schematu, ale moga uzywac skladni zgodnej z danym silnikiem.
+Jedyna lokalizacja to `db/migration`. Baseline V1 jest zgodny z MySQL 8.4 oraz H2 uruchamianym w trybie MySQL. Od tego punktu kolejne zmiany powstaja jako V2, V3 itd.; V1 nie wolno juz modyfikowac bez kolejnej jawnej decyzji o resecie przed pierwszym wdrozeniem produkcyjnym.
 
 ## Konsekwencje
 

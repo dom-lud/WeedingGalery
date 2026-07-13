@@ -11,12 +11,8 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
-    locations: classpath:db/migration/common,classpath:db/migration/mysql,classpath:db/seed
-    # Etap 1 pozostawil lokalne wolumeny z wykonanym schematem V1/V2 bez tabeli
-    # historii Flyway. Puste bazy nadal wykonuja wszystkie migracje; istniejacy
-    # schemat jest bezpiecznie przejmowany od wersji 2, a nastepnie dostaje V3+.
-    baseline-on-migrate: true
-    baseline-version: 2
+    locations: classpath:db/migration
+    baseline-on-migrate: false
 
 server:
   port: 8080
