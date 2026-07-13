@@ -111,6 +111,8 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | Dokument | Przeznaczenie | Kto czyta | Kiedy aktualizować | Link |
 | --- | --- | --- | --- | --- |
 | Feature checklist | Checklista funkcji | autor, reviewer | przy realizacji funkcji | [docs/checklists/FEATURE_CHECKLIST.md](checklists/FEATURE_CHECKLIST.md) |
+| Stage 3 completion checklist | Wykonany DoD i dowody EVENT-001/MEMBER-001 | autor, reviewer | przy domknieciu Etapu 3 | [docs/checklists/STAGE_3_COMPLETION_CHECKLIST.md](checklists/STAGE_3_COMPLETION_CHECKLIST.md) |
+| Stage 4 readiness checklist | DoR i granice pierwszego zakresu GALLERY-001 | autor, reviewer | przed rozpoczeciem Etapu 4 | [docs/checklists/STAGE_4_READINESS_CHECKLIST.md](checklists/STAGE_4_READINESS_CHECKLIST.md) |
 | Code review checklist | Checklista review | reviewer | przy review kodu | [docs/checklists/CODE_REVIEW_CHECKLIST.md](checklists/CODE_REVIEW_CHECKLIST.md) |
 | Security review checklist | Checklista security | reviewer, security | przy security review | [docs/checklists/SECURITY_REVIEW_CHECKLIST.md](checklists/SECURITY_REVIEW_CHECKLIST.md) |
 | Database change checklist | Checklista zmian bazy | backend, DBA | przy migracjach | [docs/checklists/DATABASE_CHANGE_CHECKLIST.md](checklists/DATABASE_CHANGE_CHECKLIST.md) |
@@ -127,6 +129,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | --- | --- | --- | --- | --- |
 | Task template | Standard opisu zadania | product, AI, programiści | przy zmianie standardu tasków | [docs/templates/TASK_TEMPLATE.md](templates/TASK_TEMPLATE.md) |
 | Feature implementation | Prompt dla implementacji funkcji | AI | przy zmianie workflow | [docs/prompts/FEATURE_IMPLEMENTATION.md](prompts/FEATURE_IMPLEMENTATION.md) |
+| Stage 4 galleries | Gotowy prompt wykonawczy minimalnego GALLERY-001 | AI, reviewer | przy rozpoczeciu Etapu 4 | [docs/prompts/STAGE_4_GALLERIES.md](prompts/STAGE_4_GALLERIES.md) |
 | Bug fix | Prompt dla naprawy błędów | AI | przy zmianie standardów debugowania | [docs/prompts/BUG_FIX.md](prompts/BUG_FIX.md) |
 | Code review | Prompt dla review | AI, reviewer | przy zmianie standardu review | [docs/prompts/CODE_REVIEW.md](prompts/CODE_REVIEW.md) |
 | Security review | Prompt dla security review | AI, security | przy zmianie standardu security | [docs/prompts/SECURITY_REVIEW.md](prompts/SECURITY_REVIEW.md) |

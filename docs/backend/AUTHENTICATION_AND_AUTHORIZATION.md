@@ -15,8 +15,11 @@ Opisuje aktualny i docelowy model tozsamosci uzytkownika, sesji oraz reguly auto
 - `POST /api/auth/register` nie jest publicznym signupem. Konto moze utworzyc tylko zalogowany administrator.
 - Aktualnie zaimplementowane role systemowe w kodzie to `ADMIN` i `USER`.
 - Podstawowy audyt zapisuje wpisy do tabeli `audit_events` przez `AuditService`.
+- Etap 3 egzekwuje role kontekstowe `OWNER`/`MANAGER`, ownership wydarzenia i aktywne membership w use case oraz scoped queries.
+- Mutacje `/api/events/**` korzystaja z tej samej ochrony sesji i CSRF co pozostale prywatne API.
 - Logowanie zlicza nieudane proby dla istniejacego konta i czasowo blokuje konto po przekroczeniu limitu.
 - Aktualnie zaimplementowane eventy audytowe to `USER_REGISTERED`, `USER_LOGGED_IN`, `USER_LOGIN_FAILED`, `USER_LOGIN_BLOCKED` oraz `USER_LOGGED_OUT`.
+- Audyt domenowy obejmuje takze `EVENT_CREATED`, `EVENT_UPDATED`, `EVENT_ARCHIVED`, `EVENT_DELETED`, `EVENT_MANAGER_ADDED`, `EVENT_MANAGER_REMOVED` i `EVENT_OWNERSHIP_TRANSFERRED`.
 
 ## Stan docelowy
 - Bezpieczny system uwierzytelniania uzytkownikow oraz oddzielny model dostepu gosci do galerii.
@@ -49,6 +52,7 @@ SSOT kontraktu FE-BE znajduje sie w [../../api-contract/API_CONTRACT.md](../../a
 - Aktualnie zaimplementowane role systemowe: `ADMIN`, `USER`.
 - Docelowy model ról i uprawnien moze zostac rozszerzony, ale dokumentacja nie moze sugerowac istnienia ról, ktorych nie ma jeszcze w kodzie.
 - Uprawnienia wynikaja z polaczenia roli systemowej, relacji do wydarzenia i ownership zasobow.
+- W `/api/events` rola `ADMIN` nie zastepuje ownership; przyszle operacje administratora wymagaja osobnego toru.
 
 ## Autoryzacja publiczna
 - Publiczny dostep do galerii nie daje roli systemowej.

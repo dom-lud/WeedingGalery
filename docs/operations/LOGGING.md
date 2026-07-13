@@ -11,7 +11,9 @@ Opisuje zasady logowania aplikacyjnego, strukturalnego i audytowego.
 ## Stan obecny
 - W kodzie istnieje juz techniczne logowanie przez `@Slf4j` oraz podstawowy biznesowy audyt oparty o `AuditService`.
 - Aktualna tabela audytu to `audit_events`.
-- Obecnie zapisywane eventy audytowe to `USER_REGISTERED`, `USER_LOGGED_IN`, `USER_LOGIN_FAILED`, `USER_LOGIN_BLOCKED` i `USER_LOGGED_OUT`.
+- Eventy auth to `USER_REGISTERED`, `USER_LOGGED_IN`, `USER_LOGIN_FAILED`, `USER_LOGIN_BLOCKED` i `USER_LOGGED_OUT`.
+- Eventy Etapu 3 to `EVENT_CREATED`, `EVENT_UPDATED`, `EVENT_ARCHIVED`, `EVENT_DELETED`, `EVENT_MANAGER_ADDED`, `EVENT_MANAGER_REMOVED` i `EVENT_OWNERSHIP_TRANSFERRED`.
+- Audyt EVENT/MEMBER jest fail-closed i uczestniczy w transakcji biznesowej; best-effort audit auth dziala w osobnej transakcji, aby awaria wpisu nie zatruwala sesji.
 
 ## Stan docelowy
 - Logi strukturalne z correlation ID, kontrola danych wrazliwych oraz rozszerzony log audytowy dla wszystkich krytycznych operacji.
@@ -34,9 +36,11 @@ Opisuje zasady logowania aplikacyjnego, strukturalnego i audytowego.
 - Nieudane logowania dla istniejacego konta.
 - Blokada konta po wielu blednych logowaniach.
 - Wylogowanie i zakonczenie sesji.
+- Tworzenie, edycja, archiwizacja i usuniecie wydarzenia.
+- Dodanie/usuniecie managera oraz atomowy transfer ownership.
 
 ## Zakres audytu do dalszego rozszerzenia
-- Zmiany rol i innych uprawnien.
+- Zaproszenia i przyszle granularne uprawnienia managera.
 - Akcje administracyjne wykonywane na kontach i zasobach.
 
 ## Powiazane dokumenty

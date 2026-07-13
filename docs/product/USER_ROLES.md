@@ -9,8 +9,9 @@ Definiuje role systemowe i role kontekstowe oraz zakres ich odpowiedzialnosci.
 - Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
-- W kodzie istnieja aktualnie tylko role systemowe `USER` i `ADMIN`.
-- Role wydarzenia, takie jak `EventOwner` i `EventManager`, nie sa jeszcze zaimplementowane i stanowia wejscie do Etapu 3.
+- W kodzie istnieja role systemowe `USER` i `ADMIN` oraz kontekstowe role wydarzenia `OWNER` i `MANAGER`.
+- `OWNER` jest wyliczany z `Event.owner_user_id`; nie jest duplikowany jako membership.
+- Aktywne `EventMembership` reprezentuje role `MANAGER`, a rekord z `removed_at` nie daje dostepu.
 
 ## Stan docelowy
 - System rozroznia role systemowe i role w kontekscie wydarzenia.
@@ -46,6 +47,7 @@ Definiuje role systemowe i role kontekstowe oraz zakres ich odpowiedzialnosci.
 - Dziala w granicach delegacji wlasciciela.
 - Typowy zakres: galerie, moderacja, pobieranie, personalizacja, statystyki.
 - Domyslnie bez uprawnien do usuniecia wlasciciela, zmiany subskrypcji wlasciciela lub usuniecia calego konta.
+- W zaimplementowanym zakresie Etapu 3 moze odczytywac i edytowac metadane wydarzenia oraz odczytywac liste managerow; nie zarzadza membership, archiwizacja, usunieciem ani transferem ownership.
 
 ## SystemAdministrator
 - Zarzadza uzytkownikami, wydarzeniami, galeriami, limitami i konfiguracja.

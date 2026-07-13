@@ -1,14 +1,14 @@
 # ADR 0005: Izolacja Danych Wieloużytkownikowych
 
 ## Status dokumentu
-- Status: proposed
+- Status: accepted
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Cel dokumentu
 Opisuje sposób logicznej separacji danych wielu użytkowników w jednej aplikacji i bazie.
 
 ## Stan obecny
-- Model nie został jeszcze wdrożony.
+- Pierwsza granica izolacji zostala wdrozona dla wydarzen i membership w Etapie 3.
 
 ## Stan docelowy
 - Logic isolation oparta o ownership, `event_id` i membership.

@@ -9,8 +9,10 @@ Opisuje docelowy model danych, główne encje, relacje, indeksy i zasady ownersh
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Stan obecny
-- Model danych nie jest jeszcze zaimplementowany.
-- Aktualny kod i konfiguracja runtime backendu wskazują MySQL jako używany silnik bazy.
+- Zaimplementowane sa tabele `users`, `events`, `event_memberships`, `galleries` i `audit_events` zarzadzane przez Flyway.
+- Etap 3 dodal `privacy_mode`, lifecycle/soft delete i optimistic version wydarzenia oraz historyczne membership managerow.
+- `Gallery` ma jedynie techniczny szkielet encji, repozytorium i tabeli odziedziczony z fundamentu; bezpieczny use case, API, ownership, UI i testy GALLERY-001 nie sa jeszcze zaimplementowane.
+- Pozostale encje opisane ponizej nadal stanowia stan docelowy.
 
 ## Stan docelowy
 - Relacyjny model danych zoptymalizowany pod wieloużytkownikowość, audyt i pracę na plikach.
@@ -46,13 +48,14 @@ Opisuje docelowy model danych, główne encje, relacje, indeksy i zasady ownersh
 
 ### Event
 - Przeznaczenie: główny byt biznesowy grupujący galerie i członków.
-- Pola: `id`, `owner_user_id`, `name`, `event_type`, `event_date`, `description`, `status`, `privacy_mode`, `starts_at`, `expires_at`, `archived_at`, `created_at`, `updated_at`, `deleted_at`.
+- Pola zaimplementowane: `id`, `owner_user_id`, `name`, `type`, `event_date`, `description`, `status`, `privacy_mode`, `archived_at`, `created_at`, `updated_at`, `deleted_at`, `version`.
 - Relacje: 1:N do `Gallery`, `EventMembership`, `EventInvitation`, `StorageUsage`.
 - Indeksy: `owner_user_id`, `(owner_user_id, status)`, `event_date`.
 
 ### EventMembership
 - Przeznaczenie: rola użytkownika w wydarzeniu.
-- Pola: `id`, `event_id`, `user_id`, `role`, `permissions_json`, `joined_at`, `removed_at`, `created_at`, `updated_at`.
+- Pola zaimplementowane: `id`, `event_id`, `user_id`, `role`, `joined_at`, `removed_at`, `created_at`, `updated_at`, `version`.
+- Aktualnie membership przechowuje `MANAGER`; `OWNER` pozostaje wyliczany z wydarzenia.
 - Ograniczenia: unikalność `(event_id, user_id)`.
 - Indeksy: `(user_id, role)`, `(event_id, role)`.
 

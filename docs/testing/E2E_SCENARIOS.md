@@ -81,3 +81,31 @@ Ten dokument gromadzi i opisuje zaplanowane scenariusze testow End-to-End (E2E) 
   - W scenariuszach logowania musza istniec warianty szybkie i mniej idealne, w tym szybki klik po otwarciu widoku oraz ponowna proba po bledzie.
   - Dla podstawowej identity warto utrzymywac tez przypadek blokady po wielu blednych logowaniach na poziomie API lub pelnego testu integracyjnego.
   - Testy maja znajdowac regresje w synchronizacji UI, a nie stabilizowac aplikacje samym oczekiwaniem testu.
+
+## Modul: Wydarzenia i membership (Etap 3)
+
+### 1. Owner tworzy wydarzenie i dodaje managera
+**Krytycznosc:** Wysoka
+- Owner loguje sie, tworzy prywatne wydarzenie przez UI i widzi je po odswiezeniu listy.
+- Owner dodaje istniejace konto po e-mailu bez flow zaproszenia.
+- Duplikat aktywnego membership zwraca `409` i nie tworzy drugiego rekordu.
+- Manager po zalogowaniu widzi wydarzenie i moze edytowac metadane.
+
+### 2. Ograniczenia managera i IDOR
+**Krytycznosc:** Krytyczna
+- Manager nie widzi kontrolek ani nie moze wywolac lifecycle, membership i transferu ownership.
+- Uzytkownik bez relacji oraz losowy `eventId` zwracaja ten sam `404`.
+- Membership z innego wydarzenia nie moze zostac usuniete przez zagniezdzona sciezke.
+- Brak CSRF na mutacji zwraca `403` i nie zmienia danych ani audytu.
+
+### 3. Usuniecie membership i transfer ownership
+**Krytycznosc:** Krytyczna
+- Po usunieciu membership manager natychmiast traci dostep.
+- Ponowne dodanie reaktywuje historyczny rekord bez naruszenia unique constraint.
+- Transfer zmienia ownera atomowo: nowy owner otrzymuje pelne prawa, a poprzedni owner zostaje managerem.
+- Stan utrzymuje sie po wylogowaniu, ponownym logowaniu i odswiezeniu UI.
+
+### Stan automatyzacji
+- `backend`: unit i integracyjny flow z realna sesja oraz CSRF.
+- `frontend/tests/e2e/events-memberships.spec.ts`: flow UI create -> add manager -> ograniczenia -> transfer.
+- Lokalny E2E musi korzystac z `PLAYWRIGHT_BASE_URL=http://localhost`, aby przejsc przez glowny Nginx proxy FE-BE.

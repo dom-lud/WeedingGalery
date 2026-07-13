@@ -11,7 +11,8 @@ Prezentuje wysokopoziomowa macierz uprawnien dla rol systemowych i rol wydarzeni
 ## Stan obecny
 - Zaimplementowany jest podstawowy model auth dla kont systemowych.
 - W praktyce wdrozone sa obecnie tylko uprawnienia potrzebne do logowania, wylogowania, odczytu `/api/auth/me` i administracyjnego tworzenia kont.
-- Uprawnienia wydarzenia oraz ownership zasobow wydarzenia pozostaja do wdrozenia w Etapie 3.
+- Uprawnienia `EventOwner` i `EventManager` oraz ownership wydarzenia sa wdrozone w zakresie Etapu 3.
+- Osobny tor administracyjny wydarzen nie jest jeszcze zaimplementowany; rola `ADMIN` nie omija ownership w zwyklym `/api/events`.
 
 ## Stan docelowy
 - Spojny model autoryzacji oparty o role systemowe, role wydarzenia i ownership zasobow.

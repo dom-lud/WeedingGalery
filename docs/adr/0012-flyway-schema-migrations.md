@@ -2,18 +2,20 @@
 
 ## Status dokumentu
 - Status: accepted
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-13
 
 ## Cel dokumentu
 Opisuje decyzję o wyborze Flyway jako narzędzia migracji schematu relacyjnej bazy danych.
 
 ## Stan obecny
-- Repozytorium nie miało mechanizmu migracji schematu (stan po Etapie 0).
-- Katalog `db/migration/` istniał jako placeholder.
+- Flyway jest aktywny w profilach dev i prod.
+- Projekt nie byl wdrozony produkcyjnie, dlatego przed Etapem 4 historia lokalnych migracji zostala swiadomie skonsolidowana.
+- Pojedyncza migracja `V1__baseline.sql` tworzy kompletny, faktycznie zaimplementowany schemat Etapow 1-3 oraz lokalne konto startowe.
+- `baseline-on-migrate` jest wylaczone; nowa baza zawsze wykonuje V1 od zera.
 
 ## Stan docelowy
 - Flyway zarządza schematem bazy przez wersjonowane migracje SQL.
-- Baseline migration V1 jest pusta; kolejne migracje dodają tabele domenowe od Etapu 2.
+- Kolejne wersje rozwijaja schemat wyłącznie przez migracje do przodu; zatwierdzonych migracji nie modyfikujemy.
 
 ## Kontekst
 Projekt potrzebuje audytowalnego, powtarzalnego mechanizmu migracji schematu:
@@ -33,8 +35,9 @@ Konfiguracja:
 - **dev** (H2): Flyway enabled, `spring.jpa.hibernate.ddl-auto=none`
 - **test** (JUnit): Flyway disabled, `spring.jpa.hibernate.ddl-auto=create-drop`
 - **prod** (MySQL): Flyway enabled, `spring.jpa.hibernate.ddl-auto=validate`
+- **prod** (MySQL): `baseline-on-migrate=false`; wymagany jest pusty schemat albo historia zgodna z repozytorium.
 
-Lokalizacja migracji: `classpath:db/migration` (standard Flyway).
+Jedyna lokalizacja to `db/migration`. Baseline V1 jest zgodny z MySQL 8.4 oraz H2 uruchamianym w trybie MySQL. Od tego punktu kolejne zmiany powstaja jako V2, V3 itd.; V1 nie wolno juz modyfikowac bez kolejnej jawnej decyzji o resecie przed pierwszym wdrozeniem produkcyjnym.
 
 ## Konsekwencje
 

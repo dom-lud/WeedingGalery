@@ -3,7 +3,10 @@ package pl.backend.weddinggallery.audit.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import pl.backend.weddinggallery.audit.model.AuditEvent;
 import pl.backend.weddinggallery.audit.model.EventType;
 import pl.backend.weddinggallery.audit.repository.AuditEventRepository;
@@ -14,15 +17,27 @@ import pl.backend.weddinggallery.audit.repository.AuditEventRepository;
 public class AuditService {
 
 	private final AuditEventRepository auditEventRepository;
+	private final PlatformTransactionManager transactionManager;
 
-	@Transactional
 	public void logEvent(String userEmail, EventType eventType, String details) {
 		try {
-			AuditEvent event = new AuditEvent(eventType, userEmail, details);
-			auditEventRepository.save(event);
+			TransactionTemplate transaction = new TransactionTemplate(transactionManager);
+			transaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+			transaction.executeWithoutResult(status -> {
+				AuditEvent event = new AuditEvent(eventType, userEmail, details);
+				auditEventRepository.saveAndFlush(event);
+			});
 			log.debug("Audit event saved: {} for user: {}", eventType, userEmail);
 		} catch (Exception e) {
 			log.error("Failed to save audit event: [{}] for user: {}", eventType, userEmail, e);
 		}
+	}
+
+	@Transactional
+	public void logRequiredEvent(String userEmail, EventType eventType, String eventId, String targetUserId,
+			String details) {
+		AuditEvent event = new AuditEvent(eventType, userEmail, eventId, targetUserId, details);
+		auditEventRepository.save(event);
+		log.debug("Required audit event saved: {} for event: {}", eventType, eventId);
 	}
 }

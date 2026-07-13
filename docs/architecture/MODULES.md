@@ -9,7 +9,8 @@ Opisuje docelowy podział odpowiedzialności między moduły backendowe i ich gr
 - Ostatnia aktualizacja: 2026-07-12
 
 ## Stan obecny
-- Moduły nie są jeszcze wyodrębnione w kodzie.
+- Kod jest organizowany pakietami domenowymi; Etap 3 ma oddzielne pakiety `event` i `membership`, korzystajace z `audit`, `user` i wspolnych bledow.
+- Formalne egzekwowanie granic modulow narzedziem architektonicznym pozostaje do zrobienia.
 
 ## Stan docelowy
 - Modularny monolit z jawnymi granicami domenowymi i integracyjnymi.

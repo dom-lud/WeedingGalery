@@ -37,14 +37,27 @@ public class Event {
 	private EventStatus status;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "owner_id", nullable = false)
+	@JoinColumn(name = "owner_user_id", nullable = false)
 	private User owner;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "privacy_mode", nullable = false)
+	private PrivacyMode privacyMode;
+
+	@Column(name = "archived_at")
+	private LocalDateTime archivedAt;
+
+	@Column(name = "deleted_at")
+	private LocalDateTime deletedAt;
 
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
 	@Column(name = "updated_at", nullable = false)
 	private LocalDateTime updatedAt;
+
+	@Version
+	private long version;
 
 	@PrePersist
 	protected void onCreate() {
@@ -55,6 +68,9 @@ public class Event {
 		updatedAt = LocalDateTime.now();
 		if (status == null) {
 			status = EventStatus.DRAFT;
+		}
+		if (privacyMode == null) {
+			privacyMode = PrivacyMode.PRIVATE;
 		}
 	}
 

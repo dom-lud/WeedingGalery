@@ -13,7 +13,7 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 - Etap 0 jest zamkniety na poziomie dokumentacji i procesu.
 - Etap 1 zostal uruchomiony jako techniczny fundament repozytorium.
 - Etap 2 jest domkniety w zakresie podstawowej identity.
-- Etap 3 ma przygotowane wejscie wykonawcze, ale nie jest jeszcze rozpoczety implementacyjnie.
+- Etap 3 jest domkniety w minimalnym zakresie `EVENT-001` i `MEMBER-001`.
 
 ## Stan docelowy
 - Sekwencja etapow prowadzaca od dokumentacji i procesow do stabilnej produkcji pelnej platformy wielouzytkownikowej.
@@ -58,13 +58,24 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
   - `MEMBER-001` jako role i czlonkostwo w wydarzeniu,
   - bez e-mailowych zaproszen, dopoki `AUTH-002` nie dostarczy pelnego flow mail/token.
 - Kryterium ukonczenia: wlasciciel moze tworzyc wydarzenia i zarzadzac czlonkami, a ownership jest egzekwowany w API i logice biznesowej.
+- Status: zakonczony.
+- Potwierdzenie:
+  - owner wynika wylacznie z `events.owner_user_id`, a aktywne membership reprezentuje managera,
+  - owner i manager widza tylko wydarzenia wynikajace z ownership albo aktywnego membership,
+  - manager moze edytowac metadane, ale nie moze zarzadzac lifecycle, membership ani transferem,
+  - usuniecie membership natychmiast odbiera dostep, a transfer ownership jest atomowy,
+  - mutacje sa chronione sesja i CSRF oraz zapisuja audyt biznesowy,
+  - flow zostal potwierdzony testami backendowymi, integracyjnymi i Playwright E2E na Docker Compose.
+- Poza zamknietym zakresem: zaproszenia e-mail/token, publiczna galeria, uploady i osobny tor administracyjny wydarzen.
 - Glowne ryzyka: bledy ownership, niespojne role, brak audytu zmian czlonkostwa.
 
 ## Etap 4 - Galerie
-- Cel: wdrozenie galerii i podstawowego modelu publikacji.
-- Zaleznosci: etap 3, ADR dot. dostepu do galerii.
-- Rezultat: galerie per wydarzenie, slug, dostep publiczny, ustawienia prywatnosci i QR.
-- Kryterium ukonczenia: wydarzenie moze posiadac wiele galerii z konfigurowalnym dostepem.
+- Cel: wdrozenie bezpiecznego zarzadzania wieloma galeriami w kontekscie wydarzenia.
+- Zaleznosci: etap 3. ADR 0010 jest wymagany dopiero dla publicznego dostepu w kolejnym rozszerzeniu.
+- Status: przygotowany do rozpoczecia w minimalnym zakresie `GALLERY-001`.
+- Pierwszy zakres: uwierzytelnione listowanie, tworzenie, odczyt, edycja, kolejnosc, archiwizacja i soft delete galerii z ownership dziedziczonym po wydarzeniu.
+- Poza pierwszym zakresem: `GALLERY-002`, `PUBLIC-001`, QR, tokeny, kody dostepu, upload, download, media, moderacja i personalizacja.
+- Kryterium ukonczenia pierwszego zakresu: owner i manager moga zarzadzac dozwolonymi metadanymi wielu galerii, owner kontroluje lifecycle, a API i UI bronia scoping `eventId + galleryId`.
 - Glowne ryzyka: enumeracja galerii, bledny model widocznosci i slugow.
 
 ## Etap 5 - Upload i storage
