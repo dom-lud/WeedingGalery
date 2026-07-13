@@ -9,60 +9,42 @@ test.describe('Authentication Flow E2E', () => {
   })
 
   test('should login successfully on the first quick click without waiting for page stabilization', async ({
-    page,
+    loginPage,
     dashboardPage,
   }) => {
-    await page.goto('/login')
-    await page.fill('input[type="email"]', 'ADMIN@EXAMPLE.COM')
-    await page.fill('input[type="password"]', 'password123')
-
-    const responsePromise = page.waitForResponse((r) => r.url().includes('/api/auth/login'))
-    await page.click('button[type="submit"]')
-
-    const response = await responsePromise
+    const response = await loginPage.loginQuickly('ADMIN@EXAMPLE.COM', 'password123')
     expect(response.status()).toBe(200)
     await dashboardPage.verifyIsLoaded()
   })
 
   test('should not expose public sign up entry point', async ({ page, loginPage }) => {
     await loginPage.goto()
-    await expect(page.getByRole('link', { name: /sign up/i })).toHaveCount(0)
+    await loginPage.expectPublicSignUpHidden()
 
     await page.goto('/register')
-    await expect(page).toHaveURL(/.*\/login/)
-    await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible()
+    await loginPage.expectVisible()
   })
 
-  test('should allow toggling password visibility on login', async ({ page, loginPage }) => {
+  test('should allow toggling password visibility on login', async ({ loginPage }) => {
     await loginPage.goto()
-
-    const passwordInput = page.locator('.password-input-wrapper input')
-    await expect(passwordInput).toHaveAttribute('type', 'password')
-
-    await page.getByRole('button', { name: /show password/i }).click()
-    await expect(passwordInput).toHaveAttribute('type', 'text')
-
-    await page.getByRole('button', { name: /hide password/i }).click()
-    await expect(passwordInput).toHaveAttribute('type', 'password')
+    await loginPage.expectPasswordHidden()
+    await loginPage.togglePasswordVisibility()
+    await loginPage.expectPasswordVisible()
+    await loginPage.togglePasswordVisibility()
+    await loginPage.expectPasswordHidden()
   })
 
-  test('should show an error and stay on login page for invalid credentials', async ({
-    page,
-    loginPage,
-  }) => {
+  test('should show an error and stay on login page for invalid credentials', async ({ loginPage }) => {
     await loginPage.goto()
     const response = await loginPage.login('admin@example.com', 'wrongpass')
 
     expect(response.status()).toBe(401)
-    await expect(page).toHaveURL(/.*\/login/)
-    await expect(page.getByText(/invalid email or password/i)).toBeVisible()
+    await loginPage.expectVisible()
+    await loginPage.expectInvalidCredentialsError()
   })
 
-  test('should block access to dashboard for unauthenticated user', async ({
-    page,
-    dashboardPage,
-  }) => {
+  test('should block access to dashboard for unauthenticated user', async ({ dashboardPage }) => {
     await dashboardPage.goto()
-    await expect(page).toHaveURL(/.*\/login/)
+    await dashboardPage.expectRedirectedToLogin()
   })
 })

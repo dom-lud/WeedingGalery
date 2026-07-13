@@ -1,37 +1,44 @@
 # Testowanie Frontendu
 
 ## Cel dokumentu
-Opisuje zakres testów komponentów, hooków, warstwy API i widoków.
+Opisuje zakres testow komponentow, hookow, warstwy API i widokow.
 
 ## Status dokumentu
 - Status: draft
 - Zakres: testy frontendu dla stanu docelowego
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
-- Frontend nie posiada jeszcze docelowego zestawu testów.
+- Frontend nie posiada jeszcze docelowego zestawu testow.
 - Repozytorium posiada podstawowy test smoke frontendu uruchamiany w CI.
 
 ## Stan docelowy
-- Testy chronią krytyczne formularze, upload, routing i widoki zależne od uprawnień.
+- Testy chronia krytyczne formularze, upload, routing i widoki zalezne od uprawnien.
 
 ## Zakres
-- Testy komponentów
-- Testy hooków
+- Testy komponentow
+- Testy hookow
 - Testy warstwy API
 - Testy formularzy
 - Testy galerii publicznej
 - Testy uploadu i retry
-- Testy stanów błędów i pustych danych
-- Testy guardów widoku
-- Testy lub manualna weryfikacja mobile-first dla krytycznych widoków
+- Testy stanow bledow i pustych danych
+- Testy guardow widoku
+- Testy lub manualna weryfikacja mobile-first dla krytycznych widokow
 - Testy accessibility dla formularzy, modali, lightboxa i nawigacji
 
-## Powiązane dokumenty
+## Wzorzec dla Playwright E2E
+- Scenariusze E2E powinny korzystac z page object pattern.
+- Spec ma opisywac intencje biznesowe i oczekiwane zachowanie, a nie przechowywac selektory lub techniczne kroki UI.
+- Selektory, akcje i asercje specyficzne dla widoku nalezy trzymac w klasach stron, np. `LoginPage`, `DashboardPage`.
+- Jesli zmieni sie `id`, tekst przycisku albo struktura formularza, poprawka powinna zwykle byc potrzebna w jednym miejscu, a nie we wszystkich specach.
+- Bezposrednie `page.click(...)`, `page.fill(...)` i podobne wywolania w plikach `*.spec.ts` nalezy ograniczac do wyjatkow, ktore sa jawnie uzasadnione przez nietypowy scenariusz testowy.
+
+## Powiazane dokumenty
 - [TEST_STRATEGY.md](TEST_STRATEGY.md)
 - [../frontend/UPLOAD_UX.md](../frontend/UPLOAD_UX.md)
 - [../frontend/ACCESSIBILITY.md](../frontend/ACCESSIBILITY.md)
 - [../frontend/CSS_AND_RESPONSIVE_GUIDELINES.md](../frontend/CSS_AND_RESPONSIVE_GUIDELINES.md)
 
 ## Decyzje otwarte
-- Czy dodać wizualne snapshoty dla krytycznych widoków galerii.
+- Czy dodac wizualne snapshoty dla krytycznych widokow galerii.

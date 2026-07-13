@@ -37,6 +37,7 @@ Opisuje docelowa strategie testowania platformy na poziomie backendu, frontendu 
 - Przy krytycznych flow nalezy dodawac warianty szybkie, nieidealne i uzytkownikocentryczne, a nie wylacznie scenariusz "strona sie ustabilizowala i wszystko poszlo idealnie".
 - Jesli test jest zbyt mocno sprzezony z detalem implementacyjnym, trzeba to uzasadnic.
 - Nie mieszaj testow API z testami E2E UI. Nalezy je utrzymywac oddzielnie, uzywajac innych narzedzi, np. Playwright do E2E, a Spring Boot Test lub REST Assured do API.
+- W testach Playwright preferowany jest page object pattern, aby selektory i techniczne kroki byly utrzymywane centralnie, a specy pozostawaly opisem zachowania biznesowego.
 
 ## Powiazane dokumenty
 - [BACKEND_TESTING.md](BACKEND_TESTING.md)

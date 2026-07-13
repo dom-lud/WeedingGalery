@@ -15,4 +15,8 @@ export class DashboardPage {
     await expect(this.page).toHaveURL(/.*\/dashboard/, { timeout: 5000 })
     await expect(this.page.locator('h1')).toContainText('My Galleries')
   }
+
+  async expectRedirectedToLogin() {
+    await expect(this.page).toHaveURL(/.*\/login/)
+  }
 }
