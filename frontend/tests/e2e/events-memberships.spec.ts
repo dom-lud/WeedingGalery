@@ -26,7 +26,7 @@ test.describe('Events and memberships E2E', () => {
     expect(registerResponse.status()).toBe(200)
 
     expect((await dashboardPage.createEvent(eventName)).status()).toBe(201)
-    await expect(page.getByRole('heading', { name: eventName, level: 6 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: eventName, level: 3 })).toBeVisible()
     await dashboardPage.manageEvent(eventName)
     expect((await dashboardPage.addManager(managerEmail)).status()).toBe(201)
     await expect(page.getByText(managerEmail, { exact: true })).toBeVisible()
@@ -48,6 +48,10 @@ test.describe('Events and memberships E2E', () => {
         response.url().includes('/ownership-transfer') && response.request().method() === 'POST',
     )
     await managerRow.getByRole('button', { name: /transfer ownership/i }).click()
+    await page
+      .getByRole('dialog', { name: 'Transfer ownership?' })
+      .getByRole('button', { name: 'Transfer ownership' })
+      .click()
     expect((await transferResponsePromise).status()).toBe(200)
 
     await dashboardPage.logout()

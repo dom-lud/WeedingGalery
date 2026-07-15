@@ -13,7 +13,7 @@ export class DashboardPage {
 
   async verifyIsLoaded() {
     await expect(this.page).toHaveURL(/.*\/dashboard/, { timeout: 5000 })
-    await expect(this.page.locator('h1')).toContainText('My Events')
+    await expect(this.page.getByRole('heading', { name: 'Your events', level: 1 })).toBeVisible()
   }
 
   async createEvent(name: string) {
@@ -28,7 +28,9 @@ export class DashboardPage {
   }
 
   async manageEvent(name: string) {
-    const card = this.page.getByRole('heading', { name, level: 6 }).locator('..').locator('..')
+    const card = this.page
+      .getByRole('heading', { name, level: 3 })
+      .locator('xpath=ancestor::article[1]')
     await card.getByRole('button', { name: /^manage$/i }).click()
   }
 

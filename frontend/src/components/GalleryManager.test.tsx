@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { ThemeProvider } from '@mui/material/styles'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { EventData } from '../eventsApi'
@@ -96,6 +96,35 @@ describe('GalleryManager', () => {
     expect(screen.getByRole('button', { name: 'Edit gallery' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Archive gallery' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Delete gallery' })).not.toBeInTheDocument()
+  })
+
+  it('requires explicit confirmation before deleting a gallery', async () => {
+    vi.mocked(galleriesApi.list).mockResolvedValue({
+      data: [
+        {
+          id: 'gallery-1',
+          eventId: 'event-1',
+          name: 'Reception',
+          slug: 'reception',
+          description: null,
+          sortOrder: 0,
+          status: 'ACTIVE',
+          currentUserRole: 'OWNER',
+          createdAt: '',
+          updatedAt: '',
+        },
+      ],
+    } as never)
+    vi.mocked(galleriesApi.remove).mockResolvedValue({} as never)
+    renderManager()
+
+    await screen.findByText('Reception')
+    fireEvent.click(screen.getByRole('button', { name: 'Delete gallery' }))
+    expect(galleriesApi.remove).not.toHaveBeenCalled()
+
+    const confirmation = screen.getByRole('dialog', { name: 'Delete gallery?' })
+    fireEvent.click(within(confirmation).getByRole('button', { name: 'Delete gallery' }))
+    await waitFor(() => expect(galleriesApi.remove).toHaveBeenCalledWith('event-1', 'gallery-1'))
   })
 
   it('renders an actionable error state', async () => {

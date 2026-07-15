@@ -6,10 +6,14 @@ Opisuje zasady mobile-first dla frontendu platformy.
 ## Status dokumentu
 - Status: draft
 - Zakres: responsive design dla widoków publicznych i panelowych
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-15
 
 ## Stan obecny
-- Docelowy responsive design nie jest jeszcze zaprojektowany.
+- Logowanie, dashboard, zarządzanie galeriami, dialogi i publiczny upload mają wariant mobile-first oparty na breakpointach MUI.
+- Na `xs` układy są jednokolumnowe, akcje formularzy zajmują pełną szerokość, a dialogi przechodzą w tryb pełnoekranowy.
+- Od `md` dashboard używa układu listy wydarzeń i przestrzeni roboczej; publiczny upload zachowuje ograniczoną szerokość treści.
+- Minimalna wysokość głównych kontrolek wynosi 44 px, długie nazwy zawijają się, a globalny layout blokuje przypadkowy poziomy overflow.
+- Mobilny upload udostępnia dotykowe wybieranie plików, kolejkę z postępem, retry oraz dolną akcję widoczną przy niepustej kolejce.
 
 ## Stan docelowy
 - UI czytelne na telefonie, tablecie i desktopie, z priorytetem dla mobilnego uploadu i przeglądania galerii.

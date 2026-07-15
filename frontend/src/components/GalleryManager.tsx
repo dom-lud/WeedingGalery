@@ -253,6 +253,17 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
     }
   }
 
+  const requestRemoveAccessCode = () => {
+    if (!settingsGallery) return
+    setConfirmation({
+      title: 'Remove access code?',
+      description:
+        'Anyone with the private share link will be able to open this gallery without the code.',
+      confirmLabel: 'Remove code',
+      action: removeAccessCode,
+    })
+  }
+
   return (
     <Stack component="section" spacing={2.5} aria-labelledby="galleries-title">
       <Stack
@@ -304,12 +315,9 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
       ) : galleries.length === 0 ? (
         <Paper variant="outlined" sx={{ p: 3, textAlign: 'center', borderStyle: 'dashed' }}>
           <Typography variant="h6">No galleries yet.</Typography>
-          <Typography color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
+          <Typography color="text.secondary" sx={{ mt: 0.5 }}>
             Create one for the ceremony, reception or another part of the day.
           </Typography>
-          <Button variant="outlined" onClick={openCreate} disabled={event.status === 'ARCHIVED'}>
-            Create gallery
-          </Button>
         </Paper>
       ) : (
         <Box
@@ -320,43 +328,47 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
           }}
         >
           {galleries.map((gallery) => (
-            <Card key={gallery.id} variant="outlined" sx={{ minWidth: { md: 240 }, flex: 1 }}>
+            <Card key={gallery.id} component="article" variant="outlined" sx={{ minWidth: 0 }}>
               <CardContent>
-                <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
+                <Typography variant="h6" component="h3" sx={{ overflowWrap: 'anywhere' }}>
                   {gallery.name}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {gallery.status} · order {gallery.sortOrder}
+                  {gallery.status.toLowerCase()} • order {gallery.sortOrder}
                 </Typography>
                 {gallery.description && (
-                  <Typography variant="body2">{gallery.description}</Typography>
+                  <Typography variant="body2" sx={{ mt: 1, overflowWrap: 'anywhere' }}>
+                    {gallery.description}
+                  </Typography>
                 )}
-                <Stack direction="row" spacing={0.75} sx={{ mt: 1, flexWrap: 'wrap' }}>
-                  <Chip size="small" label={gallery.status} />
+                <Stack direction="row" spacing={0.75} sx={{ mt: 1.5, flexWrap: 'wrap', gap: 0.75 }}>
+                  <Chip
+                    size="small"
+                    label={gallery.status === 'ACTIVE' ? 'Active' : 'Archived'}
+                    color={gallery.status === 'ACTIVE' ? 'success' : 'default'}
+                  />
                   <Chip size="small" variant="outlined" label={`Order ${gallery.sortOrder}`} />
                 </Stack>
               </CardContent>
-              <CardActions sx={{ flexWrap: 'wrap' }}>
+              <CardActions sx={{ px: 2, pb: 2, flexWrap: 'wrap', gap: 0.5 }}>
                 <Button
-                  size="small"
                   onClick={() => openEdit(gallery)}
                   disabled={gallery.status === 'ARCHIVED' || event.status === 'ARCHIVED'}
                 >
                   Edit gallery
                 </Button>
-                <Button size="small" onClick={() => void openSettings(gallery)}>
+                <Button variant="outlined" onClick={() => void openSettings(gallery)}>
                   {event.currentUserRole === 'OWNER' ? 'Access settings' : 'View access settings'}
                 </Button>
                 {event.currentUserRole === 'OWNER' && (
                   <>
                     <Button
-                      size="small"
-                      onClick={() => void archive(gallery.id)}
+                      onClick={() => requestArchive(gallery)}
                       disabled={gallery.status === 'ARCHIVED'}
                     >
                       Archive gallery
                     </Button>
-                    <Button color="error" size="small" onClick={() => void remove(gallery.id)}>
+                    <Button color="error" onClick={() => requestRemove(gallery)}>
                       Delete gallery
                     </Button>
                   </>
@@ -367,7 +379,13 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
         </Box>
       )}
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        fullScreen={fullScreenDialog}
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle>{editing ? 'Edit gallery' : 'Create gallery'}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
@@ -399,12 +417,15 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
             />
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+        <DialogActions sx={{ p: 2, flexDirection: { xs: 'column-reverse', sm: 'row' } }}>
+          <Button onClick={() => setDialogOpen(false)} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+            Cancel
+          </Button>
           <Button
             variant="contained"
             onClick={() => void save()}
             disabled={!form.name.trim() || form.sortOrder < 0 || form.sortOrder > 100000}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
           >
             Save gallery
           </Button>
@@ -417,6 +438,7 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
           setSettingsGallery(null)
           setRotatedSharePath('')
         }}
+        fullScreen={fullScreenDialog}
         fullWidth
         maxWidth="sm"
       >
@@ -427,7 +449,7 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
           {settingsLoading || !settings ? (
             <CircularProgress aria-label="Loading gallery settings" sx={{ my: 3 }} />
           ) : (
-            <Stack spacing={2} sx={{ pt: 1 }}>
+            <Stack spacing={2.5} sx={{ pt: 1 }}>
               <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
                 <Chip
                   label={settings.publicViewEnabled ? 'Guest view on' : 'Guest view off'}
@@ -450,6 +472,9 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
                 </Alert>
               ) : (
                 <>
+                  <Typography variant="h6" component="h3">
+                    Guest experience
+                  </Typography>
                   <FormControlLabel
                     control={
                       <Switch
@@ -508,6 +533,10 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
                       <MenuItem value="NONE">No review</MenuItem>
                     </Select>
                   </FormControl>
+                  <Divider />
+                  <Typography variant="h6" component="h3">
+                    Publication window
+                  </Typography>
                   <TextField
                     label="Publish from"
                     type="datetime-local"
@@ -546,6 +575,10 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
                   >
                     Save access settings
                   </Button>
+                  <Divider />
+                  <Typography variant="h6" component="h3">
+                    Private access
+                  </Typography>
                   <Button variant="outlined" onClick={() => void rotateToken()}>
                     Rotate private share link
                   </Button>
@@ -584,7 +617,7 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
                       Set code
                     </Button>
                     {settings.accessCodeConfigured && (
-                      <Button color="error" onClick={() => void removeAccessCode()}>
+                      <Button color="error" onClick={requestRemoveAccessCode}>
                         Remove code
                       </Button>
                     )}
@@ -594,7 +627,7 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
             </Stack>
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: 2 }}>
           <Button
             onClick={() => {
               setSettingsGallery(null)
@@ -605,6 +638,16 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
           </Button>
         </DialogActions>
       </Dialog>
+      <ConfirmDialog
+        open={confirmation !== null}
+        title={confirmation?.title ?? ''}
+        description={confirmation?.description ?? ''}
+        confirmLabel={confirmation?.confirmLabel ?? ''}
+        destructive
+        busy={confirming}
+        onCancel={() => setConfirmation(null)}
+        onConfirm={() => void confirmAction()}
+      />
     </Stack>
   )
 }

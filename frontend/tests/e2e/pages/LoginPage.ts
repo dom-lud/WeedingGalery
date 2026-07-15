@@ -50,18 +50,15 @@ export class LoginPage {
 
   async expectVisible() {
     await expect(this.page).toHaveURL(/.*\/login/)
-    await expect(this.page.getByRole('heading', { name: /welcome back/i })).toBeVisible()
+    await expect(this.page.getByRole('heading', { name: /sign in to your gallery/i })).toBeVisible()
   }
 
   async expectPasswordHidden() {
-    await expect(this.page.locator('.password-input-wrapper input')).toHaveAttribute(
-      'type',
-      'password',
-    )
+    await expect(this.page.locator('#login-password')).toHaveAttribute('type', 'password')
   }
 
   async expectPasswordVisible() {
-    await expect(this.page.locator('.password-input-wrapper input')).toHaveAttribute('type', 'text')
+    await expect(this.page.locator('#login-password')).toHaveAttribute('type', 'text')
   }
 
   async togglePasswordVisibility() {

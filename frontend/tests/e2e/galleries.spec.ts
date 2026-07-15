@@ -81,6 +81,10 @@ test.describe('Galleries E2E', () => {
         candidate.url().endsWith('/archive') && candidate.request().method() === 'POST',
     )
     await ownerCard.getByRole('button', { name: 'Archive gallery' }).click()
+    await page
+      .getByRole('dialog', { name: 'Archive gallery?' })
+      .getByRole('button', { name: 'Archive gallery' })
+      .click()
     expect((await archiveResponse).status()).toBe(200)
     await expect(ownerCard.getByText('ARCHIVED', { exact: true })).toBeVisible()
 
@@ -92,6 +96,10 @@ test.describe('Galleries E2E', () => {
         candidate.url().includes('/galleries/') && candidate.request().method() === 'DELETE',
     )
     await editedCard.getByRole('button', { name: 'Delete gallery' }).click()
+    await page
+      .getByRole('dialog', { name: 'Delete gallery?' })
+      .getByRole('button', { name: 'Delete gallery' })
+      .click()
     expect((await deleteResponse).status()).toBe(204)
     await expect(page.getByText(`${managerGallery} edited`, { exact: true })).toHaveCount(0)
   })

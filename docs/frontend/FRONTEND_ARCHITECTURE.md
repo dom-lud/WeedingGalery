@@ -6,12 +6,13 @@ Opisuje docelową strukturę SPA, główne obszary interfejsu i odpowiedzialnoś
 ## Status dokumentu
 - Status: draft
 - Zakres: frontend docelowy
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-15
 
 ## Stan obecny
-- W repozytorium istnieje szkic aplikacji React/Vite.
-- W aktualnych zależnościach są React, TypeScript, Vite i Material UI, ale React Router nie jest jeszcze używany w kodzie.
-- Docelowa architektura paneli i galerii publicznej nie jest jeszcze wdrożona.
+- Aplikacja działa jako SPA React/TypeScript/Vite z React Router, kontekstem sesji i chronionymi trasami.
+- Material UI, wspólny theme i `AppShell` tworzą bazę panelu; widoki domenowe korzystają z wydzielonych klientów API.
+- Zaimplementowane są: logowanie, dashboard wydarzeń i członkostw, zarządzanie galeriami oraz publiczny flow dostępu i uploadu.
+- Layouty i dialogi są mobile-first; publiczny upload obsługuje stany dostępu, offline, kolejki, częściowego powodzenia i retry.
 
 ## Stan docelowy
 - React + TypeScript + Vite + React Router.
