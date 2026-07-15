@@ -1,6 +1,7 @@
 import api from './api'
 
-export type UploadFileStatus = 'PENDING' | 'UPLOADING' | 'STORED' | 'FAILED' | 'CANCELLED'
+export type UploadFileStatus =
+  'PENDING' | 'RECEIVING' | 'STORED' | 'FAILED' | 'CANCELLED' | 'CLEANUP_REQUIRED'
 
 export interface UploadManifestFile {
   clientFileId: string

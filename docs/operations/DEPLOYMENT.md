@@ -6,11 +6,13 @@ Opisuje docelowy model wdrożenia platformy, z naciskiem na start na jednym VPS.
 ## Status dokumentu
 - Status: draft
 - Zakres: deployment model dla stanu docelowego
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-15
 
 ## Stan obecny
 - Repozytorium zawiera szkice plików deploymentowych, ale nie stanowią one potwierdzonej konfiguracji produkcyjnej.
 - Aktualny `docker-compose.yml` uruchamia `mysql`, `backend`, `frontend` i `nginx`.
+- Backend nie publikuje portu na hosta, dziala jako uzytkownik nie-root i zapisuje media w trwalym volume `media_data` montowanym jako `/data/media`.
+- Nginx ogranicza zwykle requesty do 2 MiB, a do 505 MiB dopuszcza tylko sciezke pojedynczego uploadu, chroniona osobna strefa rate limit.
 
 ## Stan docelowy
 - Jeden VPS z Nginx, frontendem, backendem, relacyjną bazą danych, lokalnym storage i procesem zadań asynchronicznych.

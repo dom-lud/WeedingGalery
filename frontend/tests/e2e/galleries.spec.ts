@@ -82,7 +82,7 @@ test.describe('Galleries E2E', () => {
     )
     await ownerCard.getByRole('button', { name: 'Archive gallery' }).click()
     expect((await archiveResponse).status()).toBe(200)
-    await expect(ownerCard.getByText(/ARCHIVED/)).toBeVisible()
+    await expect(ownerCard.getByText('ARCHIVED', { exact: true })).toBeVisible()
 
     const editedCard = page
       .getByText(`${managerGallery} edited`, { exact: true })

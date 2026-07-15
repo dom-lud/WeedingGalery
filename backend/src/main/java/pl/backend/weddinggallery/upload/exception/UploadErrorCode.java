@@ -24,7 +24,9 @@ public enum UploadErrorCode implements ErrorCode {
 																							HttpStatus.CONFLICT,
 																							"Gallery storage quota would be exceeded."), STORAGE_WRITE_FAILED(
 																									HttpStatus.SERVICE_UNAVAILABLE,
-																									"The file could not be stored safely.");
+																									"The file could not be stored safely."), UPLOAD_VALIDATION_BUSY(
+																											HttpStatus.SERVICE_UNAVAILABLE,
+																											"Upload validation capacity is temporarily exhausted.");
 
 	private final HttpStatus status;
 	private final String message;

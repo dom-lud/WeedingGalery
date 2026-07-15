@@ -6,12 +6,13 @@ Opisuje docelowy model danych, główne encje, relacje, indeksy i zasady ownersh
 ## Status dokumentu
 - Status: draft
 - Zakres: model danych dla stanu docelowego
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-15
 
 ## Stan obecny
 - Zaimplementowane sa tabele `users`, `events`, `event_memberships`, `galleries` i `audit_events` zarzadzane przez Flyway.
 - Etap 3 dodal `privacy_mode`, lifecycle/soft delete i optimistic version wydarzenia oraz historyczne membership managerow.
 - Etap 4 zaimplementowal `Gallery` w zakresie GALLERY-001: scoped management API, stabilny slug, kolejnosc, lifecycle, soft delete, optimistic version i audyt.
+- Etap 4B/5 dodal ustawienia publikacji i quota do `galleries`, hashowane `gallery_accesses`, `upload_sessions` oraz `media_files` zarzadzane migracjami V3/V4.
 - Pozostale encje opisane ponizej nadal stanowia stan docelowy.
 
 ## Stan docelowy
@@ -66,19 +67,20 @@ Opisuje docelowy model danych, główne encje, relacje, indeksy i zasady ownersh
 
 ### Gallery
 - Przeznaczenie: galeria w ramach wydarzenia.
-- Pola zaimplementowane: `id`, `event_id`, `name`, `slug`, `description`, `status`, `sort_order`, `archived_at`, `deleted_at`, `created_at`, `updated_at`, `version`.
-- Pola planowane w kolejnych etapach: `cover_media_file_id`, `access_code_hash`, `visibility_mode`, `upload_enabled`, `download_enabled`, `public_view_enabled`, `moderation_mode`, `published_at`, `expires_at`, `theme_key`.
+- Pola zaimplementowane: `id`, `event_id`, `name`, `slug`, `description`, `status`, `sort_order`, `public_view_enabled`, `upload_enabled`, `download_enabled`, `moderation_mode`, `access_code_hash`, `published_at`, `expires_at`, `storage_used_bytes`, `storage_reserved_bytes`, `archived_at`, `deleted_at`, `created_at`, `updated_at`, `version`.
+- Pola planowane w kolejnych etapach: `cover_media_file_id`, `visibility_mode`, `theme_key`.
 - Ograniczenia: `slug` jest globalnie unikalny i pozostaje zarezerwowany po soft delete; galeria zawsze nalezy do jednego wydarzenia.
 - Indeksy: `(event_id, status)`, `(event_id, deleted_at, sort_order)`, `deleted_at`, unikalny `slug`.
 
 ### GalleryAccess
 - Przeznaczenie: kontrola dostępu publicznego.
-- Pola: `id`, `gallery_id`, `access_type`, `token_hash`, `requires_passcode`, `expires_at`, `revoked_at`, `created_at`.
+- Pola zaimplementowane: `id`, `gallery_id`, `token_hash`, `revoked_at`, `created_at`, `version`. Token raw jest jednorazowo zwracany ownerowi; baza przechowuje SHA-256.
 - Indeksy: `(gallery_id, access_type)`, `token_hash`.
 
 ### MediaFile
 - Przeznaczenie: metadane zdjęcia lub filmu.
-- Pola: `id`, `owner_user_id`, `event_id`, `gallery_id`, `upload_session_id`, `original_filename`, `storage_filename`, `storage_key`, `mime_type`, `size_bytes`, `media_type`, `status`, `uploaded_by_guest_name`, `checksum_sha256`, `thumbnail_status`, `metadata_json`, `moderation_flag`, `uploaded_at`, `published_at`, `deleted_at`.
+- Pola zaimplementowane w Etapie 5: `id`, `gallery_id`, `upload_session_id`, `client_file_id`, `original_filename`, `storage_key`, `expected_size_bytes`, `size_bytes`, `declared_content_type`, `detected_content_type`, `media_type`, `status`, `checksum_sha256`, `failure_code`, `stored_at`, timestampy i `version`.
+- Pozostale metadane publikacji i przetwarzania sa planowane w Etapach 6-8.
 - Relacje: N:1 do `Event`, `Gallery`, `UploadSession`; 1:N do `MediaThumbnail`, `MediaProcessingJob`.
 - Indeksy: `gallery_id`, `(gallery_id, status)`, `event_id`, `checksum_sha256`.
 
@@ -94,7 +96,7 @@ Opisuje docelowy model danych, główne encje, relacje, indeksy i zasady ownersh
 
 ### UploadSession
 - Przeznaczenie: grupuje upload jednego lub wielu plików.
-- Pola: `id`, `event_id`, `gallery_id`, `initiator_type`, `initiator_user_id`, `guest_display_name`, `status`, `total_files`, `uploaded_files`, `failed_files`, `client_fingerprint`, `created_at`, `completed_at`.
+- Pola zaimplementowane: `id`, `gallery_id`, `public_access_id`, `grant_fingerprint`, `idempotency_key`, `request_fingerprint`, `status`, `total_files`, `total_bytes`, `reserved_bytes`, `expires_at`, `cancelled_at`, timestampy i `version`.
 - Indeksy: `gallery_id`, `(event_id, created_at)`, `status`.
 
 ### DownloadArchive

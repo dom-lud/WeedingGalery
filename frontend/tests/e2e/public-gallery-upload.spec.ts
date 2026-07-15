@@ -25,9 +25,17 @@ test('owner publishes a code-protected gallery and a guest uploads a file', asyn
   const shareLink = await page.getByLabel('New private share link').inputValue()
   await page.getByLabel('Enable guest view').check()
   await page.getByLabel('Allow guest uploads').check()
+  const settingsResponse = page.waitForResponse(
+    (response) => response.url().endsWith('/settings') && response.request().method() === 'PUT',
+  )
   await page.getByRole('button', { name: 'Save access settings' }).click()
+  expect((await settingsResponse).status()).toBe(200)
   await page.getByLabel('New access code').fill('secret1')
+  const codeResponse = page.waitForResponse(
+    (response) => response.url().endsWith('/access-code') && response.request().method() === 'PUT',
+  )
   await page.getByRole('button', { name: 'Set code' }).click()
+  expect((await codeResponse).status()).toBe(204)
 
   await page.context().clearCookies()
   const publicGallery = new PublicGalleryPage(page)

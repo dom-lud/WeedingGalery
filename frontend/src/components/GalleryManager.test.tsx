@@ -69,6 +69,8 @@ describe('GalleryManager', () => {
         sortOrder: 20,
       }),
     )
+    expect(await screen.findByText('Gallery created.')).toBeInTheDocument()
+    await waitFor(() => expect(galleriesApi.list).toHaveBeenCalledTimes(2))
   })
 
   it('does not expose lifecycle actions to a manager', async () => {

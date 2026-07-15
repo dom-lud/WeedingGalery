@@ -19,7 +19,9 @@ public class PublicGalleryController {
 	@PostMapping("/access")
 	public PublicGalleryResponse access(@PathVariable String slug, @Valid @RequestBody PublicAccessRequest body,
 			HttpServletRequest request, HttpSession session) {
-		rateLimiter.check(clientAddress(request) + ":access:" + slug);
+		String address = clientAddress(request);
+		rateLimiter.check(address + ":access-global", 30);
+		rateLimiter.check(address + ":access:" + slug);
 		return service.exchange(slug, body, session);
 	}
 	@GetMapping

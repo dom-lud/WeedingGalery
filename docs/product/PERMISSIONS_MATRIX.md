@@ -6,13 +6,15 @@ Prezentuje wysokopoziomowa macierz uprawnien dla rol systemowych i rol wydarzeni
 ## Status dokumentu
 - Status: draft
 - Zakres: matryca uprawnien produktu
-- Ostatnia aktualizacja: 2026-07-13
+- Ostatnia aktualizacja: 2026-07-15
 
 ## Stan obecny
 - Zaimplementowany jest podstawowy model auth dla kont systemowych.
 - W praktyce wdrozone sa obecnie tylko uprawnienia potrzebne do logowania, wylogowania, odczytu `/api/auth/me` i administracyjnego tworzenia kont.
 - Uprawnienia `EventOwner` i `EventManager` oraz ownership wydarzenia sa wdrozone w zakresie Etapu 3.
 - W zakresie GALLERY-001 owner i aktywny manager moga listowac, odczytywac, tworzyc i edytowac metadane galerii; archiwizacja i soft delete sa zastrzezone dla ownera.
+- W Etapie 4B ustawienia publikacji, token i kod zmienia owner; manager ma odczyt ustawien. Guest uzyskuje czasowy grant tylko do jednej aktywnej galerii.
+- W Etapie 5 guest z grantem i `uploadEnabled` moze utworzyc wlasna sesje i przesylac tylko pliki z jej manifestu; sesja innego grantu jest maskowana jako not found.
 - Osobny tor administracyjny wydarzen nie jest jeszcze zaimplementowany; rola `ADMIN` nie omija ownership w zwyklym `/api/events`.
 
 ## Stan docelowy

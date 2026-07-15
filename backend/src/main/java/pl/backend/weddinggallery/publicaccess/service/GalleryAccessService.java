@@ -48,6 +48,7 @@ public class GalleryAccessService {
 			String email) {
 		AccessContext context = owner(eventId, galleryId, email);
 		Gallery gallery = context.gallery();
+		requireMutable(gallery);
 		if (gallery.getVersion() != request.version()) {
 			throw new org.springframework.orm.ObjectOptimisticLockingFailureException(Gallery.class, galleryId);
 		}
@@ -72,13 +73,15 @@ public class GalleryAccessService {
 		gallery.setUpdatedAt(LocalDateTime.now());
 		auditService.logRequiredGalleryEvent(context.actor().getEmail(), EventType.GALLERY_SETTINGS_UPDATED, eventId,
 				galleryId, "publicView=" + request.publicViewEnabled() + ",upload=" + request.uploadEnabled());
+		galleryRepository.flush();
 		return settings(gallery);
 	}
 
 	@Transactional
 	public AccessTokenResponse rotateToken(String eventId, String galleryId, String email) {
 		AccessContext context = owner(eventId, galleryId, email);
-		LocalDateTime now = LocalDateTime.now();
+		requireMutable(context.gallery());
+		LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
 		List<GalleryAccess> active = accessRepository.findByGalleryIdAndRevokedAtIsNull(galleryId);
 		active.forEach(access -> access.setRevokedAt(now));
 		String raw = tokenService.generate();
@@ -92,6 +95,7 @@ public class GalleryAccessService {
 	@Transactional
 	public void setAccessCode(String eventId, String galleryId, String code, String email) {
 		AccessContext context = owner(eventId, galleryId, email);
+		requireMutable(context.gallery());
 		context.gallery().setAccessCodeHash(passwordEncoder.encode(code));
 		context.gallery().setUpdatedAt(LocalDateTime.now());
 		auditService.logRequiredGalleryEvent(context.actor().getEmail(), EventType.GALLERY_ACCESS_CODE_CHANGED, eventId,
@@ -101,6 +105,7 @@ public class GalleryAccessService {
 	@Transactional
 	public void clearAccessCode(String eventId, String galleryId, String email) {
 		AccessContext context = owner(eventId, galleryId, email);
+		requireMutable(context.gallery());
 		context.gallery().setAccessCodeHash(null);
 		context.gallery().setUpdatedAt(LocalDateTime.now());
 		auditService.logRequiredGalleryEvent(context.actor().getEmail(), EventType.GALLERY_ACCESS_CODE_CHANGED, eventId,
@@ -153,7 +158,7 @@ public class GalleryAccessService {
 	private Gallery availableGallery(String slug) {
 		Gallery gallery = galleryRepository.findBySlugAndDeletedAtIsNull(slug)
 				.orElseThrow(() -> new AppException(GalleryErrorCode.PUBLIC_GALLERY_NOT_FOUND));
-		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
 		boolean unavailable = gallery.getStatus() != GalleryStatus.ACTIVE || !gallery.isPublicViewEnabled()
 				|| gallery.getEvent().getStatus() == EventStatus.ARCHIVED
 				|| gallery.getEvent().getStatus() == EventStatus.DELETED
@@ -178,6 +183,13 @@ public class GalleryAccessService {
 		if (context.role() != EventRole.OWNER)
 			throw new AppException(GalleryErrorCode.GALLERY_SETTINGS_OWNER_REQUIRED);
 		return context;
+	}
+
+	private void requireMutable(Gallery gallery) {
+		if (gallery.getStatus() != GalleryStatus.ACTIVE || gallery.getEvent().getStatus() == EventStatus.ARCHIVED
+				|| gallery.getEvent().getStatus() == EventStatus.DELETED) {
+			throw new AppException(GalleryErrorCode.GALLERY_ARCHIVED);
+		}
 	}
 
 	private GallerySettingsResponse settings(Gallery gallery) {

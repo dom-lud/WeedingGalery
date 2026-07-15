@@ -1,6 +1,7 @@
 package pl.backend.weddinggallery.upload.controller;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,8 @@ public class PublicUploadController {
 	@PostMapping
 	public ResponseEntity<UploadSessionResponse> create(@PathVariable String slug,
 			@RequestHeader("Idempotency-Key") String idempotencyKey, @Valid @RequestBody UploadManifestRequest request,
-			HttpSession session) {
-		rateLimiter.check(session.getId() + ":upload-session:" + slug);
+			HttpSession session, HttpServletRequest httpRequest) {
+		rateLimiter.check(clientAddress(httpRequest) + ":upload-session:" + slug, 30);
 		UploadService.CreateResult result = service.create(slug, idempotencyKey, request, session);
 		if (!result.created())
 			return ResponseEntity.ok(result.response());
@@ -38,8 +39,8 @@ public class PublicUploadController {
 
 	@PutMapping(path = "/{sessionId}/files/{clientFileId}", consumes = "multipart/form-data")
 	public UploadFileResponse upload(@PathVariable String slug, @PathVariable String sessionId,
-			@PathVariable String clientFileId, @RequestPart("file") MultipartFile file, HttpSession session) {
-		rateLimiter.check(session.getId() + ":upload-file:" + slug);
+			@PathVariable String clientFileId, @RequestPart("file") MultipartFile file, HttpSession session,
+			HttpServletRequest httpRequest) {
 		return service.upload(slug, sessionId, clientFileId, file, session);
 	}
 
@@ -47,5 +48,10 @@ public class PublicUploadController {
 	public UploadSessionResponse cancel(@PathVariable String slug, @PathVariable String sessionId,
 			HttpSession session) {
 		return service.cancel(slug, sessionId, session);
+	}
+
+	private String clientAddress(HttpServletRequest request) {
+		String proxied = request.getHeader("X-Real-IP");
+		return proxied == null || proxied.isBlank() ? request.getRemoteAddr() : proxied;
 	}
 }

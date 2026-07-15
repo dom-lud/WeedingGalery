@@ -135,3 +135,29 @@ Ten dokument gromadzi i opisuje zaplanowane scenariusze testow End-to-End (E2E) 
 - `backend`: integracyjny flow z realna sesja, CSRF, ownerem, managerem, outsiderem, IDOR, walidacja, lifecycle, soft delete i audytem.
 - `frontend`: testy komponentu dla empty/create, ograniczen managera oraz error/retry.
 - `frontend/tests/e2e/galleries.spec.ts`: flow UI owner -> manager -> edit -> archive -> delete na Docker Compose.
+
+## Modul: Publiczna galeria i upload (Etapy 4B/5)
+
+### 1. Publikacja i wejscie goscia
+**Krytycznosc:** Krytyczna
+- Owner rotuje jednorazowy token, ustawia opcjonalny kod i wlacza public view oraz upload.
+- Token pozostaje we fragmencie URL i jest usuwany z paska po zapisaniu w `sessionStorage`.
+- Bledny token, kod, wygasle okno, archiwizacja i rotacja tokenu nie ujawniaja galerii.
+
+### 2. Upload wieloplikowy i izolacja
+**Krytycznosc:** Krytyczna
+- Guest tworzy manifest z idempotency key, wysyla plik i widzi status per plik.
+- Inny grant tego samego tokenu ma osobny limit sesji i przestrzen idempotency.
+- Obcy grant/sessionId, brak CSRF, niespojny MIME/magic bytes/rozmiar oraz przekroczenie quota sa odrzucane.
+- Wygasla albo uniewazniona sesja zwalnia zarezerwowane bajty.
+
+### 3. Storage i odpornosc
+**Krytycznosc:** Wysoka
+- Zapisany plik przetrwa restart backendu w volume `media_data`.
+- Klient nie otrzymuje object key ani sciezki systemowej.
+- Przerwany zapis i stare `.tmp` podlegaja reconciliacji/cleanupowi.
+
+### Stan automatyzacji
+- `backend`: integracyjny public access + upload z realna sesja, CSRF, MySQL-compatible Flyway, grant isolation, expiry cleanup i negatywne formaty.
+- `frontend`: testy komponentu publicznego entrypointu, kodu, kolejki, retry i uploadu.
+- `frontend/tests/e2e/public-gallery-upload.spec.ts`: owner publikuje galerie, a guest w nowym kontekscie wgrywa poprawny PNG przez Nginx.

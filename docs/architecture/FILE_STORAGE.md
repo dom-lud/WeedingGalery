@@ -6,10 +6,13 @@ Opisuje docelową abstrakcję storage, model przechowywania plików i zasady dos
 ## Status dokumentu
 - Status: draft
 - Zakres: storage lokalny i przyszłe storage obiektowe
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-15
 
 ## Stan obecny
-- Docelowa abstrakcja storage nie jest jeszcze zaimplementowana.
+- `StorageService` i `LocalFilesystemStorage` obsługują zapis uploadów, usuwanie kompensacyjne, `exists` i metadane bez ujawniania ścieżek fizycznych.
+- Plik jest najpierw zapisywany do pliku tymczasowego, a następnie atomowo przenoszony pod losowy klucz ograniczony do skonfigurowanego katalogu root.
+- Docker Compose utrzymuje `/data/media` w nazwanym volume `media_data`; backend działa jako użytkownik nie-root.
+- Publiczny odczyt, streaming i signed links nie są jeszcze zaimplementowane i należą do `DOWNLOAD-001`/Etapu 7.
 
 ## Stan docelowy
 - Storage ukryty za interfejsem domenowym, z pierwszą implementacją lokalną na VPS i możliwością przejścia na storage obiektowy bez zmiany logiki biznesowej.
@@ -36,6 +39,8 @@ StorageService
 - getMetadata(objectKey)
 - generateTemporaryDownloadLink(objectKey, ttl)
 ```
+
+Aktualny interfejs realizuje operacje potrzebne do bezpiecznego uploadu. `open` i link tymczasowy są celowo odroczone do zaprojektowania kontraktu pobierania.
 
 ## Klucz storage
 - Klucz powinien być stabilny i niezgadnialny.

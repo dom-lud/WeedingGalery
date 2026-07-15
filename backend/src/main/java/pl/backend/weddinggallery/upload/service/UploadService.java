@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,6 +49,7 @@ public class UploadService {
 	private long galleryQuotaBytes;
 	@Value("${app.upload.session-ttl-minutes:30}")
 	private long sessionTtlMinutes;
+	private final LocalDateTime processStartedAt = LocalDateTime.now();
 
 	public CreateResult create(String slug, String idempotencyKey, UploadManifestRequest request,
 			jakarta.servlet.http.HttpSession httpSession) {
@@ -58,19 +60,20 @@ public class UploadService {
 		String fingerprint = fingerprint(request);
 		String grantFingerprint = tokenService.hash(grant.httpSessionId());
 		return tx(() -> {
-			Optional<UploadSession> existing = sessionRepository.findByPublicAccessIdAndIdempotencyKey(grant.accessId(),
-					idempotencyKey);
+			Gallery gallery = galleryRepository.findWithLockById(grant.gallery().getId())
+					.orElseThrow(() -> new AppException(UploadErrorCode.UPLOAD_SESSION_NOT_FOUND));
+			releaseStaleReservations(gallery, LocalDateTime.now());
+			Optional<UploadSession> existing = sessionRepository
+					.findByGrantFingerprintAndIdempotencyKey(grantFingerprint, idempotencyKey);
 			if (existing.isPresent()) {
 				if (!existing.get().getRequestFingerprint().equals(fingerprint)
 						|| !existing.get().getGrantFingerprint().equals(grantFingerprint))
 					throw new AppException(UploadErrorCode.IDEMPOTENCY_KEY_CONFLICT);
 				return new CreateResult(response(existing.get()), false);
 			}
-			if (sessionRepository.countByPublicAccessIdAndStatusAndExpiresAtAfter(grant.accessId(),
+			if (sessionRepository.countByGrantFingerprintAndStatusAndExpiresAtAfter(grantFingerprint,
 					UploadSessionStatus.OPEN, LocalDateTime.now()) >= maxActiveSessions)
 				throw new AppException(UploadErrorCode.UPLOAD_SESSION_LIMIT_EXCEEDED);
-			Gallery gallery = galleryRepository.findWithLockById(grant.gallery().getId())
-					.orElseThrow(() -> new AppException(UploadErrorCode.UPLOAD_SESSION_NOT_FOUND));
 			long total = totalBytes(request);
 			if (gallery.getStorageUsedBytes() + gallery.getStorageReservedBytes() + total > galleryQuotaBytes)
 				throw new AppException(UploadErrorCode.STORAGE_QUOTA_EXCEEDED);
@@ -128,6 +131,18 @@ public class UploadService {
 		}
 	}
 
+	public long preflightUpload(String slug, String sessionId, String clientFileId,
+			jakarta.servlet.http.HttpSession httpSession) {
+		GalleryAccessService.GrantedGallery grant = accessService.requireGrant(slug, httpSession, true);
+		return tx(() -> {
+			UploadSession session = requireSession(sessionId, grant);
+			if (session.getStatus() != UploadSessionStatus.OPEN)
+				throw new AppException(UploadErrorCode.UPLOAD_SESSION_NOT_OPEN);
+			return mediaRepository.findByUploadSessionIdAndClientFileId(sessionId, clientFileId)
+					.orElseThrow(() -> new AppException(UploadErrorCode.UPLOAD_FILE_NOT_FOUND)).getExpectedSizeBytes();
+		});
+	}
+
 	public UploadSessionResponse cancel(String slug, String sessionId, jakarta.servlet.http.HttpSession httpSession) {
 		GalleryAccessService.GrantedGallery grant = accessService.requireGrant(slug, httpSession, true);
 		return tx(() -> {
@@ -136,17 +151,46 @@ public class UploadService {
 				return response(session);
 			if (session.getFiles().stream().anyMatch(file -> file.getStatus() == MediaStatus.RECEIVING))
 				throw new AppException(UploadErrorCode.UPLOAD_IN_PROGRESS);
-			long release = session.getFiles().stream().filter(file -> file.getStatus() != MediaStatus.STORED)
-					.mapToLong(MediaFile::getExpectedSizeBytes).sum();
-			Gallery gallery = galleryRepository.findWithLockById(session.getGallery().getId()).orElseThrow();
-			gallery.setStorageReservedBytes(Math.max(0, gallery.getStorageReservedBytes() - release));
-			session.getFiles().stream().filter(file -> file.getStatus() != MediaStatus.STORED)
-					.forEach(file -> file.setStatus(MediaStatus.CANCELLED));
-			session.setReservedBytes(Math.max(0, session.getReservedBytes() - release));
-			session.setStatus(UploadSessionStatus.CANCELLED);
+			releaseSessionReservation(session, UploadSessionStatus.CANCELLED);
 			session.setCancelledAt(LocalDateTime.now());
 			return response(session);
 		});
+	}
+
+	@Scheduled(fixedDelayString = "${app.upload.cleanup-interval-ms:300000}", initialDelayString = "${app.upload.cleanup-initial-delay-ms:60000}")
+	public void releaseExpiredAndRevokedSessions() {
+		tx(() -> {
+			for (MediaFile media : mediaRepository.findByStatusAndUpdatedAtBefore(MediaStatus.RECEIVING,
+					processStartedAt))
+				reconcileObject(media);
+			for (MediaFile media : mediaRepository.findByStatusAndUpdatedAtBefore(MediaStatus.CLEANUP_REQUIRED,
+					LocalDateTime.now()))
+				reconcileObject(media);
+			for (UploadSession session : sessionRepository.findAllReleasableOpenSessions(LocalDateTime.now()))
+				releaseSessionReservation(session, UploadSessionStatus.EXPIRED);
+			return null;
+		});
+	}
+
+	private void reconcileObject(MediaFile media) {
+		try {
+			if (storageService.exists(media.getStorageKey()))
+				storageService.delete(media.getStorageKey());
+			if (media.getUploadSession().getStatus() == UploadSessionStatus.OPEN) {
+				media.setStatus(MediaStatus.FAILED);
+			} else {
+				Gallery gallery = galleryRepository.findWithLockById(media.getGallery().getId()).orElseThrow();
+				gallery.setStorageReservedBytes(
+						Math.max(0, gallery.getStorageReservedBytes() - media.getExpectedSizeBytes()));
+				media.getUploadSession().setReservedBytes(
+						Math.max(0, media.getUploadSession().getReservedBytes() - media.getExpectedSizeBytes()));
+				media.setStatus(MediaStatus.CANCELLED);
+			}
+			media.setFailureCode("INTERRUPTED_UPLOAD");
+		} catch (RuntimeException ex) {
+			media.setStatus(MediaStatus.CLEANUP_REQUIRED);
+			media.setFailureCode("INTERRUPTED_UPLOAD_CLEANUP_FAILED");
+		}
 	}
 
 	private Claim claim(String sessionId, String clientFileId, GalleryAccessService.GrantedGallery grant) {
@@ -214,9 +258,40 @@ public class UploadService {
 				.findByIdAndGalleryIdAndPublicAccessIdAndGrantFingerprint(id, grant.gallery().getId(), grant.accessId(),
 						tokenService.hash(grant.httpSessionId()))
 				.orElseThrow(() -> new AppException(UploadErrorCode.UPLOAD_SESSION_NOT_FOUND));
-		if (!LocalDateTime.now().isBefore(session.getExpiresAt()) && session.getStatus() == UploadSessionStatus.OPEN)
+		if (!LocalDateTime.now().isBefore(session.getExpiresAt()) && session.getStatus() == UploadSessionStatus.OPEN) {
+			releaseSessionReservation(session, UploadSessionStatus.EXPIRED);
 			throw new AppException(UploadErrorCode.UPLOAD_SESSION_NOT_OPEN);
+		}
 		return session;
+	}
+
+	private void releaseStaleReservations(Gallery gallery, LocalDateTime now) {
+		for (UploadSession session : sessionRepository.findReleasableOpenSessions(gallery.getId(), now))
+			releaseSessionReservation(session, UploadSessionStatus.EXPIRED);
+	}
+
+	private void releaseSessionReservation(UploadSession session, UploadSessionStatus targetStatus) {
+		long release = 0;
+		for (MediaFile file : session.getFiles()) {
+			if (file.getStatus() == MediaStatus.STORED || file.getStatus() == MediaStatus.CLEANUP_REQUIRED)
+				continue;
+			if (file.getStatus() == MediaStatus.RECEIVING) {
+				try {
+					if (storageService.exists(file.getStorageKey()))
+						storageService.delete(file.getStorageKey());
+				} catch (RuntimeException ex) {
+					file.setStatus(MediaStatus.CLEANUP_REQUIRED);
+					file.setFailureCode("EXPIRED_UPLOAD_CLEANUP_FAILED");
+					continue;
+				}
+			}
+			file.setStatus(MediaStatus.CANCELLED);
+			release += file.getExpectedSizeBytes();
+		}
+		Gallery gallery = galleryRepository.findWithLockById(session.getGallery().getId()).orElseThrow();
+		gallery.setStorageReservedBytes(Math.max(0, gallery.getStorageReservedBytes() - release));
+		session.setReservedBytes(Math.max(0, session.getReservedBytes() - release));
+		session.setStatus(targetStatus);
 	}
 
 	private void validateManifest(UploadManifestRequest request) {

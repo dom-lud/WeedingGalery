@@ -6,7 +6,7 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 ## Status dokumentu
 - Status: draft
 - Zakres: roadmapa wdrazania funkcji i procesow
-- Ostatnia aktualizacja: 2026-07-13
+- Ostatnia aktualizacja: 2026-07-15
 
 ## Stan obecny
 - Roadmapa opisuje planowany rozwoj.
@@ -14,6 +14,7 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 - Etap 1 zostal uruchomiony jako techniczny fundament repozytorium.
 - Etap 2 jest domkniety w zakresie podstawowej identity.
 - Etap 3 jest domkniety w minimalnym zakresie `EVENT-001` i `MEMBER-001`.
+- Etapy 4 i 4B sa domkniete, a Etap 5 jest domkniety w pierwszym zakresie upload/storage.
 
 ## Stan docelowy
 - Sekwencja etapow prowadzaca od dokumentacji i procesow do stabilnej produkcji pelnej platformy wielouzytkownikowej.
@@ -72,9 +73,10 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 ## Etap 4 - Galerie
 - Cel: wdrozenie bezpiecznego zarzadzania wieloma galeriami w kontekscie wydarzenia.
 - Zaleznosci: etap 3. ADR 0010 jest wymagany dopiero dla publicznego dostepu w kolejnym rozszerzeniu.
-- Status: zakonczony w minimalnym zakresie `GALLERY-001`.
+- Status: zakonczony w zakresie `GALLERY-001` oraz rozszerzenia 4B (`GALLERY-002`, `PUBLIC-001`).
 - Pierwszy zakres: uwierzytelnione listowanie, tworzenie, odczyt, edycja, kolejnosc, archiwizacja i soft delete galerii z ownership dziedziczonym po wydarzeniu.
-- Poza pierwszym zakresem: `GALLERY-002`, `PUBLIC-001`, QR, tokeny, kody dostepu, upload, download, media, moderacja i personalizacja.
+- Rozszerzenie 4B: ustawienia publikacji i uploadu, rotowany token, opcjonalny kod BCrypt, grant sesyjny ograniczony do galerii, rate limiting oraz publiczny mobile-first entrypoint `/g/:slug`.
+- Poza zakonczonym zakresem: QR, listowanie mediow, download, moderacja i personalizacja.
 - Kryterium ukonczenia pierwszego zakresu: owner i manager moga zarzadzac dozwolonymi metadanymi wielu galerii, owner kontroluje lifecycle, a API i UI bronia scoping `eventId + galleryId`.
 - Potwierdzenie:
   - management API dziedziczy ownership i role z wydarzenia oraz maskuje cross-event IDOR,
@@ -90,6 +92,13 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 - Zaleznosci: etap 4, ADR dot. storage.
 - Rezultat: upload zdjec i filmow, walidacja, limity, storage abstraction i upload sessions.
 - Kryterium ukonczenia: gosc lub uzytkownik moze bezpiecznie przeslac media do wlasciwej galerii.
+- Status: zakonczony w pierwszym zakresie `UPLOAD-001`, minimalnego `UPLOAD-002` i uploadowej czesci `STORAGE-001`.
+- Potwierdzenie:
+  - manifest i upload pojedynczych plikow dzialaja w ramach sesji z idempotencja, retry, anulowaniem i statusem per plik,
+  - serwer sprawdza rozszerzenie, deklarowany MIME, magic bytes, rozmiar, liczbe plikow, aktywne sesje i quota galerii,
+  - zapis przechodzi przez `StorageService`, losowy klucz, plik tymczasowy i atomowe przeniesienie do trwalego volume,
+  - publiczny grant, upload i negatywne sciezki sa pokryte testami backend, frontend i E2E.
+- Poza zakonczonym zakresem: resumable/chunk upload, analiza kodeka MP4, skan antywirusowy, przetwarzanie mediow oraz pobieranie/signed links.
 - Glowne ryzyka: upload security, limity miejsca, niespojnosc baza-storage.
 
 ## Etap 6 - Przetwarzanie mediow

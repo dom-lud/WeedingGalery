@@ -421,7 +421,7 @@ SSOT oraz - dla publicznego dostepu - zaakceptowanego ADR 0010.
 
 ## Kontrakt GALLERY-002 i PUBLIC-001 - Etap 4B
 
-Status: `IMPLEMENTED` po zakonczeniu Etapu 4B. QR, listowanie mediow i download
+Status: `IMPLEMENTED`. QR, listowanie mediow i download
 pozostaja poza tym kontraktem.
 
 ### Ustawienia i uprawnienia
@@ -514,7 +514,7 @@ dzialaja natychmiast.
 
 ## Kontrakt STORAGE-001, UPLOAD-001 i minimalny UPLOAD-002 - Etap 5
 
-Status: `IMPLEMENTED` po zakonczeniu Etapu 5. Implementacja uzywa klasycznego
+Status: `IMPLEMENTED`. Implementacja uzywa klasycznego
 multipart po jednym pliku. Chunking i resumable parts sa poza zakresem, ale model
 sesji nie blokuje przyszlego `/parts`.
 
@@ -546,26 +546,36 @@ Wymaga publicznego grantu z aktualnym `uploadEnabled`, CSRF i naglowka
 }
 ```
 
-Zwraca `201` z `id`, `status: OPEN`, `expiresAt`, limitami i lista plikow w
+Zwraca `201` z `id`, `status: OPEN`, `expiresAt` i lista plikow w
 statusie `PENDING`. Powtorzenie tego samego klucza i manifestu zwraca ten sam
 zasob (`200`); ten sam klucz z innym manifestem zwraca `409
 IDEMPOTENCY_KEY_CONFLICT`.
 
 ### `GET /api/public/galleries/{slug}/upload-sessions/{sessionId}`
 
-Odtwarza kolejke po odswiezeniu. Grant musi byc tym samym grantem, ktory utworzyl
-sesje. Obca lub wygasla sesja zwraca `404 UPLOAD_SESSION_NOT_FOUND`.
+Zwraca serwerowy stan sesji i pozwala klientowi wznowic retry, jezeli nadal ma
+lokalne obiekty `File`. Przegladarka nie moze automatycznie odtworzyc zawartosci
+lokalnych plikow po pelnym odswiezeniu bez ponownego wyboru przez uzytkownika.
+Grant musi byc tym samym grantem, ktory utworzyl sesje. Obca sesja zwraca `404
+UPLOAD_SESSION_NOT_FOUND`, a wygasla `409 UPLOAD_SESSION_NOT_OPEN` i zwalnia
+rezerwacje quota.
 
 ### `PUT /api/public/galleries/{slug}/upload-sessions/{sessionId}/files/{clientFileId}`
 
-Wymaga tego samego grantu i CSRF. `multipart/form-data` zawiera jedno pole `file`.
-Sukces zwraca `200` z wynikiem `STORED`, wykrytym MIME, size i checksum. Replay po
+Wymaga tego samego grantu i CSRF. `multipart/form-data` zawiera jedno pole `file`
+i musi miec `Content-Length`. Filtr przed parserem multipart sprawdza grant,
+`sessionId`, `clientFileId` i czy rozmiar transportowy jest zgodny z manifestem.
+Sukces zwraca `200` z wynikiem `STORED`, wykrytym MIME, size i checksum. Stan
+serwerowy pliku moze przejsc przez `RECEIVING`, a awaria kompensacji przez
+`CLEANUP_REQUIRED`. Replay po
 sukcesie nie tworzy drugiego obiektu. Blad jednego pliku nie blokuje pozostalych.
 
 Kody: `UPLOAD_FILE_TOO_LARGE` (`413`), `UPLOAD_TYPE_NOT_ALLOWED` (`415`),
 `UPLOAD_CONTENT_MISMATCH` (`422`), `UPLOAD_SIZE_MISMATCH` (`422`),
 `UPLOAD_FILE_NOT_FOUND` (`404`), `UPLOAD_SESSION_NOT_OPEN` (`409`),
 `STORAGE_QUOTA_EXCEEDED` (`409`), `STORAGE_WRITE_FAILED` (`503`).
+Gdy dwa pelne dekodery obrazu sa zajete, serwer zwraca przejsciowe `503
+UPLOAD_VALIDATION_BUSY` zamiast ryzykowac przekroczenie budzetu pamieci.
 
 ### `POST /api/public/galleries/{slug}/upload-sessions/{sessionId}/cancel`
 

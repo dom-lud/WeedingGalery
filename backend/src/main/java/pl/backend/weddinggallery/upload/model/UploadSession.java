@@ -9,8 +9,8 @@ import pl.backend.weddinggallery.media.model.MediaFile;
 import pl.backend.weddinggallery.publicaccess.model.GalleryAccess;
 
 @Entity
-@Table(name = "upload_sessions", uniqueConstraints = @UniqueConstraint(name = "uk_upload_access_idempotency", columnNames = {
-		"public_access_id", "idempotency_key"}))
+@Table(name = "upload_sessions", uniqueConstraints = @UniqueConstraint(name = "uk_upload_grant_idempotency", columnNames = {
+		"grant_fingerprint", "idempotency_key"}))
 @Getter
 @Setter
 @NoArgsConstructor
