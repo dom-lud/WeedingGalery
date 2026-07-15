@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   Alert,
+  Box,
   Button,
   Card,
   CardActions,
@@ -11,15 +12,20 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   FormControl,
   FormControlLabel,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
+  Skeleton,
   Stack,
   Switch,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import type { EventData } from '../eventsApi'
 import {
@@ -29,6 +35,7 @@ import {
   type GallerySettingsPayload,
   type GalleryWritePayload,
 } from '../galleriesApi'
+import ConfirmDialog from './ui/ConfirmDialog'
 
 const emptyPayload: GalleryWritePayload = { name: '', description: null, sortOrder: 0 }
 
@@ -45,6 +52,8 @@ interface GalleryManagerProps {
 }
 
 export default function GalleryManager({ event }: GalleryManagerProps) {
+  const theme = useTheme()
+  const fullScreenDialog = useMediaQuery(theme.breakpoints.down('sm'))
   const [galleries, setGalleries] = useState<GalleryData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -57,6 +66,13 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
   const [settingsLoading, setSettingsLoading] = useState(false)
   const [rotatedSharePath, setRotatedSharePath] = useState('')
   const [accessCode, setAccessCode] = useState('')
+  const [confirmation, setConfirmation] = useState<{
+    title: string
+    description: string
+    confirmLabel: string
+    action: () => Promise<void>
+  } | null>(null)
+  const [confirming, setConfirming] = useState(false)
   const validAccessCode = /^[\x20-\x7e]{6,64}$/.test(accessCode)
   const canEditAccessSettings =
     event.currentUserRole === 'OWNER' &&
@@ -119,23 +135,40 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
     }
   }
 
-  const archive = async (galleryId: string) => {
-    try {
-      await galleriesApi.archive(event.id, galleryId)
-      setMessage('Gallery archived.')
-      await load()
-    } catch (requestError) {
-      setError(errorMessage(requestError))
-    }
-  }
+  const requestArchive = (gallery: GalleryData) =>
+    setConfirmation({
+      title: 'Archive gallery?',
+      description: `${gallery.name} will become read-only and stop accepting guest uploads.`,
+      confirmLabel: 'Archive gallery',
+      action: async () => {
+        await galleriesApi.archive(event.id, gallery.id)
+        setMessage('Gallery archived.')
+        await load()
+      },
+    })
 
-  const remove = async (galleryId: string) => {
+  const requestRemove = (gallery: GalleryData) =>
+    setConfirmation({
+      title: 'Delete gallery?',
+      description: `Delete ${gallery.name}? It will no longer be available in this event.`,
+      confirmLabel: 'Delete gallery',
+      action: async () => {
+        await galleriesApi.remove(event.id, gallery.id)
+        setMessage('Gallery deleted.')
+        await load()
+      },
+    })
+
+  const confirmAction = async () => {
+    if (!confirmation || confirming) return
+    setConfirming(true)
     try {
-      await galleriesApi.remove(event.id, galleryId)
-      setMessage('Gallery deleted.')
-      await load()
+      await confirmation.action()
+      setConfirmation(null)
     } catch (requestError) {
       setError(errorMessage(requestError))
+    } finally {
+      setConfirming(false)
     }
   }
 
@@ -221,19 +254,19 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
   }
 
   return (
-    <Stack spacing={2} aria-label={`Galleries for ${event.name}`}>
+    <Stack component="section" spacing={2.5} aria-labelledby="galleries-title">
       <Stack
-        direction="row"
+        direction={{ xs: 'column', sm: 'row' }}
         spacing={1}
-        sx={{ justifyContent: 'space-between', alignItems: 'center' }}
+        sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' } }}
       >
-        <Typography variant="h6">Galleries</Typography>
-        <Button
-          variant="contained"
-          size="small"
-          onClick={openCreate}
-          disabled={event.status === 'ARCHIVED'}
-        >
+        <Box>
+          <Typography id="galleries-title" variant="h5" component="h2">
+            Galleries
+          </Typography>
+          <Typography color="text.secondary">Organize guest uploads into collections.</Typography>
+        </Box>
+        <Button variant="contained" onClick={openCreate} disabled={event.status === 'ARCHIVED'}>
           Create gallery
         </Button>
       </Stack>
@@ -257,11 +290,35 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
       )}
 
       {loading ? (
-        <CircularProgress size={28} aria-label="Loading galleries" />
+        <Box
+          aria-label="Loading galleries"
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+            gap: 1.5,
+          }}
+        >
+          <Skeleton variant="rounded" height={170} />
+          <Skeleton variant="rounded" height={170} />
+        </Box>
       ) : galleries.length === 0 ? (
-        <Typography color="text.secondary">No galleries yet.</Typography>
+        <Paper variant="outlined" sx={{ p: 3, textAlign: 'center', borderStyle: 'dashed' }}>
+          <Typography variant="h6">No galleries yet.</Typography>
+          <Typography color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
+            Create one for the ceremony, reception or another part of the day.
+          </Typography>
+          <Button variant="outlined" onClick={openCreate} disabled={event.status === 'ARCHIVED'}>
+            Create gallery
+          </Button>
+        </Paper>
       ) : (
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ flexWrap: 'wrap' }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: 'minmax(0, 1fr)', sm: 'repeat(2, minmax(0, 1fr))' },
+            gap: 1.5,
+          }}
+        >
           {galleries.map((gallery) => (
             <Card key={gallery.id} variant="outlined" sx={{ minWidth: { md: 240 }, flex: 1 }}>
               <CardContent>
@@ -307,7 +364,7 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
               </CardActions>
             </Card>
           ))}
-        </Stack>
+        </Box>
       )}
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
