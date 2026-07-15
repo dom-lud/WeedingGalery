@@ -36,6 +36,7 @@ public class LocalFilesystemStorage implements StorageService {
 		Path target = resolve(objectKey);
 		Path temporary = target.resolveSibling(target.getFileName() + "." + UUID.randomUUID() + ".tmp");
 		try {
+			assertNoSymlinks(target.getParent());
 			Files.createDirectories(target.getParent());
 			assertNoSymlinks(target.getParent());
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -56,7 +57,8 @@ public class LocalFilesystemStorage implements StorageService {
 				}
 			}
 			restrict(temporary, "rw-------");
-			Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE);
+			Files.createLink(target, temporary);
+			deleteQuietly(temporary);
 			return new StoredObject(size, HexFormat.of().formatHex(digest.digest()));
 		} catch (AppException ex) {
 			deleteQuietly(temporary);
@@ -79,15 +81,22 @@ public class LocalFilesystemStorage implements StorageService {
 	@Override
 	public void delete(String objectKey) {
 		try {
-			Files.deleteIfExists(resolve(objectKey));
+			Path path = resolve(objectKey);
+			assertNoSymlinks(path);
+			Files.deleteIfExists(path);
 		} catch (IOException ex) {
 			throw new AppException(UploadErrorCode.STORAGE_WRITE_FAILED);
 		}
 	}
 	@Override
 	public boolean exists(String objectKey) {
-		Path path = resolve(objectKey);
-		return Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS);
+		try {
+			Path path = resolve(objectKey);
+			assertNoSymlinks(path);
+			return Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS);
+		} catch (IOException ex) {
+			return false;
+		}
 	}
 	@Scheduled(fixedDelayString = "${app.upload.temp-cleanup-interval-ms:3600000}", initialDelayString = "${app.upload.temp-cleanup-initial-delay-ms:300000}")
 	void cleanupStaleTemporaryFiles() {

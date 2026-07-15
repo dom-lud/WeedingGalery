@@ -12,6 +12,8 @@ import pl.backend.weddinggallery.upload.exception.UploadErrorCode;
 class LocalFilesystemStorageTest {
 	@TempDir
 	Path root;
+	@TempDir
+	Path outside;
 
 	@Test
 	void storesUnderServerKeyWithoutOverwriteAndDeletesIdempotently() throws Exception {
@@ -24,6 +26,7 @@ class LocalFilesystemStorageTest {
 		assertThat(storage.open(key).readAllBytes()).isEqualTo("safe".getBytes());
 		assertThatThrownBy(() -> storage.save(key, new ByteArrayInputStream("again".getBytes()), 5))
 				.isInstanceOf(AppException.class);
+		assertThat(storage.open(key).readAllBytes()).isEqualTo("safe".getBytes());
 		storage.delete(key);
 		storage.delete(key);
 		assertThat(storage.exists(key)).isFalse();
@@ -46,15 +49,20 @@ class LocalFilesystemStorageTest {
 
 	@Test
 	void refusesSymlinkedStorageSegmentsWhenPlatformSupportsSymlinks() throws Exception {
-		Path outside = Files.createDirectory(root.resolve("outside-target"));
+		Path outsideFile = Files.write(outside.resolve("file"), new byte[]{1});
 		Path link = root.resolve("events");
 		try {
 			Files.createSymbolicLink(link, outside);
 		} catch (UnsupportedOperationException | FileSystemException ex) {
 			return;
 		}
-		assertThatThrownBy(() -> storage().save("events/e/file", new ByteArrayInputStream(new byte[]{1}), 1))
+		LocalFilesystemStorage storage = storage();
+		assertThatThrownBy(() -> storage.save("events/e/file", new ByteArrayInputStream(new byte[]{1}), 1))
 				.isInstanceOf(AppException.class);
+		assertThat(storage.exists("events/file")).isFalse();
+		assertThatThrownBy(() -> storage.delete("events/file")).isInstanceOf(AppException.class);
+		assertThat(outsideFile).exists();
+		assertThat(outside.resolve("e")).doesNotExist();
 	}
 
 	private LocalFilesystemStorage storage() {
