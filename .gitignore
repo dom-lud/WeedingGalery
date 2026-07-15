@@ -32,11 +32,11 @@ dist-ssr/
 coverage/
 *.tsbuildinfo
 
-# Runtime data
-storage/
-uploads/
-tmp/
-temp/
+# Runtime data (root-level directories only; do not hide source packages)
+/storage/
+/uploads/
+/tmp/
+/temp/
 
 # OS files
 .DS_Store
