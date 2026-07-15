@@ -17,7 +17,7 @@
 - [x] Walidacja laczy rozszerzenie, MIME, parser/strukture formatu, rozmiar i manifest.
 - [x] Quota obejmuje stored + reserved, a expiry/revocation zwalnia rezerwacje.
 - [x] Migracje V3/V4 sa addytywne i przechodza test kontraktu Flyway.
-- [x] Storage blokuje traversal/symlinki, uzywa pliku tymczasowego i atomowego move.
+- [x] Storage blokuje traversal/symlinki, uzywa pliku tymczasowego i atomowej publikacji bez nadpisywania.
 - [x] Zaplanowany cleanup obsluguje wygasle sesje, przerwane `RECEIVING` i stare `.tmp`.
 
 ## Jakosc

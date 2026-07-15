@@ -96,7 +96,7 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 - Potwierdzenie:
   - manifest i upload pojedynczych plikow dzialaja w ramach sesji z idempotencja, retry, anulowaniem i statusem per plik,
   - serwer sprawdza rozszerzenie, deklarowany MIME, magic bytes, rozmiar, liczbe plikow, aktywne sesje i quota galerii,
-  - zapis przechodzi przez `StorageService`, losowy klucz, plik tymczasowy i atomowe przeniesienie do trwalego volume,
+  - zapis przechodzi przez `StorageService`, losowy klucz, plik tymczasowy i atomowa publikacje bez nadpisywania w trwalym volume,
   - publiczny grant, upload i negatywne sciezki sa pokryte testami backend, frontend i E2E.
 - Poza zakonczonym zakresem: resumable/chunk upload, analiza kodeka MP4, skan antywirusowy, przetwarzanie mediow oraz pobieranie/signed links.
 - Glowne ryzyka: upload security, limity miejsca, niespojnosc baza-storage.

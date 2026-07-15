@@ -10,7 +10,7 @@ Opisuje docelową abstrakcję storage, model przechowywania plików i zasady dos
 
 ## Stan obecny
 - `StorageService` i `LocalFilesystemStorage` obsługują zapis uploadów, usuwanie kompensacyjne, `exists` i metadane bez ujawniania ścieżek fizycznych.
-- Plik jest najpierw zapisywany do pliku tymczasowego, a następnie atomowo przenoszony pod losowy klucz ograniczony do skonfigurowanego katalogu root.
+- Plik jest najpierw zapisywany do pliku tymczasowego, a następnie atomowo publikowany przez hard link pod losowy klucz ograniczony do skonfigurowanego katalogu root; istniejący obiekt nie jest nadpisywany.
 - Docker Compose utrzymuje `/data/media` w nazwanym volume `media_data`; backend działa jako użytkownik nie-root.
 - Publiczny odczyt, streaming i signed links nie są jeszcze zaimplementowane i należą do `DOWNLOAD-001`/Etapu 7.
 

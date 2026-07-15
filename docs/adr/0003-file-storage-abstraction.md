@@ -22,7 +22,7 @@ od szczegółów plikowego storage. Pierwsza implementacja zapisuje dane na trwa
 volume poza web rootem, pod kluczem generowanym wyłącznie przez serwer.
 
 Zapis przebiega przez plik tymczasowy na tym samym filesystemie, walidację oraz
-atomowy move. Implementacja blokuje traversal i symlinki, nie ujawnia fizycznych
+atomową publikację przez hard link, która nie nadpisuje istniejącego obiektu. Implementacja blokuje traversal i symlinki, nie ujawnia fizycznych
 ścieżek i nigdy nie używa nazwy przesłanej przez klienta jako klucza obiektu.
 
 `StorageService` odpowiada za zapis, odczyt, usunięcie, istnienie i metadane.

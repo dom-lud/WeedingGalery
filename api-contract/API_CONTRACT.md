@@ -586,7 +586,7 @@ CSRF. Idempotentnie ustawia `CANCELLED`, zwalnia rezerwacje plikow bez statusu
 
 - object key jest generowany przez serwer i nie zalezy od nazwy klienta,
 - storage jest poza web rootem i nie ma publicznego static mappingu,
-- zapis uzywa `.tmp`, `CREATE_NEW`, walidacji i atomowego move w jednym volume,
+- zapis uzywa `.tmp`, `CREATE_NEW`, walidacji i atomowej publikacji przez hard link w jednym volume, bez nadpisywania istniejacego obiektu,
 - fizyczne sciezki, hashe tokenow i kody nie wystepuja w API ani logach,
 - media po zapisie maja status `STORED`, nie sa publicznie listowane ani pobierane,
 - blad po zapisie uruchamia kompensacyjne usuniecie; nierozwiazany cleanup jest
