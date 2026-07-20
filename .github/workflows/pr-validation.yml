@@ -211,7 +211,9 @@ jobs:
         id: playwright-version
         working-directory: frontend
         shell: bash
-        run: echo "version=$(node -p \"require('./node_modules/@playwright/test/package.json').version\")" >> "$GITHUB_OUTPUT"
+        run: |
+          playwright_version="$(node -p 'require("./node_modules/@playwright/test/package.json").version')"
+          printf 'version=%s\n' "$playwright_version" >> "$GITHUB_OUTPUT"
 
       - name: Restore Playwright browser cache
         id: playwright-browser-cache
