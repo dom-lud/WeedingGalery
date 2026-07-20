@@ -45,9 +45,14 @@ Poza zakresem:
 
 Wymagania testowe:
 - [testy jednostkowe, integracyjne, E2E]
+- PRZED kodem testów przygotuj test design brief i macierz: wymaganie/ryzyko -> błędna implementacja do wykrycia -> scenariusz -> najniższa wiarygodna warstwa testu,
+- dla każdego istotnego ryzyka uwzględnij wariant pozytywny, negatywny i graniczny; limity testuj jako `N-1`, `N`, `N+1`, idempotency jako replay i konflikt, a ownership jako dostęp dozwolony i zabroniony,
 - OBOWIĄZKOWO dostarcz weryfikację E2E (Playwright) lub rzetelne testy kontraktów API (nie pisz testów "pod kod").
 - testy mają bronić wymagań, kontraktu i regresji,
 - uwzględnij scenariusze negatywne i graniczne tam, gdzie niosą ryzyko.
+- zachowania zależne od bazy lub storage weryfikuj na realnej zależności (np. Testcontainers), a krytyczny UI przez automatyczny audit WCAG A/AA,
+- coverage traktuj jako zapadkę regresyjną, nie dowód kompletności; nie obniżaj progów dla uzyskania zielonego CI,
+- po testach porównaj wynik z macierzą i jawnie wskaż każdy nieweryfikowany obszar.
 
 Wymagania bezpieczeństwa:
 - [auth, ownership, upload, dane osobowe, limity]
@@ -59,6 +64,7 @@ Format końcowego podsumowania:
 - zadeklarowanie użycia (lub nie) subagentów,
 - wykonane zmiany,
 - uruchomione testy API / E2E,
+- wynik macierzy testowej i progów coverage,
 - WYNIK rygorystycznego self-review (co znaleziono, co poprawiono),
 - zaktualizowane dokumenty,
 - ryzyka i nieweryfikowane obszary.

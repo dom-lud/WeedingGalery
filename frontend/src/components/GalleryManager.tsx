@@ -338,7 +338,9 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
 
       {loading ? (
         <Box
+          role="status"
           aria-label="Loading galleries"
+          aria-live="polite"
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },

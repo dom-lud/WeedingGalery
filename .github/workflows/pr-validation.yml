@@ -41,6 +41,14 @@ jobs:
         working-directory: backend
         run: ./mvnw -B verify
 
+      - name: Upload backend coverage
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: backend-coverage
+          path: backend/target/site/jacoco/
+          retention-days: 7
+
   frontend:
     name: Frontend quality
     runs-on: ubuntu-latest
@@ -79,6 +87,14 @@ jobs:
       - name: Run frontend tests
         working-directory: frontend
         run: npm run test:coverage
+
+      - name: Upload frontend coverage
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: frontend-coverage
+          path: frontend/coverage/
+          retention-days: 7
 
       - name: Run frontend build
         working-directory: frontend

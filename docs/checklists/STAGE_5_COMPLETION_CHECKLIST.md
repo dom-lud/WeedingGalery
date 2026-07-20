@@ -3,7 +3,7 @@
 ## Status dokumentu
 - Status: completed
 - Zakres: `GALLERY-002`, `PUBLIC-001`, `UPLOAD-001`, minimalny `UPLOAD-002` i uploadowa czesc `STORAGE-001`
-- Ostatnia aktualizacja: 2026-07-15
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Funkcjonalnosc i kontrakt
 - [x] Kontrakt FE-BE zostal zaprojektowany w `api-contract/API_CONTRACT.md`.
@@ -23,6 +23,11 @@
 ## Jakosc
 - [x] Testy backendowe, frontendowe, lint i build przechodza.
 - [x] Docker Compose config/build/health i Playwright E2E zostaly wykonane.
+- [x] Macierz Etapow 4/4B/5 obejmuje auth, ownership, limity, idempotency, storage, UI i migracje.
+- [x] Backend ma zapadke JaCoCo (40% instructions, 30% branches), a frontend Vitest/V8 (55% statements/lines, 75% branches, 45% functions).
+- [x] Krytyczne ekrany przechodza automatyczny audit WCAG A/AA przez Playwright + axe.
+- [x] Dodano kontrakt migracji Flyway na MySQL 8.4 przez Testcontainers; test uruchamia sie, gdy runtime udostepnia Docker API.
+- [x] Regresja replay po zakonczonym uploadzie zostala wykryta przez nowy test, poprawiona i zabezpieczona testem.
 - [x] Self-review i niezalezny review security zostaly wykonane; findings naprawiono i zweryfikowano ponownie.
 - [x] Dokumentacja, ADR, API SSOT, roadmapa i backlog sa spojne.
 

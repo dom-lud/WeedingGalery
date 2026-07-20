@@ -334,7 +334,9 @@ export default function Dashboard() {
 
         {loading ? (
           <Box
+            role="status"
             aria-label="Loading events"
+            aria-live="polite"
             sx={{
               display: 'grid',
               gridTemplateColumns: { xs: '1fr', lg: '320px minmax(0, 1fr)' },

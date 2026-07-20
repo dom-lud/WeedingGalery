@@ -28,6 +28,12 @@ Opisuje zakres testow komponentow, hookow, warstwy API i widokow.
 - Testy accessibility dla formularzy, modali, lightboxa i nawigacji
 
 ## Wzorzec dla Playwright E2E
+- `npm run test:coverage` jest wymagane w CI.
+- Minimalne progi startowe: statements 55%, branches 75%, functions 45%, lines 55%.
+- Progi sa zapadka regresyjna; nie oznaczaja pelnego pokrycia i nie wolno ich
+  obnizac bez udokumentowanego uzasadnienia.
+- Krytyczne ekrany przechodza Playwright + axe dla WCAG A/AA. Test komponentu
+  nadal sprawdza focus, keyboard, loading/error/retry i role zalezne od uprawnien.
 - Scenariusze E2E powinny korzystac z page object pattern.
 - Spec ma opisywac intencje biznesowe i oczekiwane zachowanie, a nie przechowywac selektory lub techniczne kroki UI.
 - Selektory, akcje i asercje specyficzne dla widoku nalezy trzymac w klasach stron, np. `LoginPage`, `DashboardPage`.
