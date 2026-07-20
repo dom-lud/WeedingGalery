@@ -1,17 +1,17 @@
 import { alpha, createTheme } from '@mui/material/styles'
 
-const plum = '#6C4658'
-const plumDark = '#4F3040'
-const champagne = '#A9784B'
+const plum = '#74465A'
+const plumDark = '#4B2C3A'
+const champagne = '#B47B4C'
 
 export const appTheme = createTheme({
   palette: {
     mode: 'light',
     primary: { main: plum, dark: plumDark, contrastText: '#FFFFFF' },
     secondary: { main: champagne, dark: '#7A5232', contrastText: '#FFFFFF' },
-    background: { default: '#F8F6F3', paper: '#FFFFFF' },
-    text: { primary: '#292326', secondary: '#6D6267' },
-    divider: '#E8E0DC',
+    background: { default: '#F7F4F2', paper: '#FFFEFD' },
+    text: { primary: '#2B2327', secondary: '#71676B' },
+    divider: '#E9E0DC',
     success: { main: '#397257' },
     warning: { main: '#9A641E' },
     error: { main: '#B33A45' },
@@ -29,10 +29,10 @@ export const appTheme = createTheme({
       '"Segoe UI"',
       'sans-serif',
     ].join(','),
-    h1: { fontSize: 'clamp(2.25rem, 7vw, 4.5rem)', lineHeight: 1.05, fontWeight: 750 },
-    h2: { fontSize: 'clamp(1.75rem, 4vw, 2.75rem)', lineHeight: 1.12, fontWeight: 740 },
-    h3: { fontSize: 'clamp(1.45rem, 3vw, 2rem)', lineHeight: 1.2, fontWeight: 720 },
-    h4: { fontSize: 'clamp(1.3rem, 2.4vw, 1.7rem)', lineHeight: 1.25, fontWeight: 720 },
+    h1: { fontSize: 'clamp(2.25rem, 7vw, 4.5rem)', lineHeight: 1.05, fontWeight: 740 },
+    h2: { fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', lineHeight: 1.12, fontWeight: 720 },
+    h3: { fontSize: 'clamp(1.4rem, 3vw, 1.9rem)', lineHeight: 1.2, fontWeight: 700 },
+    h4: { fontSize: 'clamp(1.25rem, 2.4vw, 1.65rem)', lineHeight: 1.25, fontWeight: 700 },
     h5: { fontWeight: 700 },
     h6: { fontWeight: 700 },
     button: { fontWeight: 700, textTransform: 'none', letterSpacing: 0 },
@@ -43,7 +43,7 @@ export const appTheme = createTheme({
         html: { minWidth: 320, scrollBehavior: 'smooth' },
         body: { minWidth: 320 },
         '::selection': { backgroundColor: alpha(plum, 0.18) },
-        'a, button, input, textarea, select, [tabindex]': {
+        'a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])': {
           '&:focus-visible': {
             outline: `3px solid ${alpha(plum, 0.42)}`,
             outlineOffset: 3,
@@ -62,7 +62,7 @@ export const appTheme = createTheme({
     MuiButton: {
       defaultProps: { disableElevation: true },
       styleOverrides: {
-        root: { minHeight: 44, borderRadius: 12, paddingInline: 18 },
+        root: { minHeight: 44, borderRadius: 14, paddingInline: 18 },
         sizeLarge: { minHeight: 50, fontSize: '1rem' },
       },
     },
@@ -71,14 +71,14 @@ export const appTheme = createTheme({
       styleOverrides: {
         root: {
           border: '1px solid',
-          borderColor: '#E8E0DC',
-          boxShadow: '0 12px 34px rgba(58, 40, 48, 0.06)',
+          borderColor: '#E9E0DC',
+          boxShadow: '0 10px 32px rgba(58, 40, 48, 0.055)',
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
-        rounded: { borderRadius: 18 },
+        rounded: { borderRadius: 22 },
       },
     },
     MuiTextField: {

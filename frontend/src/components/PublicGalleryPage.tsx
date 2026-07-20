@@ -8,11 +8,13 @@ import {
   Chip,
   CircularProgress,
   Container,
+  Fade,
   LinearProgress,
   Paper,
   Stack,
   TextField,
   Typography,
+  useMediaQuery,
 } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { publicAccessApi, type PublicGallery } from '../publicAccessApi'
@@ -176,6 +178,7 @@ function AccessPanel({
 }
 
 export default function PublicGalleryPage() {
+  const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const { slug = '' } = useParams()
   const [state, setState] = useState<AccessState>('loading')
   const [gallery, setGallery] = useState<PublicGallery | null>(null)
@@ -404,7 +407,7 @@ export default function PublicGalleryPage() {
     : 0
 
   return (
-    <Box component="main" sx={{ minHeight: '100dvh', pb: { xs: 12, sm: 6 } }}>
+    <Box component="main" sx={{ minHeight: '100dvh', pb: 6 }}>
       <Box
         sx={{
           color: 'primary.contrastText',
@@ -412,23 +415,25 @@ export default function PublicGalleryPage() {
             `linear-gradient(145deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main} 65%, ${theme.palette.secondary.dark})`,
         }}
       >
-        <Container maxWidth="md" sx={{ py: { xs: 5, sm: 8 } }}>
-          <Typography variant="overline" sx={{ letterSpacing: '0.16em', fontWeight: 800 }}>
-            A private collection
-          </Typography>
-          <Typography
-            component="h1"
-            variant="h1"
-            sx={{ mt: 1, color: 'inherit', overflowWrap: 'anywhere' }}
-          >
-            {gallery.name}
-          </Typography>
-          <Typography
-            sx={{ mt: 2, color: 'rgba(255,255,255,.78)', maxWidth: 680, fontSize: '1.05rem' }}
-          >
-            {gallery.description || 'Share the moments you captured and help complete the story.'}
-          </Typography>
-        </Container>
+        <Fade in timeout={reduceMotion ? 0 : 420} appear={!reduceMotion}>
+          <Container maxWidth="md" sx={{ py: { xs: 5, sm: 8 } }}>
+            <Typography variant="overline" sx={{ letterSpacing: '0.16em', fontWeight: 800 }}>
+              A private collection
+            </Typography>
+            <Typography
+              component="h1"
+              variant="h1"
+              sx={{ mt: 1, color: 'inherit', overflowWrap: 'anywhere' }}
+            >
+              {gallery.name}
+            </Typography>
+            <Typography
+              sx={{ mt: 2, color: 'rgba(255,255,255,.78)', maxWidth: 680, fontSize: '1.05rem' }}
+            >
+              {gallery.description || 'Share the moments you captured and help complete the story.'}
+            </Typography>
+          </Container>
+        </Fade>
       </Box>
 
       <Container maxWidth="md" sx={{ mt: { xs: -2, sm: -3 } }}>
@@ -627,16 +632,17 @@ export default function PublicGalleryPage() {
 
                   {queue.length > 0 && (
                     <Box
+                      data-testid="upload-actions"
                       sx={{
-                        position: { xs: 'fixed', sm: 'static' },
-                        zIndex: { xs: 1200, sm: 'auto' },
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        p: { xs: '12px 16px calc(12px + env(safe-area-inset-bottom))', sm: 0 },
+                        position: { xs: 'sticky', sm: 'static' },
+                        zIndex: { xs: 10, sm: 'auto' },
+                        bottom: { xs: 8, sm: 'auto' },
+                        p: { xs: 1.5, sm: 0 },
                         bgcolor: { xs: 'background.paper', sm: 'transparent' },
-                        borderTop: { xs: '1px solid', sm: 0 },
+                        border: { xs: '1px solid', sm: 0 },
                         borderColor: 'divider',
+                        borderRadius: { xs: 2, sm: 0 },
+                        boxShadow: { xs: '0 12px 32px rgba(58, 40, 48, 0.14)', sm: 'none' },
                       }}
                     >
                       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>

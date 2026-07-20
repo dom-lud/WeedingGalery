@@ -34,14 +34,19 @@ test.describe('Events and memberships E2E', () => {
     await dashboardPage.logout()
     await loginPage.login(managerEmail, 'password123')
     await dashboardPage.verifyIsLoaded()
-    await expect(page.getByText(eventName, { exact: true })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: eventName, exact: true, level: 3 }),
+    ).toBeVisible()
     await dashboardPage.manageEvent(eventName)
+    await dashboardPage.openPeople()
     await expect(page.getByLabel('Manager email')).toHaveCount(0)
+    await dashboardPage.openSettings()
     await expect(page.getByRole('button', { name: /delete event/i })).toHaveCount(0)
 
     await dashboardPage.logout()
     await loginPage.login('admin@example.com', 'password123')
     await dashboardPage.manageEvent(eventName)
+    await dashboardPage.openPeople()
     const managerRow = page.getByText(managerEmail, { exact: true }).locator('xpath=ancestor::li')
     const transferResponsePromise = page.waitForResponse(
       (response) =>
@@ -57,7 +62,9 @@ test.describe('Events and memberships E2E', () => {
     await dashboardPage.logout()
     await loginPage.login(managerEmail, 'password123')
     await dashboardPage.manageEvent(eventName)
+    await dashboardPage.openPeople()
     await expect(page.getByLabel('Manager email')).toBeVisible()
+    await dashboardPage.openSettings()
     await expect(page.getByRole('button', { name: /delete event/i })).toBeVisible()
   })
 })

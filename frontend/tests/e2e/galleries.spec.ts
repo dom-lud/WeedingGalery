@@ -58,10 +58,9 @@ test.describe('Galleries E2E', () => {
     await expect(page.getByRole('button', { name: 'Archive gallery' })).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Delete gallery' })).toHaveCount(0)
 
-    const managerCard = page
-      .getByText(managerGallery, { exact: true })
-      .locator('xpath=ancestor::div[contains(@class,"MuiCard-root")][1]')
-    await managerCard.getByRole('button', { name: 'Edit gallery' }).click()
+    const managerCard = dashboardPage.galleryCard(managerGallery)
+    await managerCard.getByRole('button', { name: /More actions for/ }).click()
+    await page.getByRole('menuitem', { name: 'Edit gallery' }).click()
     await page.getByRole('textbox', { name: /Gallery name/ }).fill(`${managerGallery} edited`)
     const updateResponse = page.waitForResponse(
       (candidate) =>
@@ -73,29 +72,27 @@ test.describe('Galleries E2E', () => {
     await dashboardPage.logout()
     await loginPage.login('admin@example.com', 'password123')
     await dashboardPage.manageEvent(eventName)
-    const ownerCard = page
-      .getByText(ownerGallery, { exact: true })
-      .locator('xpath=ancestor::div[contains(@class,"MuiCard-root")][1]')
+    const ownerCard = dashboardPage.galleryCard(ownerGallery)
     const archiveResponse = page.waitForResponse(
       (candidate) =>
         candidate.url().endsWith('/archive') && candidate.request().method() === 'POST',
     )
-    await ownerCard.getByRole('button', { name: 'Archive gallery' }).click()
+    await ownerCard.getByRole('button', { name: /More actions for/ }).click()
+    await page.getByRole('menuitem', { name: 'Archive gallery' }).click()
     await page
       .getByRole('dialog', { name: 'Archive gallery?' })
       .getByRole('button', { name: 'Archive gallery' })
       .click()
     expect((await archiveResponse).status()).toBe(200)
-    await expect(ownerCard.getByText('ARCHIVED', { exact: true })).toBeVisible()
+    await expect(ownerCard.getByText('Archived', { exact: true })).toBeVisible()
 
-    const editedCard = page
-      .getByText(`${managerGallery} edited`, { exact: true })
-      .locator('xpath=ancestor::div[contains(@class,"MuiCard-root")][1]')
+    const editedCard = dashboardPage.galleryCard(`${managerGallery} edited`)
     const deleteResponse = page.waitForResponse(
       (candidate) =>
         candidate.url().includes('/galleries/') && candidate.request().method() === 'DELETE',
     )
-    await editedCard.getByRole('button', { name: 'Delete gallery' }).click()
+    await editedCard.getByRole('button', { name: /More actions for/ }).click()
+    await page.getByRole('menuitem', { name: 'Delete gallery' }).click()
     await page
       .getByRole('dialog', { name: 'Delete gallery?' })
       .getByRole('button', { name: 'Delete gallery' })

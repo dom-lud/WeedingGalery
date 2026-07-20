@@ -5,11 +5,13 @@ import {
   Button,
   CircularProgress,
   Container,
+  Fade,
   InputAdornment,
   Paper,
   Stack,
   TextField,
   Typography,
+  useMediaQuery,
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
@@ -28,6 +30,7 @@ function loginError(error: unknown) {
 }
 
 export default function Login() {
+  const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -76,33 +79,36 @@ export default function Login() {
             boxShadow: '0 28px 80px rgba(58, 40, 48, 0.12)',
           }}
         >
-          <Box
-            sx={{
-              display: { xs: 'none', md: 'flex' },
-              minHeight: 610,
-              p: 6,
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              color: 'primary.contrastText',
-              background: (theme) =>
-                `linear-gradient(145deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main} 58%, ${theme.palette.secondary.dark})`,
-            }}
-          >
-            <Typography variant="overline" sx={{ letterSpacing: '0.16em', fontWeight: 800 }}>
-              Wedding Gallery
-            </Typography>
-            <Stack spacing={2} sx={{ maxWidth: 520 }}>
-              <Typography variant="h1" component="p" sx={{ color: 'inherit' }}>
-                Every memory, in one private place.
+          <Fade in timeout={reduceMotion ? 0 : 420} appear={!reduceMotion}>
+            <Box
+              sx={{
+                display: { xs: 'none', md: 'flex' },
+                minHeight: 610,
+                p: 6,
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                color: 'primary.contrastText',
+                background: (theme) =>
+                  `linear-gradient(145deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main} 58%, ${theme.palette.secondary.dark})`,
+              }}
+            >
+              <Typography variant="overline" sx={{ letterSpacing: '0.16em', fontWeight: 800 }}>
+                Wedding Gallery
               </Typography>
-              <Typography sx={{ color: 'rgba(255,255,255,0.78)', fontSize: '1.08rem' }}>
-                Collect photos and videos from the people who shared your day — simply and securely.
+              <Stack spacing={2} sx={{ maxWidth: 520 }}>
+                <Typography variant="h1" component="p" sx={{ color: 'inherit' }}>
+                  Every memory, in one private place.
+                </Typography>
+                <Typography sx={{ color: 'rgba(255,255,255,0.78)', fontSize: '1.08rem' }}>
+                  Collect photos and videos from the people who shared your day — simply and
+                  securely.
+                </Typography>
+              </Stack>
+              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                Private by design · effortless for guests
               </Typography>
-            </Stack>
-            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-              Private by design · effortless for guests
-            </Typography>
-          </Box>
+            </Box>
+          </Fade>
 
           <Box sx={{ p: { xs: 3, sm: 5, md: 7 }, alignSelf: 'center' }}>
             <Stack spacing={3.5}>
@@ -149,11 +155,10 @@ export default function Login() {
                           <Button
                             type="button"
                             variant="text"
-                            size="small"
                             aria-label={showPassword ? 'Hide password' : 'Show password'}
                             aria-pressed={showPassword}
                             onClick={() => setShowPassword((current) => !current)}
-                            sx={{ minHeight: 36, minWidth: 64, px: 1 }}
+                            sx={{ minHeight: 44, minWidth: 64, px: 1 }}
                           >
                             {showPassword ? 'Hide' : 'Show'}
                           </Button>

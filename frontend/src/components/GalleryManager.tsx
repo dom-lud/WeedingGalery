@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Alert,
   Box,
@@ -16,6 +16,7 @@ import {
   FormControl,
   FormControlLabel,
   InputLabel,
+  Menu,
   MenuItem,
   Paper,
   Select,
@@ -73,6 +74,20 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
     action: () => Promise<void>
   } | null>(null)
   const [confirming, setConfirming] = useState(false)
+  const [actionMenu, setActionMenu] = useState<{
+    anchor: HTMLElement
+    gallery: GalleryData
+  } | null>(null)
+  const actionTriggerRef = useRef<HTMLElement | null>(null)
+  const restoreActionFocus = () => {
+    const trigger = actionTriggerRef.current
+    actionTriggerRef.current = null
+    requestAnimationFrame(() => trigger?.focus())
+  }
+  const closeEditDialog = () => {
+    setDialogOpen(false)
+    restoreActionFocus()
+  }
   const validAccessCode = /^[\x20-\x7e]{6,64}$/.test(accessCode)
   const canEditAccessSettings =
     event.currentUserRole === 'OWNER' &&
@@ -128,7 +143,7 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
         await galleriesApi.create(event.id, form)
         setMessage('Gallery created.')
       }
-      setDialogOpen(false)
+      closeEditDialog()
       await load()
     } catch (requestError) {
       setError(errorMessage(requestError))
@@ -165,6 +180,7 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
     try {
       await confirmation.action()
       setConfirmation(null)
+      restoreActionFocus()
     } catch (requestError) {
       setError(errorMessage(requestError))
     } finally {
@@ -328,16 +344,33 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
           }}
         >
           {galleries.map((gallery) => (
-            <Card key={gallery.id} component="article" variant="outlined" sx={{ minWidth: 0 }}>
-              <CardContent>
+            <Card
+              key={gallery.id}
+              component="article"
+              aria-label={`Gallery ${gallery.name}`}
+              variant="outlined"
+              sx={{ minWidth: 0, overflow: 'hidden' }}
+            >
+              <Box
+                aria-hidden="true"
+                sx={{
+                  height: 76,
+                  background: (theme) =>
+                    gallery.status === 'ARCHIVED'
+                      ? `linear-gradient(135deg, ${theme.palette.action.disabledBackground}, ${theme.palette.background.paper})`
+                      : `linear-gradient(135deg, ${theme.palette.primary.main}22, ${theme.palette.secondary.main}24)`,
+                }}
+              />
+              <CardContent sx={{ pb: 1.5 }}>
                 <Typography variant="h6" component="h3" sx={{ overflowWrap: 'anywhere' }}>
                   {gallery.name}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {gallery.status.toLowerCase()} • order {gallery.sortOrder}
-                </Typography>
                 {gallery.description && (
-                  <Typography variant="body2" sx={{ mt: 1, overflowWrap: 'anywhere' }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: 0.75, overflowWrap: 'anywhere' }}
+                  >
                     {gallery.description}
                   </Typography>
                 )}
@@ -347,31 +380,47 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
                     label={gallery.status === 'ACTIVE' ? 'Active' : 'Archived'}
                     color={gallery.status === 'ACTIVE' ? 'success' : 'default'}
                   />
-                  <Chip size="small" variant="outlined" label={`Order ${gallery.sortOrder}`} />
+                  <Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'center' }}>
+                    Display order {gallery.sortOrder}
+                  </Typography>
                 </Stack>
               </CardContent>
-              <CardActions sx={{ px: 2, pb: 2, flexWrap: 'wrap', gap: 0.5 }}>
+              <CardActions
+                sx={{
+                  px: 2,
+                  pb: 2,
+                  pt: 0,
+                  gap: 0.75,
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  alignItems: 'stretch',
+                }}
+              >
                 <Button
-                  onClick={() => openEdit(gallery)}
-                  disabled={gallery.status === 'ARCHIVED' || event.status === 'ARCHIVED'}
+                  variant="contained"
+                  onClick={() => void openSettings(gallery)}
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
                 >
-                  Edit gallery
-                </Button>
-                <Button variant="outlined" onClick={() => void openSettings(gallery)}>
                   {event.currentUserRole === 'OWNER' ? 'Access settings' : 'View access settings'}
                 </Button>
-                {event.currentUserRole === 'OWNER' && (
-                  <>
-                    <Button
-                      onClick={() => requestArchive(gallery)}
-                      disabled={gallery.status === 'ARCHIVED'}
-                    >
-                      Archive gallery
-                    </Button>
-                    <Button color="error" onClick={() => requestRemove(gallery)}>
-                      Delete gallery
-                    </Button>
-                  </>
+                {(gallery.status !== 'ARCHIVED' || event.currentUserRole === 'OWNER') && (
+                  <Button
+                    id={`gallery-actions-trigger-${gallery.id}`}
+                    aria-label={`More actions for ${gallery.name}`}
+                    aria-haspopup="menu"
+                    aria-expanded={actionMenu?.gallery.id === gallery.id ? 'true' : undefined}
+                    aria-controls={
+                      actionMenu?.gallery.id === gallery.id
+                        ? `gallery-actions-menu-${gallery.id}`
+                        : undefined
+                    }
+                    onClick={(clickEvent) => {
+                      actionTriggerRef.current = clickEvent.currentTarget
+                      setActionMenu({ anchor: clickEvent.currentTarget, gallery })
+                    }}
+                    sx={{ width: { xs: '100%', sm: 'auto' } }}
+                  >
+                    More actions
+                  </Button>
                 )}
               </CardActions>
             </Card>
@@ -379,9 +428,60 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
         </Box>
       )}
 
+      <Menu
+        id={actionMenu ? `gallery-actions-menu-${actionMenu.gallery.id}` : undefined}
+        anchorEl={actionMenu?.anchor ?? null}
+        open={actionMenu !== null}
+        onClose={() => {
+          setActionMenu(null)
+          restoreActionFocus()
+        }}
+        slotProps={{
+          list: {
+            'aria-labelledby': actionMenu
+              ? `gallery-actions-trigger-${actionMenu.gallery.id}`
+              : undefined,
+          },
+        }}
+      >
+        {actionMenu && actionMenu.gallery.status !== 'ARCHIVED' && event.status !== 'ARCHIVED' && (
+          <MenuItem
+            onClick={() => {
+              openEdit(actionMenu.gallery)
+              setActionMenu(null)
+            }}
+          >
+            Edit gallery
+          </MenuItem>
+        )}
+        {actionMenu &&
+          event.currentUserRole === 'OWNER' &&
+          actionMenu.gallery.status !== 'ARCHIVED' && (
+            <MenuItem
+              onClick={() => {
+                requestArchive(actionMenu.gallery)
+                setActionMenu(null)
+              }}
+            >
+              Archive gallery
+            </MenuItem>
+          )}
+        {actionMenu && event.currentUserRole === 'OWNER' && (
+          <MenuItem
+            sx={{ color: 'error.main' }}
+            onClick={() => {
+              requestRemove(actionMenu.gallery)
+              setActionMenu(null)
+            }}
+          >
+            Delete gallery
+          </MenuItem>
+        )}
+      </Menu>
+
       <Dialog
         open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
+        onClose={closeEditDialog}
         fullScreen={fullScreenDialog}
         fullWidth
         maxWidth="sm"
@@ -418,7 +518,7 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 2, flexDirection: { xs: 'column-reverse', sm: 'row' } }}>
-          <Button onClick={() => setDialogOpen(false)} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+          <Button onClick={closeEditDialog} sx={{ width: { xs: '100%', sm: 'auto' } }}>
             Cancel
           </Button>
           <Button
@@ -645,7 +745,10 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
         confirmLabel={confirmation?.confirmLabel ?? ''}
         destructive
         busy={confirming}
-        onCancel={() => setConfirmation(null)}
+        onCancel={() => {
+          setConfirmation(null)
+          restoreActionFocus()
+        }}
         onConfirm={() => void confirmAction()}
       />
     </Stack>

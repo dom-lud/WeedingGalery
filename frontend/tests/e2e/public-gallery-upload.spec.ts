@@ -3,6 +3,8 @@ import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { PublicGalleryPage } from './pages/PublicGalleryPage'
 
+test.use({ viewport: { width: 390, height: 844 } })
+
 test('owner publishes a code-protected gallery and a guest uploads a file', async ({ page }) => {
   const suffix = `${Date.now()}-${test.info().workerIndex}`
   const eventName = `Public flow ${suffix}`
@@ -17,9 +19,7 @@ test('owner publishes a code-protected gallery and a guest uploads a file', asyn
   await page.getByRole('button', { name: 'Create gallery' }).click()
   await page.getByLabel('Gallery name').fill(galleryName)
   await page.getByRole('button', { name: 'Save gallery' }).click()
-  const galleryCard = page
-    .getByText(galleryName, { exact: true })
-    .locator('xpath=ancestor::div[contains(@class,"MuiCard-root")][1]')
+  const galleryCard = dashboard.galleryCard(galleryName)
   await galleryCard.getByRole('button', { name: 'Access settings' }).click()
   await page.getByRole('button', { name: 'Rotate private share link' }).click()
   const shareLink = await page.getByLabel('New private share link').inputValue()
