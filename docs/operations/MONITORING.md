@@ -6,11 +6,12 @@ Opisuje metryki, logi, health checks i alerty dla platformy.
 ## Status dokumentu
 - Status: draft
 - Zakres: observability dla stanu docelowego
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
-- Mechanizmy monitoringu nie są jeszcze wdrożone.
-- Zależność `Spring Boot Actuator` nie jest jeszcze częścią backendowego `pom.xml`.
+- Spring Boot Actuator i publiczny `/actuator/health`, ograniczony do statusu bez szczegolow, sa czescia backendu oraz health checkow Compose.
+- API przekazuje correlation ID, a krytyczne flow zapisuja audyt.
+- Metryki storage/upload/jobs, dashboardy, zewnetrzne alerty i eksport do Prometheus nie sa jeszcze wdrozone.
 
 ## Stan docelowy
 - Podstawowa obserwowalność gotowa do rozbudowy o Prometheus i Grafana.

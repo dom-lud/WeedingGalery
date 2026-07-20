@@ -6,10 +6,11 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 ## Status dokumentu
 - Status: draft
 - Zakres: backlog dla pełnej wizji produktu
-- Ostatnia aktualizacja: 2026-07-13
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
-- Backlog opisuje planowane zadania i nie oznacza, że funkcje są już zaimplementowane.
+- Etapy 0-5 są zakończone w zakresach wskazanych poniżej; dalsze rozszerzenia pozostają osobnymi zadaniami.
+- Status bieżący wynika z tabeli poniżej. Pole `Status początkowy` przy opisie zadania zachowuje historyczny stan wejściowy i nie zastępuje tabeli.
 
 ## Stan docelowy
 - Jeden spójny backlog prowadzący rozwój produktu od fundamentów do stabilnej produkcji.
@@ -19,6 +20,40 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Status początkowy nowych pozycji: `IDEA` albo `ANALYSIS`.
 - Zależności odnoszą się do innych zadań, etapów roadmapy albo decyzji ADR.
 - Jeśli zadanie wymaga decyzji architektonicznej, nie przechodzi do realizacji bez ADR lub jawnej decyzji o jego braku.
+
+## Aktualny status realizacji
+
+| Obszar | Zadania | Status | Zakres wykonany / następny krok |
+| --- | --- | --- | --- |
+| Fundament | `FND-001`, `FND-002` | `DONE` | Dokumentacja, monorepo, Flyway, środowiska, health, CI i testowy baseline są wdrożone. |
+| Identity | `AUTH-001` | `DONE` | Sesje, CSRF, admin-only tworzenie kont, blokady i audyt auth. |
+| Identity rozszerzone | `AUTH-002` | `IDEA` | Następnie: kontrakt tokenów, resetu hasła i wysyłki transakcyjnej bez enumeracji kont. |
+| Profil | `USER-001` | `IDEA` | Następnie: zakres profilu, preferencji i wykorzystania storage. |
+| Wydarzenia | `EVENT-001` | `DONE` | CRUD, lifecycle pierwszego zakresu, ownership i audyt. |
+| Retencja wydarzeń | `EVENT-002` | `ANALYSIS` | Podstawowe archive/soft delete istnieje; pełna retencja i cleanup wymagają domknięcia ADR 0006. |
+| Członkostwo | `MEMBER-001` | `DONE` | Manager, remove/reactivate i transfer ownership. |
+| Zaproszenia | `INV-001` | `IDEA` | Zablokowane funkcjonalnie do czasu `AUTH-002`. |
+| Galerie | `GALLERY-001`, `GALLERY-002` | `DONE` | Management, publikacja, token, kod, okna dostępu i flaga download; moderacja jest w `MOD-001`. |
+| Public access | `PUBLIC-001` | `DONE` | Slug, rotowany token, kod i grant sesyjny; QR pozostaje w `QR-001`. |
+| Upload | `UPLOAD-001`, `UPLOAD-002` | `DONE` | Wieloplikowy upload, manifest, retry, cancel, status, limity i idempotency; chunks są przyszłym rozszerzeniem. |
+| Storage | `STORAGE-001` | `DONE` | Abstrakcja i bezpieczny zapis lokalny; publiczny odczyt/signed links należą do `DOWNLOAD-001`. |
+| Media processing | `MEDIA-001` | `ANALYSIS` | Najbliższy etap; wymaga zaakceptowania ADR 0004 i ADR 0007 oraz wyboru mechanizmu jobów. |
+| Moderacja | `MOD-001` | `DEFERRED` | Oczekuje na `MEDIA-001` i publiczne listowanie mediów. |
+| Download | `DOWNLOAD-001` | `ANALYSIS` | Trzeba rozstrzygnąć streaming vs signed links i zaakceptować ADR 0009. |
+| Personalizacja | `CUSTOM-001` | `IDEA` | Oczekuje na publiczny widok galerii z Etapu 7. |
+| QR | `QR-001` | `ANALYSIS` | `PUBLIC-001` jest gotowe; pozostał kontrakt generowania i pobierania PNG/SVG. |
+| Statystyki | `STAT-001` | `IDEA` | Oczekuje na media, przeglądanie i download. |
+| Powiadomienia | `NOTIF-001` | `IDEA` | Oczekuje na `AUTH-002`, `INV-001` i `DOWNLOAD-001`. |
+| Plany | `PLAN-001` | `IDEA` | Oczekuje na profil i statystyki; obecna quota galerii nie jest jeszcze systemem planów. |
+| Administracja | `ADMIN-001`, `ADMIN-002` | `IDEA` | Brak osobnego admin API/UI; zwykłe API nadal wymaga ownership. |
+| Audyt | `AUDIT-001` | `IN_PROGRESS` | Auth, event, membership, gallery i upload zapisują audyt; panel, filtrowanie i akcje admina pozostają. |
+| Security baseline | `SEC-001` | `IN_PROGRESS` | Sesje, CSRF, headers, rate limiting, IDOR i secret handling działają; pełny przegląd produkcyjny pozostaje. |
+| Upload security | `SEC-002` | `IN_PROGRESS` | Walidacja plików, limity, traversal i scoping są wdrożone; bezpieczeństwo downloadu czeka na `DOWNLOAD-001`. |
+| Operacje | `OPS-001` | `IN_PROGRESS` | Compose, konfiguracja, health i CI działają; produkcyjny rollout, HTTPS i rollback nie są potwierdzone. |
+| Backup | `BACKUP-001` | `IDEA` | Brak wykonanego backup/restore i pomiaru RPO/RTO. |
+| Monitoring | `MON-001` | `IN_PROGRESS` | Actuator health i correlation ID istnieją; metryki, dashboardy i alerty pozostają. |
+| Wydajność | `PERF-001` | `IDEA` | Brak budżetów i testów wydajnościowych; znany jest warning dużego chunka UI. |
+| Prywatność | `PRIV-001` | `IDEA` | Pełna retencja, eksport i hard delete wymagają osobnego projektu. |
 
 ## FOUNDATION
 ### FND-001 - Uporządkowanie dokumentacji i procesu pracy
@@ -157,7 +192,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Wymagania bezpieczeństwa: dostęp tylko w kontekście wydarzenia i membership.
 - Wymagane testy: testy CRUD galerii, ownership i walidacji.
 - Dokumenty powiązane: [../architecture/DATA_MODEL.md](../architecture/DATA_MODEL.md).
-- Status: `READY`.
+- Status: `DONE` w zakresie pierwszego wejscia GALLERY-001.
 - ADR wymagany: nie.
 
 ### GALLERY-002 - Ustawienia widoczności i publikacji galerii
@@ -170,7 +205,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Wymagania bezpieczeństwa: brak ujawnienia prywatnych galerii i kodów.
 - Wymagane testy: testy ustawień, dostępu publicznego i autoryzacji.
 - Dokumenty powiązane: [../architecture/MULTI_TENANCY.md](../architecture/MULTI_TENANCY.md), [../backend/AUTHENTICATION_AND_AUTHORIZATION.md](../backend/AUTHENTICATION_AND_AUTHORIZATION.md).
-- Status początkowy: `IDEA`.
+- Status: `DONE` w zakresie ustawień publikacji, uploadu, flagi download, okna publikacji, access tokenu i opcjonalnego kodu; moderacja pozostaje w Etapie 8.
 - ADR wymagany: tak.
 
 ## PUBLIC_ACCESS
@@ -184,7 +219,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Wymagania bezpieczeństwa: ochrona przed enumeracją, rate limiting, brak eskalacji dostępu.
 - Wymagane testy: testy publicznego API, kodów dostępu i negatywnych ścieżek.
 - Dokumenty powiązane: [../adr/0010-gallery-access-strategy.md](../adr/0010-gallery-access-strategy.md).
-- Status początkowy: `IDEA`.
+- Status: `DONE` w zakresie slug + token + opcjonalny kod i grant sesyjny; QR pozostaje osobnym `QR-001`.
 - ADR wymagany: tak.
 
 ## UPLOADS
@@ -198,7 +233,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Wymagania bezpieczeństwa: walidacja typu, rozmiaru, limitów i liczby plików.
 - Wymagane testy: testy uploadu, limitów, retry i błędów.
 - Dokumenty powiązane: [../frontend/UPLOAD_UX.md](../frontend/UPLOAD_UX.md), [../security/FILE_UPLOAD_SECURITY.md](../security/FILE_UPLOAD_SECURITY.md).
-- Status początkowy: `IDEA`.
+- Status: `DONE` dla JPEG/PNG/WebP/MP4 z wynikiem per plik, retry i anulowaniem.
 - ADR wymagany: nie.
 
 ### UPLOAD-002 - Upload sessions i gotowość na duże pliki
@@ -211,7 +246,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Wymagania bezpieczeństwa: limity, idempotency, kontrola ownership session.
 - Wymagane testy: testy sesji uploadu i powtórzeń żądań.
 - Dokumenty powiązane: [../architecture/DATA_MODEL.md](../architecture/DATA_MODEL.md), [../backend/API_CONVENTIONS.md](../backend/API_CONVENTIONS.md).
-- Status początkowy: `IDEA`.
+- Status: `DONE` w minimalnym zakresie sesji, manifestu, idempotencji i odczytu statusu; resumable/chunks pozostają rozszerzeniem.
 - ADR wymagany: nie.
 
 ## STORAGE
@@ -225,7 +260,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Wymagania bezpieczeństwa: path traversal protection, brak publicznych ścieżek systemowych.
 - Wymagane testy: testy storage i błędów integracyjnych.
 - Dokumenty powiązane: [../architecture/FILE_STORAGE.md](../architecture/FILE_STORAGE.md).
-- Status początkowy: `IDEA`.
+- Status: `DONE` w zakresie zapisu uploadu, usuwania kompensacyjnego, `exists`, metadanych i lokalnego backendu; odczyt publiczny oraz signed links są odroczone do `DOWNLOAD-001`/Etapu 7.
 - ADR wymagany: tak.
 
 ## MEDIA_PROCESSING

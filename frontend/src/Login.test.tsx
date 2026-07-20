@@ -109,4 +109,31 @@ describe('Login form', () => {
     expect(passwordInput.type).toBe('password')
     expect(passwordInput.value).toBe('password123')
   })
+
+  it('prevents duplicate submissions while authentication is pending', async () => {
+    let resolveRequest: ((value: { data: { email: string } }) => void) | undefined
+    postMock.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveRequest = resolve
+      }),
+    )
+    renderLogin()
+
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: 'admin@example.com' },
+    })
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
+      target: { value: 'password123' },
+    })
+    const submit = screen.getByRole('button', { name: /sign in/i })
+    fireEvent.click(submit)
+    fireEvent.click(submit)
+
+    expect(postMock).toHaveBeenCalledTimes(1)
+    expect(submit).toBeDisabled()
+    expect(submit).toHaveAttribute('aria-busy', 'true')
+
+    resolveRequest?.({ data: { email: 'admin@example.com' } })
+    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/dashboard'))
+  })
 })

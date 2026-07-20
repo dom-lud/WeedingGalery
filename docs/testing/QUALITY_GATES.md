@@ -24,6 +24,9 @@ Opisuje warunki, ktore musza byc spelnione przed scaleniem zmian i przed wdrozen
 - Dokumentacja zaktualizowana
 
 ## Gates CI dla pull requestow
+- Backend `verify` przechodzi wraz z zapadka JaCoCo.
+- Frontend `test:coverage` przechodzi wraz z progami Vitest/V8.
+- Krytyczne ekrany przechodza automatyczny audit WCAG A/AA w Playwright.
 - Zmiany sa automatycznie formatowane i walidowane przez formatery (Spotless dla backendu, Prettier dla frontendu).
 - Backend Maven build przechodzi.
 - Frontend TypeScript build przechodzi.
@@ -35,6 +38,7 @@ Opisuje warunki, ktore musza byc spelnione przed scaleniem zmian i przed wdrozen
 - Dokumentacja i ADR sa zaktualizowane, jesli zmiana wplywa na decyzje, API, dane, security, UX lub operacje.
 
 ## Gates dla funkcji biznesowych
+- Istnieje jawne mapowanie wymaganie/ryzyko -> test oraz lista luk, ktorych nie zweryfikowano.
 - Ownership sprawdzony
 - Autoryzacja sprawdzona
 - Obsluga bledow sprawdzona

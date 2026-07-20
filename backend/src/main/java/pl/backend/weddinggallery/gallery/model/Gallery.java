@@ -26,7 +26,7 @@ public class Gallery {
 	private String slug;
 
 	@Column(nullable = false)
-	private String title;
+	private String name;
 
 	@Column(columnDefinition = "TEXT")
 	private String description;
@@ -35,27 +35,51 @@ public class Gallery {
 	@Column(nullable = false)
 	private GalleryStatus status;
 
+	@Column(name = "sort_order", nullable = false)
+	private int sortOrder;
+
+	@Column(name = "archived_at")
+	private LocalDateTime archivedAt;
+
+	@Column(name = "deleted_at")
+	private LocalDateTime deletedAt;
+
+	@Column(name = "public_view_enabled", nullable = false)
+	private boolean publicViewEnabled;
+
+	@Column(name = "upload_enabled", nullable = false)
+	private boolean uploadEnabled;
+
+	@Column(name = "download_enabled", nullable = false)
+	private boolean downloadEnabled;
+
 	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private GalleryVisibility visibility;
+	@Column(name = "moderation_mode", nullable = false)
+	private ModerationMode moderationMode;
 
-	@Column(name = "allow_upload", nullable = false)
-	private boolean allowUpload;
+	@Column(name = "access_code_hash", length = 100)
+	private String accessCodeHash;
 
-	@Column(name = "allow_download", nullable = false)
-	private boolean allowDownload;
-
-	@Column(name = "require_approval", nullable = false)
-	private boolean requireApproval;
+	@Column(name = "published_at")
+	private LocalDateTime publishedAt;
 
 	@Column(name = "expires_at")
 	private LocalDateTime expiresAt;
+
+	@Column(name = "storage_used_bytes", nullable = false)
+	private long storageUsedBytes;
+
+	@Column(name = "storage_reserved_bytes", nullable = false)
+	private long storageReservedBytes;
 
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
 	@Column(name = "updated_at", nullable = false)
 	private LocalDateTime updatedAt;
+
+	@Version
+	private long version;
 
 	@PrePersist
 	protected void onCreate() {
@@ -65,10 +89,10 @@ public class Gallery {
 		createdAt = LocalDateTime.now();
 		updatedAt = LocalDateTime.now();
 		if (status == null) {
-			status = GalleryStatus.DRAFT;
+			status = GalleryStatus.ACTIVE;
 		}
-		if (visibility == null) {
-			visibility = GalleryVisibility.PRIVATE;
+		if (moderationMode == null) {
+			moderationMode = ModerationMode.REQUIRED;
 		}
 	}
 

@@ -6,10 +6,11 @@ Opisuje zasady konfiguracji aplikacji, sekrety i zmienne środowiskowe.
 ## Status dokumentu
 - Status: draft
 - Zakres: konfiguracja runtime i build
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-15
 
 ## Stan obecny
-- Konfiguracja docelowa nie jest jeszcze uporządkowana.
+- Profil prod przyjmuje `STORAGE_LOCAL_ROOT` (w Compose `/data/media`). Limity uploadu i public access maja bezpieczne wartosci domyslne w `application.yml` i moga byc nadpisane zewnetrzna konfiguracja Spring.
+- Parametry cleanupu: `app.upload.cleanup-interval-ms`, `cleanup-initial-delay-ms`, `temp-cleanup-interval-ms` i `temp-cleanup-initial-delay-ms`.
 
 ## Stan docelowy
 - Konfiguracja przez środowisko, bez sekretów w repozytorium.

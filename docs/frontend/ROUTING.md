@@ -6,10 +6,11 @@ Opisuje planowane trasy SPA i zasady ochrony widoków.
 ## Status dokumentu
 - Status: draft
 - Zakres: routing paneli i galerii publicznej
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
-- Routing docelowy nie jest jeszcze zaimplementowany.
+- Dzialaja trasy `/login`, chroniony panel `/dashboard`, przekierowanie `/` oraz publiczny entrypoint `/g/:slug`.
+- Trasy profilu, resetu hasla, zaproszen, publicznego przegladania mediow i panelu administratora pozostaja planowane.
 
 ## Stan docelowy
 - Czytelny podział tras publicznych, użytkownika i administratora.
@@ -18,11 +19,12 @@ Opisuje planowane trasy SPA i zasady ochrony widoków.
 - `/`
 - `/login`
 - `/password-reset`
-- `/gallery/:slug`
-- `/gallery/:slug/access`
+- `/g/:slug` (zaimplementowana; token jest przyjmowany we fragmencie URL, a kod w flow dostepu)
+- `/gallery/:slug` i `/gallery/:slug/access` (historyczne propozycje, zastapione przez `/g/:slug`)
 
 ## Trasy użytkownika
-- `/app`
+- `/dashboard` (zaimplementowana)
+- `/app` (planowany docelowy prefiks; jeszcze niezaimplementowany)
 - `/app/profile`
 - `/app/events`
 - `/app/events/:eventId`

@@ -27,6 +27,15 @@ Opisuje docelowa strategie testowania platformy na poziomie backendu, frontendu 
 - Stabilnosc kontraktow API
 
 ## Zasady jakosci testow
+- Przed napisaniem testow przygotuj krotki test design brief: wymaganie/ryzyko,
+  poprawne zachowanie, bledna implementacja do wykrycia, wariant pozytywny,
+  negatywny i graniczny oraz wlasciwa warstwa testu.
+- Utrzymuj jawna macierz wymaganie -> test dla etapow o wysokim ryzyku. Dla
+  Etapow 4/4B/5 zrodlem jest [STAGE_4_5_TEST_MATRIX.md](STAGE_4_5_TEST_MATRIX.md).
+- Coverage jest zapadka regresyjna, a nie dowodem kompletnosci. Progu nie wolno
+  obnizac tylko po to, aby zmiana przeszla CI.
+- Dla krytycznych ekranow uruchamiaj automatyczny audit WCAG A/AA oraz test
+  klawiatury, focusu i braku poziomego overflow.
 - Test ma bronic wymagania, kontraktu albo regresji, nie aktualnej struktury kodu.
 - Zanim napiszesz kod testu, zawsze wykonaj analize zmian i zaplanuj scenariusze testowe, uwzgledniajac sciezki negatywne i edge case'y.
 - Test powinien umiec obalic bledna implementacje, a nie tylko potwierdzic szczesliwa sciezke.

@@ -108,4 +108,56 @@ Ten dokument gromadzi i opisuje zaplanowane scenariusze testow End-to-End (E2E) 
 ### Stan automatyzacji
 - `backend`: unit i integracyjny flow z realna sesja oraz CSRF.
 - `frontend/tests/e2e/events-memberships.spec.ts`: flow UI create -> add manager -> ograniczenia -> transfer.
-- Lokalny E2E musi korzystac z `PLAYWRIGHT_BASE_URL=http://localhost`, aby przejsc przez glowny Nginx proxy FE-BE.
+- Lokalny E2E domyslnie korzysta z `http://localhost`, aby przejsc przez glowny Nginx proxy FE-BE; zmienna `PLAYWRIGHT_BASE_URL` sluzy do jawnego nadpisania srodowiska.
+
+## Modul: Galerie (Etap 4 - GALLERY-001)
+
+### 1. Wiele galerii i kolejnosc
+**Krytycznosc:** Wysoka
+- Owner tworzy co najmniej dwie galerie w jednym wydarzeniu i po odswiezeniu widzi je wedlug `sortOrder`.
+- Slug powstaje po stronie serwera, nie zmienia sie przy edycji nazwy i nie jest polem formularza.
+- Pusty stan, loading, blad oraz retry sa widoczne i dostepne w UI.
+
+### 2. Uprawnienia managera i lifecycle ownera
+**Krytycznosc:** Krytyczna
+- Aktywny manager moze utworzyc galerie i edytowac jej nazwe, opis oraz kolejnosc.
+- Manager nie widzi akcji archive/delete, a bezposrednie wywolanie API zwraca `403`.
+- Owner moze zarchiwizowac galerie, po czym metadane nie sa juz edytowalne, oraz wykonac soft delete.
+
+### 3. Izolacja i negatywne sciezki
+**Krytycznosc:** Krytyczna
+- Obcy uzytkownik nie moze listowac ani odczytywac galerii wydarzenia.
+- `galleryId` nalezacy do innego `eventId` zwraca `404`.
+- Brak CSRF na mutacji zwraca `403`, a niepoprawna nazwa lub `sortOrder` zwraca `400` bez zapisu.
+- Po usunieciu membership manager natychmiast traci dostep do galerii.
+
+### Stan automatyzacji
+- `backend`: integracyjny flow z realna sesja, CSRF, ownerem, managerem, outsiderem, IDOR, walidacja, lifecycle, soft delete i audytem.
+- `frontend`: testy komponentu dla empty/create, ograniczen managera oraz error/retry.
+- `frontend/tests/e2e/galleries.spec.ts`: flow UI owner -> manager -> edit -> archive -> delete na Docker Compose.
+
+## Modul: Publiczna galeria i upload (Etapy 4B/5)
+
+### 1. Publikacja i wejscie goscia
+**Krytycznosc:** Krytyczna
+- Owner rotuje jednorazowy token, ustawia opcjonalny kod i wlacza public view oraz upload.
+- Token pozostaje we fragmencie URL i jest usuwany z paska po zapisaniu w `sessionStorage`.
+- Bledny token, kod, wygasle okno, archiwizacja i rotacja tokenu nie ujawniaja galerii.
+
+### 2. Upload wieloplikowy i izolacja
+**Krytycznosc:** Krytyczna
+- Guest tworzy manifest z idempotency key, wysyla plik i widzi status per plik.
+- Inny grant tego samego tokenu ma osobny limit sesji i przestrzen idempotency.
+- Obcy grant/sessionId, brak CSRF, niespojny MIME/magic bytes/rozmiar oraz przekroczenie quota sa odrzucane.
+- Wygasla albo uniewazniona sesja zwalnia zarezerwowane bajty.
+
+### 3. Storage i odpornosc
+**Krytycznosc:** Wysoka
+- Zapisany plik przetrwa restart backendu w volume `media_data`.
+- Klient nie otrzymuje object key ani sciezki systemowej.
+- Przerwany zapis i stare `.tmp` podlegaja reconciliacji/cleanupowi.
+
+### Stan automatyzacji
+- `backend`: integracyjny public access + upload z realna sesja, CSRF, MySQL-compatible Flyway, grant isolation, expiry cleanup i negatywne formaty.
+- `frontend`: testy komponentu publicznego entrypointu, kodu, kolejki, retry i uploadu.
+- `frontend/tests/e2e/public-gallery-upload.spec.ts`: owner publikuje galerie, a guest w nowym kontekscie wgrywa poprawny PNG przez Nginx.

@@ -1,8 +1,25 @@
 spring:
   application:
     name: WeddingGallery
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 505MB
   jpa:
     open-in-view: false
+
+app:
+  public-access:
+    rate-limit: 10
+    rate-window-seconds: 900
+  upload:
+    max-image-bytes: 26214400
+    max-image-pixels: 25000000
+    max-video-bytes: 524288000
+    max-session-bytes: 2147483648
+    max-active-sessions: 3
+    gallery-quota-bytes: 5368709120
+    session-ttl-minutes: 30
 
 # Actuator: bezpieczne domyślne – tylko health, bez ujawniania szczegółów.
 # Profile dev i test nadpisują selektywnie.

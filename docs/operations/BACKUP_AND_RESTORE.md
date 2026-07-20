@@ -6,10 +6,11 @@ Opisuje strategię backupu, retencję, RPO/RTO i procedurę odtworzenia.
 ## Status dokumentu
 - Status: draft
 - Zakres: backup i disaster recovery
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-15
 
 ## Stan obecny
-- Strategia backupu nie jest jeszcze wdrożona.
+- Dane MySQL i media sa trwale w osobnych named volumes (`mysql_data`, `media_data`), ale automatyczny backup i okresowy test restore nie sa jeszcze wdrozone.
+- Backup musi obejmowac oba wolumeny z jednego spojnego punktu; sama baza bez odpowiadajacych object keys nie jest kompletnym odtworzeniem.
 
 ## Stan docelowy
 - Regularne backupy używanej relacyjnej bazy danych, storage i konfiguracji z testowanym odtwarzaniem.

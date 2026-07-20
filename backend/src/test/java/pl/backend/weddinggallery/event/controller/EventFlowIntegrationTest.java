@@ -23,7 +23,11 @@ import org.springframework.web.client.RestTemplate;
 import pl.backend.weddinggallery.audit.model.EventType;
 import pl.backend.weddinggallery.audit.repository.AuditEventRepository;
 import pl.backend.weddinggallery.event.repository.EventRepository;
+import pl.backend.weddinggallery.gallery.repository.GalleryRepository;
+import pl.backend.weddinggallery.media.repository.MediaFileRepository;
 import pl.backend.weddinggallery.membership.repository.EventMembershipRepository;
+import pl.backend.weddinggallery.publicaccess.repository.GalleryAccessRepository;
+import pl.backend.weddinggallery.upload.repository.UploadSessionRepository;
 import pl.backend.weddinggallery.user.model.SystemRole;
 import pl.backend.weddinggallery.user.model.User;
 import pl.backend.weddinggallery.user.repository.UserRepository;
@@ -40,12 +44,24 @@ class EventFlowIntegrationTest {
 	@Autowired
 	private EventMembershipRepository membershipRepository;
 	@Autowired
+	private GalleryRepository galleryRepository;
+	@Autowired
+	private GalleryAccessRepository galleryAccessRepository;
+	@Autowired
+	private UploadSessionRepository uploadSessionRepository;
+	@Autowired
+	private MediaFileRepository mediaFileRepository;
+	@Autowired
 	private AuditEventRepository auditEventRepository;
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
 	@BeforeEach
 	void setUp() {
+		mediaFileRepository.deleteAll();
+		uploadSessionRepository.deleteAll();
+		galleryAccessRepository.deleteAll();
+		galleryRepository.deleteAll();
 		membershipRepository.deleteAll();
 		eventRepository.deleteAll();
 		auditEventRepository.deleteAll();

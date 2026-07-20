@@ -322,10 +322,10 @@ aktora, `eventId`, identyfikator celu (jesli dotyczy) i zmiane roli, ale nie
 zawiera hasel, tokenow, danych CSRF ani innych sekretow. Operacja wrazliwa nie
 moze zostac uznana za udana, jesli wymagany wpis audytowy nie zostal zapisany.
 
-## Planowany kontrakt GALLERY-001 - Etap 4
+## Kontrakt GALLERY-001 - Etap 4
 
-Status: `PLANNED`, jeszcze niezaimplementowany. Ta sekcja zamraza pierwszy
-zakres przed rozpoczeciem kodu Etapu 4. Nie definiuje publicznego dostepu.
+Status: `IMPLEMENTED`. Sekcja definiuje zaimplementowany pierwszy zakres Etapu 4
+i nie definiuje publicznego dostepu.
 
 Wszystkie endpointy wymagaja aktywnej sesji. Mutacje wymagaja CSRF. Galeria
 zawsze dziedziczy ownership z wydarzenia; payload nie przyjmuje `eventId`,
@@ -418,3 +418,176 @@ sekretow dostepu.
 Publiczne API, `GALLERY-002`, tokeny, access code, QR, upload, download, media,
 moderacja, cover i personalizacja. Ich dodanie wymaga osobnej aktualizacji tego
 SSOT oraz - dla publicznego dostepu - zaakceptowanego ADR 0010.
+
+## Kontrakt GALLERY-002 i PUBLIC-001 - Etap 4B
+
+Status: `IMPLEMENTED`. QR, listowanie mediow i download
+pozostaja poza tym kontraktem.
+
+### Ustawienia i uprawnienia
+
+- `publicViewEnabled` wymaga aktywnego tokenu.
+- `uploadEnabled` moze byc wlaczone tylko razem z `publicViewEnabled`.
+- `downloadEnabled` jest zapisywane dla kolejnego etapu; Etap 4B/5 nie udostepnia
+  endpointu pobierania.
+- `moderationMode`: `NONE` albo `REQUIRED`; media Etapu 5 nie sa publikowane.
+- `publishedAt` i `expiresAt` sa opcjonalne; jesli oba istnieja, `expiresAt` musi
+  byc pozniejsze.
+- owner i aktywny manager odczytuja ustawienia; tylko owner je zmienia, rotuje
+  token oraz ustawia lub usuwa kod.
+- odpowiedzi nie zawieraja hasha ani kodu/tokena poza jednorazowa rotacja.
+
+### `GET /api/events/{eventId}/galleries/{galleryId}/settings`
+
+Sesja uzytkownika. Zwraca `200`:
+
+```json
+{
+  "publicViewEnabled": false,
+  "uploadEnabled": false,
+  "downloadEnabled": false,
+  "moderationMode": "REQUIRED",
+  "accessTokenConfigured": false,
+  "accessCodeConfigured": false,
+  "publishedAt": null,
+  "expiresAt": null,
+  "version": 0
+}
+```
+
+### `PUT /api/events/{eventId}/galleries/{galleryId}/settings`
+
+Owner, sesja i CSRF. Body odpowiada polom ustawien oraz zawiera `version`.
+Zwraca `200`. Wlaczenie widoku bez tokenu zwraca `409
+GALLERY_ACCESS_TOKEN_REQUIRED`; bledne okno dat zwraca `400
+GALLERY_INVALID_PUBLICATION_WINDOW`; konflikt wersji zwraca `409
+CONCURRENT_MODIFICATION`.
+
+### `POST /api/events/{eventId}/galleries/{galleryId}/access-token/rotate`
+
+Owner, sesja i CSRF. Uniewaznia poprzedni token i zwraca `201` tylko raz:
+
+```json
+{
+  "accessToken": "<base64url-256-bit>",
+  "sharePath": "/g/example-slug#token=<base64url-256-bit>"
+}
+```
+
+### `PUT|DELETE /api/events/{eventId}/galleries/{galleryId}/access-code`
+
+Owner, sesja i CSRF. `PUT` przyjmuje `{ "accessCode": "6-64 ASCII" }`, nie
+zwraca kodu i konczy sie `204`. `DELETE` usuwa wymaganie kodu i zwraca `204`.
+
+### `POST /api/public/galleries/{slug}/access`
+
+Endpoint anonimowy, ale POST wymaga cookie/header CSRF uzyskanego przez
+`GET /api/auth/csrf`. Body: `{ "accessToken": "<token>", "accessCode":
+"optional" }`.
+
+Sukces `200` tworzy grant w HttpSession z TTL 30 minut i zwraca:
+
+```json
+{
+  "slug": "example-slug",
+  "name": "Wesele",
+  "description": "Zdjecia gosci",
+  "uploadEnabled": true,
+  "downloadEnabled": false,
+  "moderationMode": "REQUIRED",
+  "publishedAt": null,
+  "expiresAt": null
+}
+```
+
+Brak kodu przy poprawnym tokenie: `401 GALLERY_ACCESS_CODE_REQUIRED`. Bledny kod:
+`401 GALLERY_ACCESS_DENIED`. Nieistniejacy slug, bledny token, prywatna,
+nieopublikowana, wygasla, zarchiwizowana lub usunieta galeria zwracaja identyczne
+`404 PUBLIC_GALLERY_NOT_FOUND`. Rate limit zwraca `429 RATE_LIMIT_EXCEEDED` i
+`Retry-After`.
+
+### `GET /api/public/galleries/{slug}`
+
+Wymaga waznego grantu dla tej galerii. Zwraca publiczny model albo generyczne
+`404`. Grant jest ponownie walidowany, wiec rotacja tokenu i zmiana ustawien
+dzialaja natychmiast.
+
+## Kontrakt STORAGE-001, UPLOAD-001 i minimalny UPLOAD-002 - Etap 5
+
+Status: `IMPLEMENTED`. Implementacja uzywa klasycznego
+multipart po jednym pliku. Chunking i resumable parts sa poza zakresem, ale model
+sesji nie blokuje przyszlego `/parts`.
+
+### Limity i typy
+
+- typy v1: JPEG (`.jpg/.jpeg`, `image/jpeg`), PNG, WebP i MP4,
+- SVG, archiwa, pliki wykonywalne, pusty i niespojny plik sa odrzucane,
+- obraz: maks. 25 MiB; wideo: maks. 500 MiB,
+- sesja: maks. 50 plikow, 2 GiB deklarowanego rozmiaru, TTL 30 minut,
+- maks. 3 aktywne sesje na publiczny grant,
+- quota galerii: 5 GiB lacznie stored + reserved,
+- walidowane sa rozszerzenie, deklarowany MIME, magic bytes i rozmiar.
+
+### `POST /api/public/galleries/{slug}/upload-sessions`
+
+Wymaga publicznego grantu z aktualnym `uploadEnabled`, CSRF i naglowka
+`Idempotency-Key` (8-128 znakow). Body zawiera manifest:
+
+```json
+{
+  "files": [
+    {
+      "clientFileId": "local-1",
+      "fileName": "photo.jpg",
+      "declaredContentType": "image/jpeg",
+      "size": 12345
+    }
+  ]
+}
+```
+
+Zwraca `201` z `id`, `status: OPEN`, `expiresAt` i lista plikow w
+statusie `PENDING`. Powtorzenie tego samego klucza i manifestu zwraca ten sam
+zasob (`200`); ten sam klucz z innym manifestem zwraca `409
+IDEMPOTENCY_KEY_CONFLICT`.
+
+### `GET /api/public/galleries/{slug}/upload-sessions/{sessionId}`
+
+Zwraca serwerowy stan sesji i pozwala klientowi wznowic retry, jezeli nadal ma
+lokalne obiekty `File`. Przegladarka nie moze automatycznie odtworzyc zawartosci
+lokalnych plikow po pelnym odswiezeniu bez ponownego wyboru przez uzytkownika.
+Grant musi byc tym samym grantem, ktory utworzyl sesje. Obca sesja zwraca `404
+UPLOAD_SESSION_NOT_FOUND`, a wygasla `409 UPLOAD_SESSION_NOT_OPEN` i zwalnia
+rezerwacje quota.
+
+### `PUT /api/public/galleries/{slug}/upload-sessions/{sessionId}/files/{clientFileId}`
+
+Wymaga tego samego grantu i CSRF. `multipart/form-data` zawiera jedno pole `file`
+i musi miec `Content-Length`. Filtr przed parserem multipart sprawdza grant,
+`sessionId`, `clientFileId` i czy rozmiar transportowy jest zgodny z manifestem.
+Sukces zwraca `200` z wynikiem `STORED`, wykrytym MIME, size i checksum. Stan
+serwerowy pliku moze przejsc przez `RECEIVING`, a awaria kompensacji przez
+`CLEANUP_REQUIRED`. Replay po
+sukcesie nie tworzy drugiego obiektu. Blad jednego pliku nie blokuje pozostalych.
+
+Kody: `UPLOAD_FILE_TOO_LARGE` (`413`), `UPLOAD_TYPE_NOT_ALLOWED` (`415`),
+`UPLOAD_CONTENT_MISMATCH` (`422`), `UPLOAD_SIZE_MISMATCH` (`422`),
+`UPLOAD_FILE_NOT_FOUND` (`404`), `UPLOAD_SESSION_NOT_OPEN` (`409`),
+`STORAGE_QUOTA_EXCEEDED` (`409`), `STORAGE_WRITE_FAILED` (`503`).
+Gdy dwa pelne dekodery obrazu sa zajete, serwer zwraca przejsciowe `503
+UPLOAD_VALIDATION_BUSY` zamiast ryzykowac przekroczenie budzetu pamieci.
+
+### `POST /api/public/galleries/{slug}/upload-sessions/{sessionId}/cancel`
+
+CSRF. Idempotentnie ustawia `CANCELLED`, zwalnia rezerwacje plikow bez statusu
+`STORED` i zwraca `200`. Nie usuwa poprawnie zapisanych mediow.
+
+### Semantyka storage i danych
+
+- object key jest generowany przez serwer i nie zalezy od nazwy klienta,
+- storage jest poza web rootem i nie ma publicznego static mappingu,
+- zapis uzywa `.tmp`, `CREATE_NEW`, walidacji i atomowej publikacji przez hard link w jednym volume, bez nadpisywania istniejacego obiektu,
+- fizyczne sciezki, hashe tokenow i kody nie wystepuja w API ani logach,
+- media po zapisie maja status `STORED`, nie sa publicznie listowane ani pobierane,
+- blad po zapisie uruchamia kompensacyjne usuniecie; nierozwiazany cleanup jest
+  jawnie oznaczany stanem wymagajacym reconciliacji.

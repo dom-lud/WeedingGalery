@@ -6,12 +6,13 @@ Opisuje docelowa strategie CI/CD dla GitHub Actions oraz aktualne repo truth dla
 ## Status dokumentu
 - Status: draft
 - Zakres: pull request flow, quality gates, pipeline build/test/deploy, artefakty i rollback
-- Ostatnia aktualizacja: 2026-07-13
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
 - Repozytorium ma workflow PR validation oraz workflow buildowy dla `main`.
-- Backend testy, frontend lint/test/build, walidacja `docker compose config` i budowa obrazow backendu oraz frontendu sa egzekwowane automatycznie w GitHub Actions.
-- Workflow PR validation uruchamia tez testy Playwright E2E, publikuje artefakt `playwright-report` i aktualizuje komentarz w PR z podsumowaniem wyniku.
+- Backend `verify` z JaCoCo, kontrakt migracji na MySQL, frontend lint/test/coverage/build, walidacja `docker compose config` i budowa obrazow sa egzekwowane automatycznie w GitHub Actions.
+- Workflow PR validation uruchamia tez Playwright E2E z audytem accessibility, publikuje raporty Playwright i coverage oraz aktualizuje rzeczowy komentarz PR z tabelami testow, wykresami coverage, lista awarii i bezposrednimi linkami do artefaktow.
+- Cache przegladarki Playwright jest kluczowany systemem, projektem Chromium i wersja `@playwright/test`, dlatego zmiany pozostalych zaleznosci nie wymuszaja ponownego pobrania browsera.
 - Quality gates sa czesciowo zautomatyzowane; obszary biznesowe, security review i dalsza rozbudowa zakresu E2E nadal wymagaja pracy.
 
 ## Stan docelowy

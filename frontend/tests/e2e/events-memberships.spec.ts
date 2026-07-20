@@ -26,7 +26,7 @@ test.describe('Events and memberships E2E', () => {
     expect(registerResponse.status()).toBe(200)
 
     expect((await dashboardPage.createEvent(eventName)).status()).toBe(201)
-    await expect(page.getByRole('heading', { name: eventName, level: 6 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: eventName, level: 3 })).toBeVisible()
     await dashboardPage.manageEvent(eventName)
     expect((await dashboardPage.addManager(managerEmail)).status()).toBe(201)
     await expect(page.getByText(managerEmail, { exact: true })).toBeVisible()
@@ -34,26 +34,37 @@ test.describe('Events and memberships E2E', () => {
     await dashboardPage.logout()
     await loginPage.login(managerEmail, 'password123')
     await dashboardPage.verifyIsLoaded()
-    await expect(page.getByText(eventName, { exact: true })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: eventName, exact: true, level: 3 }),
+    ).toBeVisible()
     await dashboardPage.manageEvent(eventName)
+    await dashboardPage.openPeople()
     await expect(page.getByLabel('Manager email')).toHaveCount(0)
+    await dashboardPage.openSettings()
     await expect(page.getByRole('button', { name: /delete event/i })).toHaveCount(0)
 
     await dashboardPage.logout()
     await loginPage.login('admin@example.com', 'password123')
     await dashboardPage.manageEvent(eventName)
+    await dashboardPage.openPeople()
     const managerRow = page.getByText(managerEmail, { exact: true }).locator('xpath=ancestor::li')
     const transferResponsePromise = page.waitForResponse(
       (response) =>
         response.url().includes('/ownership-transfer') && response.request().method() === 'POST',
     )
     await managerRow.getByRole('button', { name: /transfer ownership/i }).click()
+    await page
+      .getByRole('dialog', { name: 'Transfer ownership?' })
+      .getByRole('button', { name: 'Transfer ownership' })
+      .click()
     expect((await transferResponsePromise).status()).toBe(200)
 
     await dashboardPage.logout()
     await loginPage.login(managerEmail, 'password123')
     await dashboardPage.manageEvent(eventName)
+    await dashboardPage.openPeople()
     await expect(page.getByLabel('Manager email')).toBeVisible()
+    await dashboardPage.openSettings()
     await expect(page.getByRole('button', { name: /delete event/i })).toBeVisible()
   })
 })

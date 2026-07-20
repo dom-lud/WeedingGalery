@@ -6,10 +6,18 @@ Opisuje zagrożenia i zabezpieczenia związane z przyjmowaniem zdjęć i filmów
 ## Status dokumentu
 - Status: draft
 - Zakres: upload security dla stanu docelowego
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-15
 
 ## Stan obecny
-- Mechanizm uploadu nie jest jeszcze zaimplementowany.
+- Publiczny upload JPEG, PNG, WebP i MP4 jest zaimplementowany po uzyskaniu grantu do konkretnej galerii.
+- Serwer porównuje rozszerzenie, deklarowany MIME i magic bytes; SVG, archiwa i nieznane formaty są odrzucane.
+- Limity domyślne: 25 MiB na obraz, 500 MiB na wideo, 2 GiB na sesję, 3 aktywne sesje i 5 GiB quota galerii.
+- Obraz ma dodatkowo limit 25 mln pikseli, a pelne dekodowanie JPEG/PNG jest ograniczone do dwoch rownoleglych operacji; brak slotu daje przejsciowe `503`.
+- Sesja ma manifest maksymalnie 50 plików, TTL 30 minut oraz idempotency key; quota obejmuje bajty zajęte i zarezerwowane.
+- Rate limiting jest rozdzielony per IP, operację i galerię: access 10, tworzenie sesji 30, upload pliku 200 w oknie 15 minut.
+- Klucz storage jest generowany przez serwer; implementacja blokuje traversal i katalog root będący symlinkiem.
+- Preflight przed parserem multipart wiaze slug, grant, sesje, plik manifestu i `Content-Length`; losowy session/file ID nie powoduje przyjecia duzego body.
+- Reconciler rozroznia upload aktywny w aktualnym procesie od stanu `RECEIVING` odziedziczonego po restarcie i ponawia `CLEANUP_REQUIRED` bez ukrywania orphanow.
 
 ## Stan docelowy
 - Upload wieloplikowy bezpieczny dla backendu, storage i odbiorców galerii.
@@ -42,4 +50,5 @@ Opisuje zagrożenia i zabezpieczenia związane z przyjmowaniem zdjęć i filmów
 - [../backend/MEDIA_PROCESSING.md](../backend/MEDIA_PROCESSING.md)
 
 ## Decyzje otwarte
-- Czy w pierwszej wersji dopuścić wyłącznie popularne formaty zdjęć i MP4/H.264 dla filmów.
+- Weryfikacja MP4 obejmuje kontener `ftyp`, ale nie potwierdza jeszcze kodeka H.264; analiza kodeka i skan antywirusowy należą do hardeningu/pipeline Etapu 6.
+- Przed skalowaniem horyzontalnym limiter in-memory musi zostać zastąpiony współdzielonym mechanizmem.

@@ -6,10 +6,11 @@ Opisuje strategię mapowania wyjątków, błędów domenowych i odpowiedzi HTTP.
 ## Status dokumentu
 - Status: draft
 - Zakres: błędy backendowe i kontrakt API
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
-- Strategia nie jest jeszcze zaimplementowana.
+- Wspolny format `code`, `message`, `details`, `correlationId`, `timestamp` jest zaimplementowany dla auth, events, memberships, galleries, public access i uploadu.
+- Katalog bledow dla przyszlych jobow, downloadu i admin API pozostaje do rozszerzenia wraz z tymi etapami.
 
 ## Stan docelowy
 - Jednolity, przewidywalny format błędu dla API prywatnego, publicznego i administracyjnego.
@@ -37,9 +38,9 @@ Opisuje strategię mapowania wyjątków, błędów domenowych i odpowiedzi HTTP.
 | --- | --- | --- |
 | niepoprawne hasło | `401` | `INVALID_CREDENTIALS` |
 | brak dostępu do wydarzenia | `403` lub `404` | `EVENT_ACCESS_DENIED` |
-| przekroczony limit storage | `409` | `STORAGE_LIMIT_EXCEEDED` |
-| plik za duży | `413` | `FILE_TOO_LARGE` |
-| nieobsługiwany typ pliku | `422` | `UNSUPPORTED_MEDIA_TYPE` |
+| przekroczony limit storage | `409` | `STORAGE_QUOTA_EXCEEDED` |
+| plik za duży | `413` | `UPLOAD_FILE_TOO_LARGE` |
+| nieobsługiwany typ pliku | `415` | `UPLOAD_TYPE_NOT_ALLOWED` |
 | błąd generowania ZIP | `202` dla statusu joba lub `500` przy odczycie błędnego joba | `ARCHIVE_GENERATION_FAILED` |
 
 ## Zasady bezpieczeństwa

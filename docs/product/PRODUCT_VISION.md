@@ -6,11 +6,12 @@ Opisuje pełną wizję produktu, problem biznesowy, grupy użytkowników oraz za
 ## Status dokumentu
 - Status: draft
 - Zakres: wizja docelowa produktu
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
 - Produkt nie jest jeszcze zaimplementowany w docelowej postaci.
-- Repozytorium zawiera tylko szkic techniczny, który nie pokrywa pełnej wizji.
+- Zakonczone sa fundament, identity pierwszego zakresu, wydarzenia i membership, galerie, publiczny grant oraz bezpieczny upload do lokalnego storage.
+- Niezaimplementowane pozostaja m.in. media processing, przegladanie i download mediow, moderacja, personalizacja, panel administratora, powiadomienia, plany i pelna gotowosc produkcyjna.
 
 ## Stan docelowy
 - Wieloużytkownikowa platforma webowa do zbierania, organizowania i udostępniania mediów z prywatnych wydarzeń.

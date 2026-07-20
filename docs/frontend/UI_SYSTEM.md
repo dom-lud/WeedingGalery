@@ -6,11 +6,17 @@ Opisuje obowiązujący system UI frontendu oraz zasady użycia Material UI.
 ## Status dokumentu
 - Status: draft
 - Zakres: biblioteka UI, theme, layout, responsywność, wyjątki
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
-- Frontend ma wstępny szkielet React/Vite.
-- Docelowy theme MUI i komponenty domenowe nie są jeszcze wdrożone.
+- Frontend korzysta ze wspólnego `ThemeProvider` i jasnego, redakcyjnego theme MUI opartego na kolorach śliwkowym, szampańskim i ciepłym tle neutralnym.
+- Theme centralizuje paletę, typografię systemową, focus state, ograniczenie animacji, promienie, cienie i warianty bazowych komponentów.
+- Subtelny motion korzysta z gotowego przejścia MUI `Fade` wyłącznie dla nieinteraktywnych nagłówków i dekoracji; `prefers-reduced-motion` wyłącza efekt również na poziomie propsów komponentu.
+- Logowanie, chroniony shell aplikacji, zarządzanie wydarzeniami i galeriami oraz publiczny upload są zbudowane na MUI.
+- Dashboard korzysta z lekkiego układu master-detail: kompaktowa lista wydarzeń, kontekstowy nagłówek wybranego wydarzenia oraz zakładki `Galleries`, `People` i `Settings` ograniczają liczbę jednocześnie widocznych akcji.
+- Karty galerii eksponują jedną akcję główną, a operacje drugorzędne i destrukcyjne umieszczają w menu MUI; stan archiwalny pozostaje widoczny bez dominującej czerwonej powierzchni.
+- Wspólne komponenty `AppShell` i `ConfirmDialog` zapewniają spójny layout oraz bezpieczne potwierdzanie operacji zmieniających cykl życia zasobów.
+- Własny globalny CSS jest ograniczony do resetu dokumentu i zabezpieczenia przed poziomym overflow.
 
 ## Stan docelowy
 - Material UI jest jedynym głównym systemem UI dla wszystkich obszarów aplikacji.
@@ -170,5 +176,5 @@ Przed wyjątkiem opisz:
 - [../adr/0011-material-ui-frontend-system.md](../adr/0011-material-ui-frontend-system.md)
 
 ## Decyzje otwarte
-- Docelowy kształt theme dla publicznej galerii.
+- Czy publiczna galeria wymaga osobnego wariantu obecnego theme po wdrożeniu przeglądania mediów.
 - Czy dodać MUI X dla DatePickerów i zaawansowanych tabel.

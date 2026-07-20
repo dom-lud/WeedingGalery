@@ -6,20 +6,22 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 ## Status dokumentu
 - Status: draft
 - Zakres: katalog planowanych endpointów
-- Ostatnia aktualizacja: 2026-07-13
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
-- Endpointy auth oraz minimalny zakres events/memberships oznaczony ponizej sa zaimplementowane.
+- Endpointy auth oraz zakresy events, memberships, galleries, public access i upload oznaczone ponizej sa zaimplementowane.
 - Pozostale endpointy sa planowane; ich obecność na liscie nie oznacza istnienia w runtime.
 
 ## Stan docelowy
 - Spójne REST API dla użytkowników, gości i administratorów.
 
 ## Authentication
-- `POST /api/auth/register` - utworzenie konta przez administratora
+- `GET /api/auth/csrf` - zaimplementowany bootstrap CSRF dla SPA
+- `GET /api/auth/me` - zaimplementowany odczyt bieżącej sesji
+- `POST /api/auth/register` - zaimplementowane utworzenie konta przez administratora
 - `POST /api/auth/verify-email`
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
+- `POST /api/auth/login` - zaimplementowany
+- `POST /api/auth/logout` - zaimplementowany
 - `POST /api/auth/logout-all`
 - `POST /api/auth/refresh`
 - `POST /api/auth/password-reset/request`
@@ -57,27 +59,34 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 - `POST /api/events/{eventId}/ownership-transfer` - zaimplementowany
 
 ## Galleries
-- `GET /api/events/{eventId}/galleries` - planowany GALLERY-001
-- `POST /api/events/{eventId}/galleries` - planowany GALLERY-001
-- `GET /api/events/{eventId}/galleries/{galleryId}` - planowany GALLERY-001
-- `PUT /api/events/{eventId}/galleries/{galleryId}` - planowany GALLERY-001
-- `POST /api/events/{eventId}/galleries/{galleryId}/archive` - planowany GALLERY-001
-- `DELETE /api/events/{eventId}/galleries/{galleryId}` - planowany soft delete GALLERY-001
+- `GET /api/events/{eventId}/galleries` - zaimplementowany GALLERY-001
+- `POST /api/events/{eventId}/galleries` - zaimplementowany GALLERY-001
+- `GET /api/events/{eventId}/galleries/{galleryId}` - zaimplementowany GALLERY-001
+- `PUT /api/events/{eventId}/galleries/{galleryId}` - zaimplementowany GALLERY-001
+- `POST /api/events/{eventId}/galleries/{galleryId}/archive` - zaimplementowany GALLERY-001
+- `DELETE /api/events/{eventId}/galleries/{galleryId}` - zaimplementowany soft delete GALLERY-001
+- `GET /api/events/{eventId}/galleries/{galleryId}/settings` - zaimplementowany Etap 4B
+- `PUT /api/events/{eventId}/galleries/{galleryId}/settings` - zaimplementowany Etap 4B, owner-only
+- `POST /api/events/{eventId}/galleries/{galleryId}/access-token/rotate` - zaimplementowany Etap 4B, owner-only
+- `PUT /api/events/{eventId}/galleries/{galleryId}/access-code` - zaimplementowany Etap 4B, owner-only
+- `DELETE /api/events/{eventId}/galleries/{galleryId}/access-code` - zaimplementowany Etap 4B, owner-only
 - `POST /api/galleries/{galleryId}/publish`
 - `POST /api/galleries/{galleryId}/disable-upload`
 - `POST /api/galleries/{galleryId}/enable-upload`
 - `POST /api/galleries/{galleryId}/qr`
 
 ## Public galleries
-- `GET /api/public/galleries/{slug}`
-- `POST /api/public/galleries/{slug}/access`
+- `GET /api/public/galleries/{slug}` - zaimplementowany Etap 4B, wymaga grantu sesyjnego
+- `POST /api/public/galleries/{slug}/access` - zaimplementowany Etap 4B, token + opcjonalny kod
 - `GET /api/public/galleries/{slug}/media`
 - `GET /api/public/media/{mediaId}`
 - `POST /api/public/galleries/{slug}/favorite`
 
 ## Uploads
-- `POST /api/uploads`
-- `POST /api/uploads/{uploadSessionId}/files`
+- `POST /api/public/galleries/{slug}/upload-sessions` - zaimplementowany Etap 5, manifest + idempotency
+- `GET /api/public/galleries/{slug}/upload-sessions/{uploadSessionId}` - zaimplementowany Etap 5
+- `PUT /api/public/galleries/{slug}/upload-sessions/{uploadSessionId}/files/{clientFileId}` - zaimplementowany Etap 5, jeden multipart
+- `POST /api/public/galleries/{slug}/upload-sessions/{uploadSessionId}/cancel` - zaimplementowany Etap 5
 - `POST /api/uploads/{uploadSessionId}/files/{fileId}/retry`
 - `POST /api/uploads/{uploadSessionId}/cancel`
 - `GET /api/uploads/{uploadSessionId}`
@@ -134,7 +143,7 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 - `GET /api/admin/audit`
 
 ## Uwagi kontraktowe
-- SSOT dokladnych payloadow, statusow i rol dla zaimplementowanego Etapu 3 oraz planowanego pierwszego zakresu GALLERY-001 to [../../api-contract/API_CONTRACT.md](../../api-contract/API_CONTRACT.md).
+- SSOT dokladnych payloadow, statusow i rol dla zaimplementowanych Etapow 3, 4, 4B i 5 to [../../api-contract/API_CONTRACT.md](../../api-contract/API_CONTRACT.md).
 - Zwykly endpoint wydarzen nie daje administratorowi bypassu ownership.
 - Zaproszenia e-mail i tokeny pozostaja poza Etapem 3.
 - Docelowo listy wspieraja filtrowanie i paginacje; minimalne `GET /api/events` i `GET /api/events/{eventId}/members` w Etapie 3 zwracaja pelne tablice dostepnego zakresu bez paginacji.

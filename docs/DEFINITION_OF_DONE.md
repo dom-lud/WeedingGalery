@@ -36,6 +36,9 @@ Definiuje kompletne kryteria ukonczenia zadania dla zmian w projekcie.
 - [ ] Retencja i usuwanie danych zostaly uwzglednione, jesli dotyczy.
 
 ## Kryteria testowe
+- [ ] Przed testami przygotowano test design brief i mapowanie wymaganie/ryzyko -> warstwa testu.
+- [ ] Zapadki coverage przechodza i nie zostaly obnizone bez uzasadnienia.
+- [ ] Krytyczny UI przeszedl automatyczny audit accessibility, jesli dotyczy.
 - [ ] Dodano lub zaktualizowano testy adekwatne do zakresu.
 - [ ] Testy wynikaja z wymagan, kontraktu, regresji i ryzyk, a nie z dopasowania do aktualnej implementacji.
 - [ ] Testy obejmuja co najmniej jedna probe obalenia blednego zachowania, jesli zakres zmiany to uzasadnia.

@@ -5,9 +5,9 @@ Potwierdza Definition of Ready i zamraza minimalny zakres pierwszego wejscia
 do Etapu 4: `GALLERY-001`.
 
 ## Status dokumentu
-- Status: ready
+- Status: completed (historyczna checklista gotowosci; Etap 4 jest zakonczony)
 - Zakres: uwierzytelnione zarzadzanie galeriami w kontekscie wydarzenia
-- Ostatnia aktualizacja: 2026-07-13
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Warunki wejscia
 - [x] Etap 3 dostarcza event ownership i aktywne membership managera.

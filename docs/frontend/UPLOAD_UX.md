@@ -6,10 +6,12 @@ Opisuje docelowe doświadczenie użytkownika podczas uploadu zdjęć i filmów.
 ## Status dokumentu
 - Status: draft
 - Zakres: UX uploadu w galerii publicznej i panelu użytkownika
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-15
 
 ## Stan obecny
-- Docelowy upload UX nie istnieje jeszcze w kodzie.
+- Publiczna strona `/g/:slug` jest mobile-first i obsługuje token z fragmentu URL, opcjonalny kod, wybór wielu plików, status per plik, częściowe błędy, retry i anulowanie.
+- Klient wysyła manifest, a następnie pliki równolegle z ograniczoną współbieżnością; pojedynczy błąd nie blokuje kolejki.
+- Stan aktywnej sesji można odczytać z backendu, ale po pełnym odświeżeniu przeglądarki klient nie przywraca jeszcze automatycznie lokalnej kolejki.
 
 ## Stan docelowy
 - Stabilny, czytelny upload wieloplikowy z obsługą telefonów i częściowych błędów.
@@ -34,4 +36,4 @@ Opisuje docelowe doświadczenie użytkownika podczas uploadu zdjęć i filmów.
 - [../architecture/BACKGROUND_JOBS.md](../architecture/BACKGROUND_JOBS.md)
 
 ## Decyzje otwarte
-- Czy w pierwszej implementacji stan uploadu po odświeżeniu strony będzie odtwarzany z backendu.
+- Automatyczne odtworzenie lokalnej kolejki po odświeżeniu oraz upload chunked/resumable pozostają rozszerzeniem Etapu 5.

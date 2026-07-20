@@ -25,6 +25,13 @@ Opisuje zakres i standardy testów backendowych.
 - Testy migracji schematu po wprowadzeniu mechanizmu migracji do repozytorium
 
 ## Wymagania
+- Przed implementacja testu opisz bledna implementacje, ktora test powinien wykryc.
+- Limity testuj na granicy, a idempotencje przez replay i konflikt payloadu.
+- Dla storage testuj awarie zapisu/usuwania, kompensacje i brak orphanow.
+- JaCoCo w fazie `verify` jest blokujaca zapadka: minimum 40% instructions i
+  30% branches dla calego backendu. Progi maja rosnac wraz z pokryciem.
+- Zachowanie zalezne od MySQL i migracji wymaga testu na rzeczywistym silniku;
+  H2 nie jest wystarczajacym dowodem zgodnosci produkcyjnej.
 - Każda nowa reguła ownership wymaga testu pozytywnego i negatywnego.
 - Każda operacja administracyjna wymaga testu audytu.
 - Błędy integracyjne powinny mieć testy retry lub degradacji.

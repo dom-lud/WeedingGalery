@@ -21,11 +21,10 @@ describe('App foundation shell', () => {
       </ThemeProvider>,
     )
 
-    // Initially loading
-    expect(screen.getByText(/Loading\.\.\./i)).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(/Opening your workspace/i)
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /Welcome Back/i })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /Sign in to your gallery/i })).toBeInTheDocument()
     })
   })
 })
