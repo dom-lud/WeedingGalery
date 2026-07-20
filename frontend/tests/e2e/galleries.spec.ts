@@ -68,6 +68,9 @@ test.describe('Galleries E2E', () => {
     )
     await page.getByRole('button', { name: 'Save gallery' }).click()
     expect((await updateResponse).status()).toBe(200)
+    await expect(
+      page.getByRole('button', { name: `More actions for ${managerGallery} edited` }),
+    ).toBeFocused()
 
     await dashboardPage.logout()
     await loginPage.login('admin@example.com', 'password123')
@@ -85,6 +88,9 @@ test.describe('Galleries E2E', () => {
       .click()
     expect((await archiveResponse).status()).toBe(200)
     await expect(ownerCard.getByText('Archived', { exact: true })).toBeVisible()
+    await expect(
+      ownerCard.getByRole('button', { name: `More actions for ${ownerGallery}` }),
+    ).toBeFocused()
 
     const editedCard = dashboardPage.galleryCard(`${managerGallery} edited`)
     const deleteResponse = page.waitForResponse(
@@ -99,5 +105,6 @@ test.describe('Galleries E2E', () => {
       .click()
     expect((await deleteResponse).status()).toBe(204)
     await expect(page.getByText(`${managerGallery} edited`, { exact: true })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Create gallery' })).toBeFocused()
   })
 })

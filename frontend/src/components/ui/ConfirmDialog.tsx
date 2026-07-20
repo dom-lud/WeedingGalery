@@ -18,6 +18,7 @@ interface ConfirmDialogProps {
   destructive?: boolean
   onCancel: () => void
   onConfirm: () => void
+  onExited?: () => void
 }
 
 export default function ConfirmDialog({
@@ -29,12 +30,19 @@ export default function ConfirmDialog({
   destructive = false,
   onCancel,
   onConfirm,
+  onExited,
 }: ConfirmDialogProps) {
   const theme = useTheme()
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
   return (
-    <Dialog open={open} onClose={busy ? undefined : onCancel} fullScreen={fullScreen} fullWidth>
+    <Dialog
+      open={open}
+      onClose={busy ? undefined : onCancel}
+      fullScreen={fullScreen}
+      fullWidth
+      slotProps={{ transition: { onExited } }}
+    >
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         <DialogContentText>{description}</DialogContentText>

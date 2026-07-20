@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { ThemeProvider } from '@mui/material/styles'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { EventData } from '../eventsApi'
 import { galleriesApi } from '../galleriesApi'
 import { appTheme } from '../theme'
@@ -43,6 +43,8 @@ function renderManager(currentEvent = event) {
 }
 
 describe('GalleryManager', () => {
+  afterEach(cleanup)
+
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -138,6 +140,51 @@ describe('GalleryManager', () => {
     confirmation = screen.getByRole('dialog', { name: 'Delete gallery?' })
     fireEvent.click(within(confirmation).getByRole('button', { name: 'Delete gallery' }))
     await waitFor(() => expect(galleriesApi.remove).toHaveBeenCalledWith('event-1', 'gallery-1'))
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Create gallery' })).toHaveFocus(),
+    )
+  })
+
+  it('restores focus after an edit even when the gallery refresh is delayed', async () => {
+    const originalGallery = {
+      id: 'gallery-1',
+      eventId: 'event-1',
+      name: 'Reception',
+      slug: 'reception',
+      description: null,
+      sortOrder: 0,
+      status: 'ACTIVE',
+      currentUserRole: 'OWNER',
+      createdAt: '',
+      updatedAt: '',
+    }
+    let resolveReload!: (value: { data: Array<typeof originalGallery> }) => void
+    const delayedReload = new Promise<{ data: Array<typeof originalGallery> }>((resolve) => {
+      resolveReload = resolve
+    })
+    vi.mocked(galleriesApi.list)
+      .mockResolvedValueOnce({ data: [originalGallery] } as never)
+      .mockReturnValueOnce(delayedReload as never)
+    vi.mocked(galleriesApi.update).mockResolvedValue({ data: {} } as never)
+    renderManager()
+
+    await screen.findByText('Reception')
+    fireEvent.click(screen.getByRole('button', { name: 'More actions for Reception' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Edit gallery' }))
+    fireEvent.change(screen.getByRole('textbox', { name: /Gallery name/ }), {
+      target: { value: 'Reception edited' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save gallery' }))
+
+    await waitFor(() => expect(galleriesApi.update).toHaveBeenCalled())
+    expect(screen.getByRole('dialog', { name: 'Edit gallery' })).toBeVisible()
+    resolveReload({ data: [{ ...originalGallery, name: 'Reception edited' }] })
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'More actions for Reception edited' }),
+      ).toHaveFocus(),
+    )
   })
 
   it('renders an actionable error state', async () => {

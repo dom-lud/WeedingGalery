@@ -72,6 +72,7 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
     description: string
     confirmLabel: string
     action: () => Promise<void>
+    restoreToCreate?: boolean
   } | null>(null)
   const [confirming, setConfirming] = useState(false)
   const [actionMenu, setActionMenu] = useState<{
@@ -79,14 +80,27 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
     gallery: GalleryData
   } | null>(null)
   const actionTriggerRef = useRef<HTMLElement | null>(null)
-  const restoreActionFocus = () => {
-    const trigger = actionTriggerRef.current
+  const actionTriggerGalleryIdRef = useRef<string | null>(null)
+  const actionTriggerNodesRef = useRef<Record<string, HTMLButtonElement | null>>({})
+  const createGalleryButtonRef = useRef<HTMLButtonElement | null>(null)
+  const confirmationRestoreToCreateRef = useRef(false)
+  const restoreActionFocus = (restoreToCreate = false) => {
+    const triggerGalleryId = actionTriggerGalleryIdRef.current
+    const originalTrigger = actionTriggerRef.current
     actionTriggerRef.current = null
-    requestAnimationFrame(() => trigger?.focus())
+    actionTriggerGalleryIdRef.current = null
+    requestAnimationFrame(() => {
+      const remountedTrigger = triggerGalleryId
+        ? actionTriggerNodesRef.current[triggerGalleryId]
+        : null
+      const target = restoreToCreate
+        ? createGalleryButtonRef.current
+        : (remountedTrigger ?? originalTrigger ?? createGalleryButtonRef.current)
+      target?.focus()
+    })
   }
   const closeEditDialog = () => {
     setDialogOpen(false)
-    restoreActionFocus()
   }
   const validAccessCode = /^[\x20-\x7e]{6,64}$/.test(accessCode)
   const canEditAccessSettings =
@@ -143,8 +157,8 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
         await galleriesApi.create(event.id, form)
         setMessage('Gallery created.')
       }
-      closeEditDialog()
       await load()
+      setDialogOpen(false)
     } catch (requestError) {
       setError(errorMessage(requestError))
     }
@@ -167,6 +181,7 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
       title: 'Delete gallery?',
       description: `Delete ${gallery.name}? It will no longer be available in this event.`,
       confirmLabel: 'Delete gallery',
+      restoreToCreate: true,
       action: async () => {
         await galleriesApi.remove(event.id, gallery.id)
         setMessage('Gallery deleted.')
@@ -179,8 +194,8 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
     setConfirming(true)
     try {
       await confirmation.action()
+      confirmationRestoreToCreateRef.current = Boolean(confirmation.restoreToCreate)
       setConfirmation(null)
-      restoreActionFocus()
     } catch (requestError) {
       setError(errorMessage(requestError))
     } finally {
@@ -293,7 +308,12 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
           </Typography>
           <Typography color="text.secondary">Organize guest uploads into collections.</Typography>
         </Box>
-        <Button variant="contained" onClick={openCreate} disabled={event.status === 'ARCHIVED'}>
+        <Button
+          ref={createGalleryButtonRef}
+          variant="contained"
+          onClick={openCreate}
+          disabled={event.status === 'ARCHIVED'}
+        >
           Create gallery
         </Button>
       </Stack>
@@ -404,6 +424,9 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
                 </Button>
                 {(gallery.status !== 'ARCHIVED' || event.currentUserRole === 'OWNER') && (
                   <Button
+                    ref={(node) => {
+                      actionTriggerNodesRef.current[gallery.id] = node
+                    }}
                     id={`gallery-actions-trigger-${gallery.id}`}
                     aria-label={`More actions for ${gallery.name}`}
                     aria-haspopup="menu"
@@ -415,6 +438,7 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
                     }
                     onClick={(clickEvent) => {
                       actionTriggerRef.current = clickEvent.currentTarget
+                      actionTriggerGalleryIdRef.current = gallery.id
                       setActionMenu({ anchor: clickEvent.currentTarget, gallery })
                     }}
                     sx={{ width: { xs: '100%', sm: 'auto' } }}
@@ -482,6 +506,7 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
       <Dialog
         open={dialogOpen}
         onClose={closeEditDialog}
+        slotProps={{ transition: { onExited: () => restoreActionFocus() } }}
         fullScreen={fullScreenDialog}
         fullWidth
         maxWidth="sm"
@@ -746,10 +771,11 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
         destructive
         busy={confirming}
         onCancel={() => {
+          confirmationRestoreToCreateRef.current = false
           setConfirmation(null)
-          restoreActionFocus()
         }}
         onConfirm={() => void confirmAction()}
+        onExited={() => restoreActionFocus(confirmationRestoreToCreateRef.current)}
       />
     </Stack>
   )
