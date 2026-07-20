@@ -39,7 +39,7 @@ class MySqlFlywayMigrationContractTest {
 				tableCount++;
 			assertThat(tableCount).isEqualTo(4);
 			assertThat(singleCount(uniqueGrantKey.executeQuery())).isPositive();
-			assertThat(singleCount(foreignKeys.executeQuery())).isGreaterThanOrEqualTo(3);
+			assertThat(singleCount(foreignKeys.executeQuery())).isEqualTo(5);
 		}
 	}
 

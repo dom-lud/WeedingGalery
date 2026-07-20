@@ -41,6 +41,13 @@ jobs:
         working-directory: backend
         run: ./mvnw -B verify
 
+      - name: Require MySQL migration contract execution
+        shell: bash
+        run: |
+          report="backend/target/surefire-reports/TEST-pl.backend.weddinggallery.MySqlFlywayMigrationContractTest.xml"
+          test -f "$report"
+          grep -q 'tests="1" errors="0" skipped="0" failures="0"' "$report"
+
       - name: Upload backend coverage
         uses: actions/upload-artifact@v4
         with:
