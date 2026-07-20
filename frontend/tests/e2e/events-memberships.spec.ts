@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures/auth.fixture'
+import { adminEmail, adminPassword } from './fixtures/testCredentials'
 
 test.describe('Events and memberships E2E', () => {
   test('owner creates an event, adds a manager and transfers ownership', async ({
@@ -11,7 +12,7 @@ test.describe('Events and memberships E2E', () => {
     const eventName = `Stage 3 event ${suffix}`
 
     await loginPage.goto()
-    expect((await loginPage.login('admin@example.com', 'password123!')).status()).toBe(200)
+    expect((await loginPage.login(adminEmail, adminPassword)).status()).toBe(200)
     await dashboardPage.verifyIsLoaded()
 
     const csrfToken = await page.evaluate(() => {
@@ -44,7 +45,7 @@ test.describe('Events and memberships E2E', () => {
     await expect(page.getByRole('button', { name: /delete event/i })).toHaveCount(0)
 
     await dashboardPage.logout()
-    await loginPage.login('admin@example.com', 'password123!')
+    await loginPage.login(adminEmail, adminPassword)
     await dashboardPage.manageEvent(eventName)
     await dashboardPage.openPeople()
     const managerRow = page.getByText(managerEmail, { exact: true }).locator('xpath=ancestor::li')

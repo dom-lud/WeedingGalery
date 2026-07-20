@@ -6,12 +6,14 @@ Definiuje model logicznej separacji danych wielu użytkowników, wydarzeń i gal
 ## Status dokumentu
 - Status: draft
 - Zakres: multi-tenancy na poziomie aplikacji i danych
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
 - Izolacja wydarzen jest zaimplementowana przez `events.owner_user_id` i aktywne `event_memberships`.
 - Scoped queries, use case i testy IDOR maskuja cudzy oraz nieistniejacy `eventId` tym samym `404`.
-- Izolacja galerii jest zaimplementowana w GALLERY-001: management API dziedziczy dostep przez event ownership albo aktywne membership, a zapytania zasobu sa zawsze scoped przez `eventId + galleryId` i maskuja cross-event IDOR. Media i dostep publiczny pozostaja zakresem kolejnych etapow.
+- Izolacja galerii jest zaimplementowana w GALLERY-001: management API dziedziczy dostep przez event ownership albo aktywne membership, a zapytania zasobu sa zawsze scoped przez `eventId + galleryId` i maskuja cross-event IDOR.
+- Publiczny grant jest ograniczony do jednej galerii i uniewazniany przez rotacje/revocation. Upload session oraz media sa sprawdzane jednoczesnie przez slug galerii, grant i identyfikator sesji, co maskuje cross-gallery IDOR.
+- Publiczne listowanie i pobieranie mediow pozostaje Etapem 7 i musi zachowac ten sam scoping.
 
 ## Stan docelowy
 - Jedna instancja aplikacji i jedna baza obsługują wiele niezależnych kont z logiczną izolacją danych.

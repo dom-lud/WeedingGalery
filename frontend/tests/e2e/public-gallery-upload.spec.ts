@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { PublicGalleryPage } from './pages/PublicGalleryPage'
+import { adminEmail, adminPassword } from './fixtures/testCredentials'
 
 test.use({ viewport: { width: 390, height: 844 } })
 
@@ -13,7 +14,7 @@ test('owner publishes a code-protected gallery and a guest uploads a file', asyn
   const dashboard = new DashboardPage(page)
 
   await login.goto()
-  expect((await login.login('admin@example.com', 'password123!')).status()).toBe(200)
+  expect((await login.login(adminEmail, adminPassword)).status()).toBe(200)
   expect((await dashboard.createEvent(eventName)).status()).toBe(201)
   await dashboard.manageEvent(eventName)
   await page.getByRole('button', { name: 'Create gallery' }).click()

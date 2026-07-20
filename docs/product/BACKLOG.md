@@ -9,6 +9,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
+- Closure sprint 0-5 domyka hardening konfiguracji: brak kont w migracjach, opt-in bootstrap admina, wymagane sekrety prod, bezpieczne cookies oraz powtarzalny lokalny format check.
 - Etapy 0-5 są zakończone w zakresach wskazanych poniżej; dalsze rozszerzenia pozostają osobnymi zadaniami.
 - Status bieżący wynika z tabeli poniżej. Pole `Status początkowy` przy opisie zadania zachowuje historyczny stan wejściowy i nie zastępuje tabeli.
 

@@ -81,6 +81,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | Frontend testing | Zasady testow frontendu | frontend | przy zmianie standardow testow UI lub page object pattern | [docs/testing/FRONTEND_TESTING.md](testing/FRONTEND_TESTING.md) |
 | E2E scenarios | Kluczowe scenariusze E2E | QA, frontend, backend | przy zmianie krytycznych flow auth, UX lub kontraktu | [docs/testing/E2E_SCENARIOS.md](testing/E2E_SCENARIOS.md) |
 | Stage 4/5 test matrix | Powiazanie wymagan galerii, public access, uploadu i storage z testami | QA, backend, frontend, security | przy zmianie Etapow 4, 4B lub 5 | [docs/testing/STAGE_4_5_TEST_MATRIX.md](testing/STAGE_4_5_TEST_MATRIX.md) |
+| Stage 0-5 closure test brief | Macierz ryzyk hardeningu zamykajacego Etapy 0-5 | QA, backend, security, ops | przy zmianie closure sprintu 0-5 | [docs/testing/STAGE_0_5_CLOSURE_TEST_BRIEF.md](testing/STAGE_0_5_CLOSURE_TEST_BRIEF.md) |
 | Quality gates | Warunki jakości | wszyscy | przy zmianie procesu release | [docs/testing/QUALITY_GATES.md](testing/QUALITY_GATES.md) |
 
 ## Operacje

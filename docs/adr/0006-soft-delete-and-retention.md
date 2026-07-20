@@ -2,13 +2,15 @@
 
 ## Status dokumentu
 - Status: proposed
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Cel dokumentu
 Opisuje podejście do usuwania danych i retencji.
 
 ## Stan obecny
-- Polityka usuwania nie została wdrożona.
+- Soft delete i archiwizacja sa wdrozone dla wydarzen i galerii, a slugi galerii pozostaja zarezerwowane po usunieciu.
+- Upload ma cleanup wygaslych sesji, przerwanych zapisow i plikow tymczasowych.
+- Pelne okresy retencji, hard delete uzytkownikow/mediow, eksport danych i spojny cleanup backupow nie sa jeszcze zatwierdzone; dlatego ADR pozostaje `proposed` dla docelowej polityki.
 
 ## Stan docelowy
 - Soft delete dla wybranych bytów, cleanup asynchroniczny i jawna polityka retencji.
