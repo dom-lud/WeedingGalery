@@ -39,7 +39,7 @@ jobs:
 
       - name: Run backend tests
         working-directory: backend
-        run: ./mvnw -B test
+        run: ./mvnw -B verify
 
   frontend:
     name: Frontend quality
@@ -78,7 +78,7 @@ jobs:
 
       - name: Run frontend tests
         working-directory: frontend
-        run: npm run test
+        run: npm run test:coverage
 
       - name: Run frontend build
         working-directory: frontend

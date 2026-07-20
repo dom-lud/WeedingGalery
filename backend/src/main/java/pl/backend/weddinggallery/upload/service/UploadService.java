@@ -136,10 +136,11 @@ public class UploadService {
 		GalleryAccessService.GrantedGallery grant = accessService.requireGrant(slug, httpSession, true);
 		return tx(() -> {
 			UploadSession session = requireSession(sessionId, grant);
-			if (session.getStatus() != UploadSessionStatus.OPEN)
+			MediaFile media = mediaRepository.findByUploadSessionIdAndClientFileId(sessionId, clientFileId)
+					.orElseThrow(() -> new AppException(UploadErrorCode.UPLOAD_FILE_NOT_FOUND));
+			if (media.getStatus() != MediaStatus.STORED && session.getStatus() != UploadSessionStatus.OPEN)
 				throw new AppException(UploadErrorCode.UPLOAD_SESSION_NOT_OPEN);
-			return mediaRepository.findByUploadSessionIdAndClientFileId(sessionId, clientFileId)
-					.orElseThrow(() -> new AppException(UploadErrorCode.UPLOAD_FILE_NOT_FOUND)).getExpectedSizeBytes();
+			return media.getExpectedSizeBytes();
 		});
 	}
 
@@ -195,12 +196,12 @@ public class UploadService {
 
 	private Claim claim(String sessionId, String clientFileId, GalleryAccessService.GrantedGallery grant) {
 		UploadSession session = requireSession(sessionId, grant);
-		if (session.getStatus() != UploadSessionStatus.OPEN)
-			throw new AppException(UploadErrorCode.UPLOAD_SESSION_NOT_OPEN);
 		MediaFile media = mediaRepository.findByUploadSessionIdAndClientFileId(sessionId, clientFileId)
 				.orElseThrow(() -> new AppException(UploadErrorCode.UPLOAD_FILE_NOT_FOUND));
 		if (media.getStatus() == MediaStatus.STORED)
 			return Claim.completed(fileResponse(media));
+		if (session.getStatus() != UploadSessionStatus.OPEN)
+			throw new AppException(UploadErrorCode.UPLOAD_SESSION_NOT_OPEN);
 		if (media.getStatus() == MediaStatus.RECEIVING)
 			throw new AppException(UploadErrorCode.UPLOAD_IN_PROGRESS);
 		if (media.getStatus() == MediaStatus.CANCELLED)

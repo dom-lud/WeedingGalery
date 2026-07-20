@@ -228,6 +228,113 @@ class PublicGalleryUploadFlowIntegrationTest {
 				.isEqualTo(HttpStatus.CONFLICT);
 	}
 
+	@Test
+	void rejectsInvalidKeysManifestLimitsActiveSessionOverflowAndGalleryQuota() {
+		SessionClient owner = login("owner@example.com");
+		SessionClient guest = new SessionClient();
+		enableUploadAndGrant(owner, guest);
+		String sessionsPath = "/api/public/galleries/" + slug + "/upload-sessions";
+		Map<String, Object> oneFile = Map.of("files", List.of(file("one", "one.jpg", "image/jpeg", 4)));
+
+		ResponseEntity<String> invalidKey = guest.json(HttpMethod.POST, sessionsPath, oneFile, true,
+				Map.of("Idempotency-Key", "short"));
+		assertThat(invalidKey.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(string(invalidKey, "code")).isEqualTo("UPLOAD_INVALID_IDEMPOTENCY_KEY");
+
+		List<Map<String, Object>> tooManyFiles = new ArrayList<>();
+		for (int index = 0; index < 51; index++)
+			tooManyFiles.add(file("file-" + index, "photo-" + index + ".jpg", "image/jpeg", 4));
+		assertThat(guest.json(HttpMethod.POST, sessionsPath, Map.of("files", tooManyFiles), true,
+				Map.of("Idempotency-Key", "too-many-files")).getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+
+		List<Map<String, Object>> oversizedSession = new ArrayList<>();
+		for (int index = 0; index < 5; index++)
+			oversizedSession.add(file("video-" + index, "video-" + index + ".mp4", "video/mp4", 500L * 1024 * 1024));
+		ResponseEntity<String> oversized = guest.json(HttpMethod.POST, sessionsPath, Map.of("files", oversizedSession),
+				true, Map.of("Idempotency-Key", "oversized-session"));
+		assertThat(oversized.getStatusCode().value()).isEqualTo(413);
+		assertThat(string(oversized, "code")).isEqualTo("UPLOAD_FILE_TOO_LARGE");
+
+		for (int index = 0; index < 3; index++)
+			assertThat(guest.json(HttpMethod.POST, sessionsPath, oneFile, true,
+					Map.of("Idempotency-Key", "active-session-" + index)).getStatusCode())
+					.isEqualTo(HttpStatus.CREATED);
+		ResponseEntity<String> fourth = guest.json(HttpMethod.POST, sessionsPath, oneFile, true,
+				Map.of("Idempotency-Key", "active-session-3"));
+		assertThat(fourth.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+		assertThat(string(fourth, "code")).isEqualTo("UPLOAD_SESSION_LIMIT_EXCEEDED");
+
+		Gallery quotaConsumed = galleries.findById(galleryId).orElseThrow();
+		quotaConsumed.setStorageUsedBytes(5L * 1024 * 1024 * 1024);
+		galleries.saveAndFlush(quotaConsumed);
+		SessionClient anotherGuest = new SessionClient();
+		enableUploadAndGrant(owner, anotherGuest);
+		ResponseEntity<String> quota = anotherGuest.json(HttpMethod.POST, sessionsPath, oneFile, true,
+				Map.of("Idempotency-Key", "quota-overflow"));
+		assertThat(quota.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+		assertThat(string(quota, "code")).isEqualTo("STORAGE_QUOTA_EXCEEDED");
+	}
+
+	@Test
+	void isolatesUploadSessionsAndKeepsReplayAndCancelIdempotent() {
+		SessionClient owner = login("owner@example.com");
+		SessionClient firstGuest = new SessionClient();
+		String token = enableUploadAndGrant(owner, firstGuest);
+		String sessionsPath = "/api/public/galleries/" + slug + "/upload-sessions";
+		byte[] jpeg = jpeg();
+		Map<String, Object> manifest = Map.of("files", List.of(file("photo", "photo.jpg", "image/jpeg", jpeg.length)));
+		ResponseEntity<String> created = firstGuest.json(HttpMethod.POST, sessionsPath, manifest, true,
+				Map.of("Idempotency-Key", "replay-session"));
+		String sessionId = string(created, "id");
+
+		SessionClient secondGuest = new SessionClient();
+		secondGuest.json(HttpMethod.GET, "/api/auth/csrf", null, false, Map.of());
+		secondGuest.json(HttpMethod.POST, "/api/public/galleries/" + slug + "/access", Map.of("accessToken", token),
+				true, Map.of());
+		assertThat(
+				secondGuest.json(HttpMethod.GET, sessionsPath + "/" + sessionId, null, false, Map.of()).getStatusCode())
+				.isEqualTo(HttpStatus.NOT_FOUND);
+
+		String uploadPath = sessionsPath + "/" + sessionId + "/files/photo";
+		assertThat(firstGuest.multipart(uploadPath, "photo.jpg", "image/jpeg", jpeg, true).getStatusCode())
+				.isEqualTo(HttpStatus.OK);
+		long mediaCount = media.count();
+		long usedBytes = galleries.findById(galleryId).orElseThrow().getStorageUsedBytes();
+		assertThat(firstGuest.multipart(uploadPath, "photo.jpg", "image/jpeg", jpeg, true).getStatusCode())
+				.isEqualTo(HttpStatus.OK);
+		assertThat(media.count()).isEqualTo(mediaCount);
+		assertThat(galleries.findById(galleryId).orElseThrow().getStorageUsedBytes()).isEqualTo(usedBytes);
+
+		String cancelPath = sessionsPath + "/" + sessionId + "/cancel";
+		assertThat(firstGuest.json(HttpMethod.POST, cancelPath, null, true, Map.of()).getStatusCode())
+				.isEqualTo(HttpStatus.OK);
+		assertThat(firstGuest.json(HttpMethod.POST, cancelPath, null, true, Map.of()).getStatusCode())
+				.isEqualTo(HttpStatus.OK);
+		assertThat(galleries.findById(galleryId).orElseThrow().getStorageUsedBytes()).isEqualTo(usedBytes);
+	}
+
+	private String enableUploadAndGrant(SessionClient owner, SessionClient guest) {
+		String management = "/api/events/" + eventId + "/galleries/" + galleryId;
+		ResponseEntity<String> rotated = owner.json(HttpMethod.POST, management + "/access-token/rotate", null, true,
+				Map.of());
+		String token = string(rotated, "accessToken");
+		ResponseEntity<String> settings = owner.json(HttpMethod.GET, management + "/settings", null, false, Map.of());
+		Map<String, Object> body = new LinkedHashMap<>();
+		body.put("publicViewEnabled", true);
+		body.put("uploadEnabled", true);
+		body.put("downloadEnabled", false);
+		body.put("moderationMode", "REQUIRED");
+		body.put("publishedAt", null);
+		body.put("expiresAt", null);
+		body.put("version", number(settings, "version"));
+		assertThat(owner.json(HttpMethod.PUT, management + "/settings", body, true, Map.of()).getStatusCode())
+				.isEqualTo(HttpStatus.OK);
+		guest.json(HttpMethod.GET, "/api/auth/csrf", null, false, Map.of());
+		assertThat(guest.json(HttpMethod.POST, "/api/public/galleries/" + slug + "/access",
+				Map.of("accessToken", token), true, Map.of()).getStatusCode()).isEqualTo(HttpStatus.OK);
+		return token;
+	}
+
 	private Map<String, Object> file(String id, String name, String type, long size) {
 		return Map.of("clientFileId", id, "fileName", name, "declaredContentType", type, "size", size);
 	}

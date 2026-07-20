@@ -121,4 +121,73 @@ describe('PublicGalleryPage', () => {
       expect(screen.getByText(/invalid, expired or no longer available/i)).toBeVisible(),
     )
   })
+
+  it('shows a dedicated throttling state without leaking gallery details', async () => {
+    vi.mocked(publicAccessApi.access).mockRejectedValue({
+      response: { status: 429, data: { code: 'RATE_LIMIT_EXCEEDED' } },
+    })
+    renderPage()
+
+    expect(await screen.findByRole('heading', { name: 'Please wait' })).toBeInTheDocument()
+    expect(screen.getByText(/too many attempts/i)).toBeInTheDocument()
+    expect(screen.queryByText(gallery.name)).not.toBeInTheDocument()
+  })
+
+  it('rejects unsupported files before creating an upload session', async () => {
+    vi.mocked(publicAccessApi.access).mockResolvedValue({ data: gallery } as never)
+    const view = renderPage()
+    await screen.findByRole('heading', { name: 'Reception gallery' })
+    const input = view.container.querySelector('input[type="file"]') as HTMLInputElement
+
+    fireEvent.change(input, {
+      target: { files: [new File(['<svg/>'], 'payload.svg', { type: 'image/svg+xml' })] },
+    })
+
+    expect(
+      await screen.findByText('Only JPEG, PNG, WebP and MP4 files are supported.'),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Upload pending files' })).toBeDisabled()
+    expect(uploadApi.createSession).not.toHaveBeenCalled()
+  })
+
+  it('caps a batch at fifty files and explains the limit', async () => {
+    vi.mocked(publicAccessApi.access).mockResolvedValue({ data: gallery } as never)
+    const view = renderPage()
+    await screen.findByRole('heading', { name: 'Reception gallery' })
+    const input = view.container.querySelector('input[type="file"]') as HTMLInputElement
+    const files = Array.from(
+      { length: 51 },
+      (_, index) => new File(['x'], `photo-${index}.jpg`, { type: 'image/jpeg' }),
+    )
+
+    fireEvent.change(input, { target: { files } })
+
+    expect(await screen.findByText('A session can contain at most 50 files.')).toBeInTheDocument()
+    expect(screen.getByText('50 selected')).toBeInTheDocument()
+  })
+
+  it('aborts active requests, cancels the server session and preserves a clear status', async () => {
+    vi.mocked(publicAccessApi.access).mockResolvedValue({ data: gallery } as never)
+    vi.mocked(uploadApi.createSession).mockResolvedValue({ data: { id: 'session-1' } } as never)
+    vi.mocked(uploadApi.cancel).mockResolvedValue({ data: { status: 'CANCELLED' } } as never)
+    vi.mocked(uploadApi.uploadFile).mockImplementation(
+      async (_slug, _session, _id, _file, _progress, signal) =>
+        await new Promise((_, reject) => {
+          signal?.addEventListener('abort', () => reject(new Error('aborted')))
+        }),
+    )
+    const view = renderPage()
+    await screen.findByRole('heading', { name: 'Reception gallery' })
+    const input = view.container.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(input, {
+      target: { files: [new File(['photo'], 'photo.jpg', { type: 'image/jpeg' })] },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Upload pending files' }))
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Cancel upload' }))
+
+    await waitFor(() => expect(uploadApi.cancel).toHaveBeenCalledWith('reception', 'session-1'))
+    expect(await screen.findByText('Cancelled')).toBeInTheDocument()
+    expect(screen.getByText('0 uploaded.')).toBeInTheDocument()
+  })
 })
