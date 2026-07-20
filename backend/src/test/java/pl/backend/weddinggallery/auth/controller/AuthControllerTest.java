@@ -27,7 +27,10 @@ import pl.backend.weddinggallery.user.model.SystemRole;
 import pl.backend.weddinggallery.user.model.User;
 import pl.backend.weddinggallery.user.repository.UserRepository;
 
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = "app.security.csrf.enabled=true")
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = {"app.security.csrf.enabled=true",
+		"app.security.secure-cookies=true", "server.servlet.session.cookie.secure=true",
+		"server.servlet.session.cookie.same-site=lax",
+		"app.security.cors.allowed-origin-patterns=https://gallery.example"})
 @ActiveProfiles("test")
 public class AuthControllerTest {
 
@@ -59,6 +62,41 @@ public class AuthControllerTest {
 
 	private String getBaseUrl() {
 		return "http://localhost:" + port + "/api/auth";
+	}
+
+	@Test
+	void shouldIssueSecureSameSiteCookiesForCsrfAndAuthenticatedSession() {
+		ResponseEntity<String> csrfResponse = restTemplate.getForEntity(getBaseUrl() + "/csrf", String.class);
+		assertThat(csrfResponse.getHeaders().get(HttpHeaders.SET_COOKIE))
+				.filteredOn(cookie -> cookie.startsWith("XSRF-TOKEN="))
+				.allSatisfy(cookie -> assertThat(cookie).contains("Secure", "SameSite=Lax"));
+
+		createUser("secure@example.com", "password123", SystemRole.USER);
+		HttpHeaders headers = getHeadersWithCsrf();
+		ResponseEntity<String> loginResponse = restTemplate.exchange(getBaseUrl() + "/login", HttpMethod.POST,
+				new HttpEntity<>(Map.of("email", "secure@example.com", "password", "password123"), headers),
+				String.class);
+
+		assertThat(loginResponse.getHeaders().get(HttpHeaders.SET_COOKIE))
+				.filteredOn(cookie -> cookie.startsWith("JSESSIONID="))
+				.allSatisfy(cookie -> assertThat(cookie).contains("Secure", "HttpOnly", "SameSite=Lax"));
+	}
+
+	@Test
+	void shouldAllowOnlyExplicitlyConfiguredCorsOrigin() {
+		HttpHeaders trusted = new HttpHeaders();
+		trusted.setOrigin("https://gallery.example");
+		ResponseEntity<String> trustedResponse = restTemplate.exchange(getBaseUrl() + "/csrf", HttpMethod.GET,
+				new HttpEntity<>(trusted), String.class);
+		assertThat(trustedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(trustedResponse.getHeaders().getAccessControlAllowOrigin()).isEqualTo("https://gallery.example");
+
+		HttpHeaders untrusted = new HttpHeaders();
+		untrusted.setOrigin("https://attacker.example");
+		ResponseEntity<String> untrustedResponse = restTemplate.exchange(getBaseUrl() + "/csrf", HttpMethod.GET,
+				new HttpEntity<>(untrusted), String.class);
+		assertThat(untrustedResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+		assertThat(untrustedResponse.getHeaders().getAccessControlAllowOrigin()).isNull();
 	}
 
 	private HttpHeaders getHeadersWithCsrf() {

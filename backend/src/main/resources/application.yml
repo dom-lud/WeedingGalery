@@ -9,6 +9,14 @@ spring:
     open-in-view: false
 
 app:
+  security:
+    secure-cookies: false
+    cors:
+      allowed-origin-patterns: http://localhost:*,http://127.0.0.1:*
+  bootstrap-admin:
+    enabled: ${BOOTSTRAP_ADMIN_ENABLED:false}
+    email: ${BOOTSTRAP_ADMIN_EMAIL:}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:}
   public-access:
     rate-limit: 10
     rate-window-seconds: 900

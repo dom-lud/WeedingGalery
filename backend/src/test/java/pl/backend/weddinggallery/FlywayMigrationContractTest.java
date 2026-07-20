@@ -15,7 +15,7 @@ class FlywayMigrationContractTest {
 		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(4);
 
 		try (var connection = DriverManager.getConnection(url, "sa", "");
-				var users = connection.prepareStatement("SELECT COUNT(*) FROM users WHERE email = 'admin@example.com'");
+				var users = connection.prepareStatement("SELECT COUNT(*) FROM users");
 				var events = connection.prepareStatement("SELECT owner_user_id, privacy_mode, version FROM events");
 				var membership = connection.prepareStatement("SELECT removed_at, version FROM event_memberships");
 				var audit = connection.prepareStatement("SELECT event_id, target_user_id FROM audit_events");
@@ -37,7 +37,7 @@ class FlywayMigrationContractTest {
 						+ "WHERE \"success\" = TRUE AND \"version\" IS NOT NULL ORDER BY \"installed_rank\"")) {
 			assertThat(users.executeQuery()).satisfies(result -> {
 				assertThat(result.next()).isTrue();
-				assertThat(result.getInt(1)).isEqualTo(1);
+				assertThat(result.getInt(1)).isZero();
 			});
 			assertThat(events.executeQuery()).isNotNull();
 			assertThat(membership.executeQuery()).isNotNull();

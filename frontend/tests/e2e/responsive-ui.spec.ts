@@ -16,7 +16,7 @@ test.describe('Responsive UI at 360px', () => {
     await expect(emailInput).toBeFocused()
     await page.keyboard.type('admin@example.com')
     await page.keyboard.press('Tab')
-    await page.keyboard.type('password123')
+    await page.keyboard.type('password123!')
 
     const loginMetrics = await page.evaluate(() => ({
       documentWidth: document.documentElement.scrollWidth,
@@ -84,7 +84,7 @@ test.describe('Responsive UI at 1024px', () => {
   }) => {
     const login = new LoginPage(page)
     await login.goto()
-    expect((await login.login('admin@example.com', 'password123')).status()).toBe(200)
+    expect((await login.login('admin@example.com', 'password123!')).status()).toBe(200)
 
     await expect(page.getByRole('heading', { name: 'Events', exact: true })).toBeVisible()
     await page.getByRole('button', { name: 'Manage', exact: true }).first().click()
@@ -101,7 +101,7 @@ test.describe('Responsive UI at 390px', () => {
     const login = new LoginPage(page)
     const dashboard = new DashboardPage(page)
     await login.goto()
-    expect((await login.login('admin@example.com', 'password123')).status()).toBe(200)
+    expect((await login.login('admin@example.com', 'password123!')).status()).toBe(200)
     await dashboard.verifyIsLoaded()
 
     await page.getByRole('button', { name: 'Create event' }).click()

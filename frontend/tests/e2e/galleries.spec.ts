@@ -27,7 +27,7 @@ test.describe('Galleries E2E', () => {
     const dashboardPage = new DashboardPage(page)
 
     await loginPage.goto()
-    expect((await loginPage.login('admin@example.com', 'password123')).status()).toBe(200)
+    expect((await loginPage.login('admin@example.com', 'password123!')).status()).toBe(200)
     await dashboardPage.verifyIsLoaded()
 
     const csrfToken = await page.evaluate(() => {
@@ -73,7 +73,7 @@ test.describe('Galleries E2E', () => {
     ).toBeFocused()
 
     await dashboardPage.logout()
-    await loginPage.login('admin@example.com', 'password123')
+    await loginPage.login('admin@example.com', 'password123!')
     await dashboardPage.manageEvent(eventName)
     const ownerCard = dashboardPage.galleryCard(ownerGallery)
     const archiveResponse = page.waitForResponse(
