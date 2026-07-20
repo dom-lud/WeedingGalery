@@ -13,6 +13,7 @@ Opisuje aktualny i docelowy model tozsamosci uzytkownika, sesji oraz reguly auto
 - SPA korzysta z ochrony CSRF i pobiera token przez `GET /api/auth/csrf`, a backend wystawia cookie `XSRF-TOKEN`.
 - Dostepne sa endpointy `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` oraz `GET /api/auth/csrf`.
 - `POST /api/auth/register` nie jest publicznym signupem. Konto moze utworzyc tylko zalogowany administrator.
+- Pierwszy administrator nie jest seedowany przez Flyway. Powstaje przez jawnie wlaczany bootstrap runtime, ktory nie resetuje hasla przy replay i nie podnosi roli istniejacego konta.
 - Aktualnie zaimplementowane role systemowe w kodzie to `ADMIN` i `USER`.
 - Podstawowy audyt zapisuje wpisy do tabeli `audit_events` przez `AuditService`.
 - Etap 3 egzekwuje role kontekstowe `OWNER`/`MANAGER`, ownership wydarzenia i aktywne membership w use case oraz scoped queries.
@@ -46,6 +47,7 @@ SSOT kontraktu FE-BE znajduje sie w [../../api-contract/API_CONTRACT.md](../../a
 - Hasla musza byc bezpiecznie hashowane.
 - Tokeny jednorazowe musza byc silne i losowe.
 - Flow oparty o sesje cookie musi pozostac zgodny z CSRF dla SPA.
+- Produkcja wymaga `Secure`, `HttpOnly` i `SameSite=Lax` dla sesji oraz `Secure` i `SameSite=Lax` dla cookie CSRF.
 - Rozszerzenia auth musza utrzymywac rozroznienie miedzy administracyjnym tworzeniem kont a publicznym dostepem gosci do galerii.
 
 ## Autoryzacja systemowa

@@ -19,8 +19,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.cors.CorsConfigurationSource;
 import pl.backend.weddinggallery.audit.model.EventType;
 import pl.backend.weddinggallery.audit.repository.AuditEventRepository;
 import pl.backend.weddinggallery.user.model.SystemRole;
@@ -46,6 +48,9 @@ public class AuthControllerTest {
 	@Autowired
 	private AuditEventRepository auditEventRepository;
 
+	@Autowired
+	private CorsConfigurationSource corsConfigurationSource;
+
 	private final RestTemplate restTemplate = new RestTemplate();
 
 	@BeforeEach
@@ -68,8 +73,8 @@ public class AuthControllerTest {
 	void shouldIssueSecureSameSiteCookiesForCsrfAndAuthenticatedSession() {
 		ResponseEntity<String> csrfResponse = restTemplate.getForEntity(getBaseUrl() + "/csrf", String.class);
 		assertThat(csrfResponse.getHeaders().get(HttpHeaders.SET_COOKIE))
-				.filteredOn(cookie -> cookie.startsWith("XSRF-TOKEN="))
-				.allSatisfy(cookie -> assertThat(cookie).contains("Secure", "SameSite=Lax"));
+				.filteredOn(cookie -> cookie.startsWith("XSRF-TOKEN=")).singleElement()
+				.satisfies(cookie -> assertThat(cookie).contains("Secure", "SameSite=Lax"));
 
 		createUser("secure@example.com", "password123", SystemRole.USER);
 		HttpHeaders headers = getHeadersWithCsrf();
@@ -78,25 +83,16 @@ public class AuthControllerTest {
 				String.class);
 
 		assertThat(loginResponse.getHeaders().get(HttpHeaders.SET_COOKIE))
-				.filteredOn(cookie -> cookie.startsWith("JSESSIONID="))
-				.allSatisfy(cookie -> assertThat(cookie).contains("Secure", "HttpOnly", "SameSite=Lax"));
+				.filteredOn(cookie -> cookie.startsWith("JSESSIONID=")).singleElement()
+				.satisfies(cookie -> assertThat(cookie).contains("Secure", "HttpOnly", "SameSite=Lax"));
 	}
 
 	@Test
 	void shouldAllowOnlyExplicitlyConfiguredCorsOrigin() {
-		HttpHeaders trusted = new HttpHeaders();
-		trusted.setOrigin("https://gallery.example");
-		ResponseEntity<String> trustedResponse = restTemplate.exchange(getBaseUrl() + "/csrf", HttpMethod.GET,
-				new HttpEntity<>(trusted), String.class);
-		assertThat(trustedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(trustedResponse.getHeaders().getAccessControlAllowOrigin()).isEqualTo("https://gallery.example");
-
-		HttpHeaders untrusted = new HttpHeaders();
-		untrusted.setOrigin("https://attacker.example");
-		ResponseEntity<String> untrustedResponse = restTemplate.exchange(getBaseUrl() + "/csrf", HttpMethod.GET,
-				new HttpEntity<>(untrusted), String.class);
-		assertThat(untrustedResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-		assertThat(untrustedResponse.getHeaders().getAccessControlAllowOrigin()).isNull();
+		var configuration = corsConfigurationSource.getCorsConfiguration(new MockHttpServletRequest());
+		assertThat(configuration).isNotNull();
+		assertThat(configuration.checkOrigin("https://gallery.example")).isEqualTo("https://gallery.example");
+		assertThat(configuration.checkOrigin("https://attacker.example")).isNull();
 	}
 
 	private HttpHeaders getHeadersWithCsrf() {

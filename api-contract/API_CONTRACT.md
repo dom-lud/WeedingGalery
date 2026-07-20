@@ -6,6 +6,11 @@ Ten dokument stanowi SSOT (Single Source of Truth) dla wszystkich kontraktow sie
 
 System korzysta ze Spring Security (Session Cookie + CSRF Cookie).
 
+Pierwszy administrator nie jest tworzony przez migracje ani publiczny endpoint.
+Jest provisionowany poza kontraktem HTTP przez jednorazowy, jawnie wlaczany
+bootstrap runtime. Replay dla istniejacego administratora nie zmienia hasla, a
+bootstrap nie moze podniesc roli istniejacego uzytkownika.
+
 ### `POST /api/auth/register`
 Utworzenie nowego uzytkownika przez zalogowanego administratora. Endpoint nie jest publicznym signupem.
 
