@@ -6,7 +6,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 ## Status dokumentu
 - Status: draft
 - Zakres: mapa dokumentacji, checklist, promptów, ADR i skills
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
 - Dokumentacja opisuje planowany system i proces pracy, ale czesc dokumentow zawiera juz takze precyzyjny stan zaimplementowany.
@@ -114,6 +114,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | Feature checklist | Checklista funkcji | autor, reviewer | przy realizacji funkcji | [docs/checklists/FEATURE_CHECKLIST.md](checklists/FEATURE_CHECKLIST.md) |
 | Stage 3 completion checklist | Wykonany DoD i dowody EVENT-001/MEMBER-001 | autor, reviewer | przy domknieciu Etapu 3 | [docs/checklists/STAGE_3_COMPLETION_CHECKLIST.md](checklists/STAGE_3_COMPLETION_CHECKLIST.md) |
 | Stage 4 readiness checklist | DoR i granice pierwszego zakresu GALLERY-001 | autor, reviewer | przed rozpoczeciem Etapu 4 | [docs/checklists/STAGE_4_READINESS_CHECKLIST.md](checklists/STAGE_4_READINESS_CHECKLIST.md) |
+| Stage 4 completion checklist | Historyczne dowody domkniecia GALLERY-001 | autor, reviewer | przy audycie Etapu 4 | [docs/checklists/STAGE_4_COMPLETION_CHECKLIST.md](checklists/STAGE_4_COMPLETION_CHECKLIST.md) |
 | Stage 5 completion checklist | Dowody domkniecia Etapow 4B/5 | autor, reviewer | przy domknieciu public access i uploadu | [docs/checklists/STAGE_5_COMPLETION_CHECKLIST.md](checklists/STAGE_5_COMPLETION_CHECKLIST.md) |
 | Code review checklist | Checklista review | reviewer | przy review kodu | [docs/checklists/CODE_REVIEW_CHECKLIST.md](checklists/CODE_REVIEW_CHECKLIST.md) |
 | Security review checklist | Checklista security | reviewer, security | przy security review | [docs/checklists/SECURITY_REVIEW_CHECKLIST.md](checklists/SECURITY_REVIEW_CHECKLIST.md) |

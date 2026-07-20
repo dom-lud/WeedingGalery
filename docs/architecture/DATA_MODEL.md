@@ -6,7 +6,7 @@ Opisuje docelowy model danych, główne encje, relacje, indeksy i zasady ownersh
 ## Status dokumentu
 - Status: draft
 - Zakres: model danych dla stanu docelowego
-- Ostatnia aktualizacja: 2026-07-15
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
 - Zaimplementowane sa tabele `users`, `events`, `event_memberships`, `galleries` i `audit_events` zarzadzane przez Flyway.
@@ -75,14 +75,14 @@ Opisuje docelowy model danych, główne encje, relacje, indeksy i zasady ownersh
 ### GalleryAccess
 - Przeznaczenie: kontrola dostępu publicznego.
 - Pola zaimplementowane: `id`, `gallery_id`, `token_hash`, `revoked_at`, `created_at`, `version`. Token raw jest jednorazowo zwracany ownerowi; baza przechowuje SHA-256.
-- Indeksy: `(gallery_id, access_type)`, `token_hash`.
+- Indeksy: `(gallery_id, revoked_at)` oraz unikalny `token_hash`.
 
 ### MediaFile
 - Przeznaczenie: metadane zdjęcia lub filmu.
 - Pola zaimplementowane w Etapie 5: `id`, `gallery_id`, `upload_session_id`, `client_file_id`, `original_filename`, `storage_key`, `expected_size_bytes`, `size_bytes`, `declared_content_type`, `detected_content_type`, `media_type`, `status`, `checksum_sha256`, `failure_code`, `stored_at`, timestampy i `version`.
 - Pozostale metadane publikacji i przetwarzania sa planowane w Etapach 6-8.
-- Relacje: N:1 do `Event`, `Gallery`, `UploadSession`; 1:N do `MediaThumbnail`, `MediaProcessingJob`.
-- Indeksy: `gallery_id`, `(gallery_id, status)`, `event_id`, `checksum_sha256`.
+- Relacje: N:1 do `Gallery` i `UploadSession`; kontekst wydarzenia wynika z galerii. Docelowo 1:N do `MediaThumbnail` i `MediaProcessingJob`.
+- Indeksy: `(upload_session_id, status)`, `(gallery_id, status, stored_at)`, unikalny `storage_key` oraz unikalny `(upload_session_id, client_file_id)`.
 
 ### MediaProcessingJob
 - Przeznaczenie: zadanie przetwarzania mediów.
@@ -97,7 +97,7 @@ Opisuje docelowy model danych, główne encje, relacje, indeksy i zasady ownersh
 ### UploadSession
 - Przeznaczenie: grupuje upload jednego lub wielu plików.
 - Pola zaimplementowane: `id`, `gallery_id`, `public_access_id`, `grant_fingerprint`, `idempotency_key`, `request_fingerprint`, `status`, `total_files`, `total_bytes`, `reserved_bytes`, `expires_at`, `cancelled_at`, timestampy i `version`.
-- Indeksy: `gallery_id`, `(event_id, created_at)`, `status`.
+- Indeksy: `(gallery_id, status, created_at)`, `(public_access_id, status, created_at)` oraz unikalny `(grant_fingerprint, idempotency_key)` po migracji V4.
 
 ### DownloadArchive
 - Przeznaczenie: asynchronicznie generowane archiwum ZIP.
@@ -184,4 +184,4 @@ erDiagram
 - [../product/PERMISSIONS_MATRIX.md](../product/PERMISSIONS_MATRIX.md)
 
 ## Decyzje otwarte
-- Publiczne znaczenie slugu i dodatkowy alias moga zostac rozszerzone dopiero wraz z zaakceptowaniem ADR 0010; GALLERY-001 utrzymuje globalna unikalnosc.
+- ADR 0010 jest zaakceptowany, a slug jest publicznym, globalnie unikalnym i stabilnym identyfikatorem galerii. Ewentualny dodatkowy alias lub zmiana strategii URL wymaga osobnej decyzji.

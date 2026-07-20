@@ -30,6 +30,7 @@ node_modules/
 dist/
 dist-ssr/
 coverage/
+vitest-results.json
 *.tsbuildinfo
 
 # Runtime data (root-level directories only; do not hide source packages)

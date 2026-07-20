@@ -7,7 +7,7 @@ minimalnego zakresu `GALLERY-001`.
 ## Status dokumentu
 - Status: completed
 - Zakres: Etap 4 - uwierzytelnione zarzadzanie wieloma galeriami
-- Ostatnia aktualizacja: 2026-07-13
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Zakres i decyzje
 - [x] Jawnie zdecydowano o braku subagentow zgodnie z `SUBAGENT_ORCHESTRATION.md`; jedna petla utrzymala spojny kontrakt FE-BE i audyt.
@@ -50,4 +50,4 @@ minimalnego zakresu `GALLERY-001`.
 ## Nieweryfikowane i ostrzezenia
 - Produkcyjny backup/restore i rollout pozostaja poza zakresem; migracje potwierdzono lokalnie na MySQL 8.4.
 - Vite nadal raportuje ostrzezenie o chunku JS powyzej 500 kB; nie blokuje GALLERY-001, ale wymaga code splitting przy dalszej rozbudowie panelu.
-- Publiczny dostep i semantyka publicznego slugu nie sa zaimplementowane i wymagaja osobnego etapu oraz ADR 0010.
+- Ta checklista opisuje historyczny zakres GALLERY-001. Publiczny dostep i semantyka slugu zostaly pozniej wdrozone w Etapie 4B i sa opisane w [STAGE_5_COMPLETION_CHECKLIST.md](STAGE_5_COMPLETION_CHECKLIST.md); QR i listowanie mediow nadal pozostaja poza zakresem.

@@ -6,10 +6,11 @@ Zbiera docelowe wymagania funkcjonalne produktu w podziale na obszary domenowe.
 ## Status dokumentu
 - Status: draft
 - Zakres: pełny stan docelowy
-- Ostatnia aktualizacja: 2026-07-12
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
-- Wymagania opisują system docelowy; nie są jeszcze odwzorowane w implementacji.
+- Dokument opisuje pełny system docelowy. Zaimplementowane są zakresy Etapów 0-5: identity pierwszego zakresu, wydarzenia i membership, galerie i public access oraz upload do lokalnego storage.
+- Media processing, publiczne przeglądanie i download, moderacja, personalizacja, rozszerzona identity, panel administratora, statystyki, powiadomienia, plany i pełna stabilizacja produkcyjna pozostają niezrealizowane lub częściowe zgodnie z [BACKLOG.md](BACKLOG.md).
 
 ## Stan docelowy
 - Pełna platforma wieloużytkownikowa, modularna, gotowa do obsługi wielu wydarzeń i galerii.

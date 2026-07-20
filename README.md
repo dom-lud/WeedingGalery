@@ -6,16 +6,18 @@ Glowny punkt wejscia do repozytorium i dokumentacji projektowej planowanej platf
 ## Status dokumentu
 - Status: draft
 - Zakres: opis repozytorium, wizji produktu i mapy dokumentacji
-- Ostatnia aktualizacja: 2026-07-15
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
 - Repozytorium zawiera backend Spring Boot, frontend React/Vite oraz podstawowe pliki uruchomieniowe dla Dockera i Nginx.
-- Etap 1 zostal uruchomiony i repo ma dzialajacy szkielet techniczny zgodny z aktualnym stackiem.
+- Etapy 0 i 1 sa zakonczone: repo ma spojna dokumentacje sterujaca oraz dzialajacy fundament techniczny.
 - Etap 2 jest domkniety w zakresie podstawowej identity: istnieje logowanie i wylogowanie oparte o sesje, CSRF dla SPA, endpoint `GET /api/auth/me`, administracyjne tworzenie kont, blokada po wielu blednych logowaniach oraz audit eventy auth.
 - Etap 3 jest domkniety w minimalnym zakresie `EVENT-001` i `MEMBER-001`: wydarzenia maja ownera, managerow, izolacje ownership, audyt oraz flow UI/API/E2E.
 - Etap 4 jest domkniety w zakresie `GALLERY-001`: wiele galerii na wydarzenie ma bezpieczne management API, stabilne slugi, kolejnosc, lifecycle, soft delete, audyt oraz flow UI/E2E dla ownera i managera.
 - Etap 4B jest domkniety w zakresie `GALLERY-002` i `PUBLIC-001`: owner i manager konfiguruja publikacje, token i opcjonalny kod, a gosc uzyskuje ograniczony grant sesyjny do jednej galerii.
 - Etap 5 jest domkniety w zakresie `UPLOAD-001`, minimalnego `UPLOAD-002` i uploadowej czesci `STORAGE-001`: dziala bezpieczny upload wieloplikowy do trwalego lokalnego storage przez abstrakcje domenowa.
+- Etap 6 jest nastepnym etapem produktowym i pozostaje w analizie; wymaga domkniecia decyzji o media processingu i background jobs.
+- Produkcyjny baseline CI/Compose/health jest wdrozony, ale backup/restore, alerty, HTTPS rollout i testy obciazeniowe pozostaja do Etapu 13.
 - Nie wszystkie elementy docelowego systemu sa jeszcze zaimplementowane end-to-end.
 
 ## Stan docelowy

@@ -6,20 +6,22 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 ## Status dokumentu
 - Status: draft
 - Zakres: katalog planowanych endpointów
-- Ostatnia aktualizacja: 2026-07-13
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
-- Endpointy auth oraz minimalny zakres events/memberships/galleries oznaczony ponizej sa zaimplementowane.
+- Endpointy auth oraz zakresy events, memberships, galleries, public access i upload oznaczone ponizej sa zaimplementowane.
 - Pozostale endpointy sa planowane; ich obecność na liscie nie oznacza istnienia w runtime.
 
 ## Stan docelowy
 - Spójne REST API dla użytkowników, gości i administratorów.
 
 ## Authentication
-- `POST /api/auth/register` - utworzenie konta przez administratora
+- `GET /api/auth/csrf` - zaimplementowany bootstrap CSRF dla SPA
+- `GET /api/auth/me` - zaimplementowany odczyt bieżącej sesji
+- `POST /api/auth/register` - zaimplementowane utworzenie konta przez administratora
 - `POST /api/auth/verify-email`
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
+- `POST /api/auth/login` - zaimplementowany
+- `POST /api/auth/logout` - zaimplementowany
 - `POST /api/auth/logout-all`
 - `POST /api/auth/refresh`
 - `POST /api/auth/password-reset/request`

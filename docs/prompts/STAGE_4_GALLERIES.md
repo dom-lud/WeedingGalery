@@ -4,9 +4,9 @@
 Gotowy prompt wykonawczy do implementacji minimalnego, spojnego Etapu 4.
 
 ## Status dokumentu
-- Status: ready
+- Status: completed / historical; nie uruchamiac ponownie dla zakonczonego GALLERY-001
 - Zakres: uwierzytelnione zarzadzanie galeriami
-- Ostatnia aktualizacja: 2026-07-13
+- Ostatnia aktualizacja: 2026-07-20
 
 ## Prompt
 ```md
