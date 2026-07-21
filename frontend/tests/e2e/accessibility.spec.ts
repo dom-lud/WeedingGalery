@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { adminEmail, adminPassword } from './fixtures/testCredentials'
 
 const wcagTags = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
 
@@ -21,7 +22,7 @@ test.describe('Automated accessibility baseline', () => {
     const login = new LoginPage(page)
     const dashboard = new DashboardPage(page)
     await login.goto()
-    expect((await login.login('admin@example.com', 'password123')).status()).toBe(200)
+    expect((await login.login(adminEmail, adminPassword)).status()).toBe(200)
     await dashboard.verifyIsLoaded()
     await expectNoWcagViolations(page)
   })

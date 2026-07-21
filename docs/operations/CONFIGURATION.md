@@ -11,6 +11,10 @@ Opisuje zasady konfiguracji aplikacji, sekrety i zmienne środowiskowe.
 ## Stan obecny
 - Profil prod przyjmuje `STORAGE_LOCAL_ROOT` (w Compose `/data/media`). Limity uploadu i public access maja bezpieczne wartosci domyslne w `application.yml` i moga byc nadpisane zewnetrzna konfiguracja Spring.
 - Parametry cleanupu: `app.upload.cleanup-interval-ms`, `cleanup-initial-delay-ms`, `temp-cleanup-interval-ms` i `temp-cleanup-initial-delay-ms`.
+- Profil prod wymaga jawnych `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` i `STORAGE_LOCAL_ROOT`; brak zmiennej nie uruchamia aplikacji z testowym sekretem.
+- Produkcja domyslnie ustawia bezpieczne cookies sesji i CSRF. `SESSION_COOKIE_SECURE=false` jest dopuszczalne wylacznie dla lokalnego HTTP.
+- CORS jest konfigurowany przez `CORS_ALLOWED_ORIGIN_PATTERNS`; pusta wartosc oznacza same-origin only.
+- Pelny zestaw migracji V1-V5 nie pozostawia aktywnego konta testowego. Forward-only V5 usuwa historyczny seed z czystej bazy albo blokuje jego znany credential, jezeli konto ma zalezne dane. Pierwszy administrator wymaga jednorazowego `BOOTSTRAP_ADMIN_ENABLED=true`, poprawnego e-maila i hasla o co najmniej 12 znakach. Po utworzeniu lub aktywacji konta flage trzeba wylaczyc i usunac haslo ze srodowiska runtime.
 
 ## Stan docelowy
 - Konfiguracja przez środowisko, bez sekretów w repozytorium.

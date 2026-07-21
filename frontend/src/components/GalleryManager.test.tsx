@@ -276,4 +276,214 @@ describe('GalleryManager', () => {
     expect(screen.getByText(/Only the event owner/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Save access settings' })).not.toBeInTheDocument()
   })
+
+  it('updates publication, guest permissions and access-code lifecycle at their boundaries', async () => {
+    const activeGallery = {
+      id: 'gallery-1',
+      eventId: 'event-1',
+      name: 'Reception',
+      slug: 'reception',
+      description: 'Evening',
+      sortOrder: 1,
+      status: 'ACTIVE' as const,
+      currentUserRole: 'OWNER' as const,
+      createdAt: '',
+      updatedAt: '',
+    }
+    const settings = {
+      publicViewEnabled: true,
+      uploadEnabled: true,
+      downloadEnabled: false,
+      moderationMode: 'REQUIRED' as const,
+      accessTokenConfigured: false,
+      accessCodeConfigured: true,
+      publishedAt: null,
+      expiresAt: null,
+      version: 3,
+    }
+    vi.mocked(galleriesApi.list).mockResolvedValue({ data: [activeGallery] } as never)
+    vi.mocked(galleriesApi.settings).mockResolvedValue({ data: settings } as never)
+    vi.mocked(galleriesApi.updateSettings).mockImplementation(
+      async (_eventId, _galleryId, payload) =>
+        ({
+          data: { ...settings, ...payload, version: 4 },
+        }) as never,
+    )
+    vi.mocked(galleriesApi.setAccessCode).mockResolvedValue({} as never)
+    vi.mocked(galleriesApi.removeAccessCode).mockResolvedValue({} as never)
+    renderManager()
+
+    await screen.findByText('Reception')
+    fireEvent.click(screen.getByRole('button', { name: 'Access settings' }))
+    await screen.findByText('Guest view on')
+    fireEvent.click(screen.getByRole('switch', { name: 'Enable guest view' }))
+    expect(screen.getByRole('switch', { name: 'Allow guest uploads' })).toBeDisabled()
+    fireEvent.click(screen.getByRole('switch', { name: 'Allow downloads later' }))
+    fireEvent.change(screen.getByLabelText('Publish from'), {
+      target: { value: '2026-09-10T12:00' },
+    })
+    fireEvent.change(screen.getByLabelText('Expire at'), {
+      target: { value: '2026-09-10T11:59' },
+    })
+    expect(screen.getByText('Expiration must be later than publication.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save access settings' })).toBeDisabled()
+    fireEvent.change(screen.getByLabelText('Expire at'), {
+      target: { value: '2026-09-10T12:01' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save access settings' }))
+    await waitFor(() =>
+      expect(galleriesApi.updateSettings).toHaveBeenCalledWith(
+        'event-1',
+        'gallery-1',
+        expect.objectContaining({
+          publicViewEnabled: false,
+          uploadEnabled: false,
+          downloadEnabled: true,
+          version: 3,
+        }),
+      ),
+    )
+
+    const codeInput = screen.getByLabelText('New access code')
+    fireEvent.change(codeInput, { target: { value: 'short' } })
+    expect(screen.getByRole('button', { name: 'Set code' })).toBeDisabled()
+    fireEvent.change(codeInput, { target: { value: 'valid-code' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Set code' }))
+    await waitFor(() =>
+      expect(galleriesApi.setAccessCode).toHaveBeenCalledWith('event-1', 'gallery-1', 'valid-code'),
+    )
+    expect(codeInput).toHaveValue('')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove code' }))
+    const confirmation = screen.getByRole('dialog', { name: 'Remove access code?' })
+    fireEvent.click(within(confirmation).getByRole('button', { name: 'Remove code' }))
+    await waitFor(() =>
+      expect(galleriesApi.removeAccessCode).toHaveBeenCalledWith('event-1', 'gallery-1'),
+    )
+  })
+
+  it('archives only after confirmation and surfaces lifecycle and settings failures', async () => {
+    const activeGallery = {
+      id: 'gallery-1',
+      eventId: 'event-1',
+      name: 'Reception',
+      slug: 'reception',
+      description: null,
+      sortOrder: 0,
+      status: 'ACTIVE' as const,
+      currentUserRole: 'OWNER' as const,
+      createdAt: '',
+      updatedAt: '',
+    }
+    vi.mocked(galleriesApi.list).mockResolvedValue({ data: [activeGallery] } as never)
+    vi.mocked(galleriesApi.archive).mockRejectedValue({
+      response: { data: { message: 'Gallery cannot be archived.' } },
+    })
+    vi.mocked(galleriesApi.settings).mockRejectedValue(new Error('offline'))
+    renderManager()
+
+    await screen.findByText('Reception')
+    fireEvent.click(screen.getByRole('button', { name: 'More actions for Reception' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Archive gallery' }))
+    let confirmation = screen.getByRole('dialog', { name: 'Archive gallery?' })
+    fireEvent.click(within(confirmation).getByRole('button', { name: 'Cancel' }))
+    expect(galleriesApi.archive).not.toHaveBeenCalled()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: 'More actions for Reception' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Archive gallery' }))
+    confirmation = screen.getByRole('dialog', { name: 'Archive gallery?' })
+    fireEvent.click(within(confirmation).getByRole('button', { name: 'Archive gallery' }))
+    expect(await screen.findByText('Gallery cannot be archived.')).toBeInTheDocument()
+    fireEvent.click(within(confirmation).getByRole('button', { name: 'Cancel' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+    fireEvent.click(screen.getByRole('button', { name: 'Access settings' }))
+    await waitFor(() => expect(galleriesApi.settings).toHaveBeenCalled())
+    expect(await screen.findByText('Gallery operation failed.')).toBeInTheDocument()
+  })
+
+  it('copies a rotated link and gives a manual-copy fallback when clipboard rejects', async () => {
+    const activeGallery = {
+      id: 'gallery-1',
+      eventId: 'event-1',
+      name: 'Reception',
+      slug: 'reception',
+      description: null,
+      sortOrder: 0,
+      status: 'ACTIVE' as const,
+      currentUserRole: 'OWNER' as const,
+      createdAt: '',
+      updatedAt: '',
+    }
+    const settings = {
+      publicViewEnabled: true,
+      uploadEnabled: true,
+      downloadEnabled: false,
+      moderationMode: 'NONE' as const,
+      accessTokenConfigured: false,
+      accessCodeConfigured: false,
+      publishedAt: null,
+      expiresAt: null,
+      version: 0,
+    }
+    const writeText = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error('denied'))
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+    vi.mocked(galleriesApi.list).mockResolvedValue({ data: [activeGallery] } as never)
+    vi.mocked(galleriesApi.settings).mockResolvedValue({ data: settings } as never)
+    vi.mocked(galleriesApi.rotateAccessToken).mockResolvedValue({
+      data: { accessToken: 'secret', sharePath: '/g/reception#token=secret' },
+    } as never)
+    renderManager()
+
+    await screen.findByText('Reception')
+    fireEvent.click(screen.getByRole('button', { name: 'Access settings' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Rotate private share link' }))
+    const copy = await screen.findByRole('button', { name: 'Copy link' })
+    fireEvent.click(copy)
+    expect(await screen.findByText('Private share link copied.')).toBeInTheDocument()
+    fireEvent.click(copy)
+    expect(
+      await screen.findByText('The link could not be copied. Select and copy it manually.'),
+    ).toBeInTheDocument()
+  })
+
+  it('keeps archived galleries and events read-only and closes dialogs without mutation', async () => {
+    const archivedGallery = {
+      id: 'gallery-1',
+      eventId: 'event-1',
+      name: 'Archive',
+      slug: 'archive',
+      description: 'Old',
+      sortOrder: 4,
+      status: 'ARCHIVED' as const,
+      currentUserRole: 'OWNER' as const,
+      createdAt: '',
+      updatedAt: '',
+    }
+    vi.mocked(galleriesApi.list).mockResolvedValue({ data: [archivedGallery] } as never)
+    vi.mocked(galleriesApi.settings).mockResolvedValue({
+      data: {
+        publicViewEnabled: false,
+        uploadEnabled: false,
+        downloadEnabled: false,
+        moderationMode: 'REQUIRED',
+        accessTokenConfigured: true,
+        accessCodeConfigured: false,
+        publishedAt: null,
+        expiresAt: null,
+        version: 1,
+      },
+    } as never)
+    renderManager({ ...event, status: 'ARCHIVED' })
+
+    await screen.findByText('Archive')
+    expect(screen.getByRole('button', { name: 'Create gallery' })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: 'Access settings' }))
+    expect(await screen.findByText(/read-only access settings/i)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(screen.queryByRole('dialog', { name: 'Access settings' })).not.toBeInTheDocument()
+  })
 })

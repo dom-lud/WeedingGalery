@@ -13,12 +13,13 @@ Opisuje aktualny i docelowy model tozsamosci uzytkownika, sesji oraz reguly auto
 - SPA korzysta z ochrony CSRF i pobiera token przez `GET /api/auth/csrf`, a backend wystawia cookie `XSRF-TOKEN`.
 - Dostepne sa endpointy `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` oraz `GET /api/auth/csrf`.
 - `POST /api/auth/register` nie jest publicznym signupem. Konto moze utworzyc tylko zalogowany administrator.
+- Pelny zestaw Flyway V1-V5 nie pozostawia aktywnego developerskiego administratora: V5 usuwa historyczny seed albo blokuje jego znany credential, jezeli konto ma zalezne dane. Pierwszy administrator powstaje lub jest bezpiecznie aktywowany przez jawnie wlaczany bootstrap runtime, ktory nie resetuje hasla zwyklego admina przy replay, nie podnosi roli istniejacego konta i zapisuje wymagany `ADMIN_BOOTSTRAPPED` w tej samej transakcji.
 - Aktualnie zaimplementowane role systemowe w kodzie to `ADMIN` i `USER`.
 - Podstawowy audyt zapisuje wpisy do tabeli `audit_events` przez `AuditService`.
 - Etap 3 egzekwuje role kontekstowe `OWNER`/`MANAGER`, ownership wydarzenia i aktywne membership w use case oraz scoped queries.
 - Mutacje `/api/events/**` korzystaja z tej samej ochrony sesji i CSRF co pozostale prywatne API.
 - Logowanie zlicza nieudane proby dla istniejacego konta i czasowo blokuje konto po przekroczeniu limitu.
-- Aktualnie zaimplementowane eventy audytowe to `USER_REGISTERED`, `USER_LOGGED_IN`, `USER_LOGIN_FAILED`, `USER_LOGIN_BLOCKED` oraz `USER_LOGGED_OUT`.
+- Aktualnie zaimplementowane eventy audytowe identity to `ADMIN_BOOTSTRAPPED`, `USER_REGISTERED`, `USER_LOGGED_IN`, `USER_LOGIN_FAILED`, `USER_LOGIN_BLOCKED` oraz `USER_LOGGED_OUT`.
 - Audyt domenowy obejmuje takze `EVENT_CREATED`, `EVENT_UPDATED`, `EVENT_ARCHIVED`, `EVENT_DELETED`, `EVENT_MANAGER_ADDED`, `EVENT_MANAGER_REMOVED` i `EVENT_OWNERSHIP_TRANSFERRED`.
 
 ## Stan docelowy
@@ -46,6 +47,7 @@ SSOT kontraktu FE-BE znajduje sie w [../../api-contract/API_CONTRACT.md](../../a
 - Hasla musza byc bezpiecznie hashowane.
 - Tokeny jednorazowe musza byc silne i losowe.
 - Flow oparty o sesje cookie musi pozostac zgodny z CSRF dla SPA.
+- Produkcja wymaga `Secure`, `HttpOnly` i `SameSite=Lax` dla sesji oraz `Secure` i `SameSite=Lax` dla cookie CSRF.
 - Rozszerzenia auth musza utrzymywac rozroznienie miedzy administracyjnym tworzeniem kont a publicznym dostepem gosci do galerii.
 
 ## Autoryzacja systemowa

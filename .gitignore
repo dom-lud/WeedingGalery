@@ -81,3 +81,9 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# Local CI quality report outputs
+quality-dashboard/
+quality-report-parts/
+quality-report.json
+quality-report.md

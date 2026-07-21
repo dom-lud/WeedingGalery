@@ -15,6 +15,7 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 - Etap 2 jest domkniety w zakresie podstawowej identity.
 - Etap 3 jest domkniety w minimalnym zakresie `EVENT-001` i `MEMBER-001`.
 - Etapy 4 i 4B sa domkniete, a Etap 5 jest domkniety w pierwszym zakresie upload/storage.
+- Closure sprint 0-5 neutralizuje historyczny credential przez forward-only V5, dodaje jawny bootstrap pierwszego admina, wymusza sekrety prod oraz zabezpiecza cookies i konfiguracje CORS bez rozszerzania zakresu produktowego.
 - Najblizszym etapem produktowym jest Etap 6; trwa jego analiza architektoniczna.
 - Etap 13 ma wdrozony baseline CI/health/Compose, ale nie jest produkcyjnie zakonczony.
 

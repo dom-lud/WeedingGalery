@@ -38,7 +38,11 @@ jobs:
 
       - name: Run backend tests
         working-directory: backend
-        run: ./mvnw -B test
+        run: ./mvnw -B verify
+
+      - name: Summarize backend tests and coverage
+        if: always()
+        run: node .github/scripts/ci-metrics.mjs backend backend
 
       - name: Build backend package
         working-directory: backend
@@ -49,6 +53,27 @@ jobs:
         with:
           name: backend-jar
           path: backend/target/*.jar
+          retention-days: 30
+
+      - name: Upload backend coverage diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: warn
+          name: backend-coverage
+          path: |
+            backend/target/site/jacoco/
+            backend/target/surefire-reports/
+          retention-days: 30
+
+      - name: Upload backend quality metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: warn
+          name: backend-quality-metrics
+          path: quality-report-parts/backend.json
+          retention-days: 30
 
   frontend-artifact:
     name: Frontend artifact
@@ -87,7 +112,11 @@ jobs:
 
       - name: Run frontend tests
         working-directory: frontend
-        run: npm run test
+        run: npm run test:coverage -- --reporter=default --reporter=json --outputFile=vitest-results.json
+
+      - name: Summarize frontend tests and coverage
+        if: always()
+        run: node .github/scripts/ci-metrics.mjs frontend frontend
 
       - name: Run frontend build
         working-directory: frontend
@@ -98,6 +127,27 @@ jobs:
         with:
           name: frontend-dist
           path: frontend/dist
+          retention-days: 30
+
+      - name: Upload frontend coverage diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: warn
+          name: frontend-coverage
+          path: |
+            frontend/coverage/
+            frontend/vitest-results.json
+          retention-days: 30
+
+      - name: Upload frontend quality metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: warn
+          name: frontend-quality-metrics
+          path: quality-report-parts/frontend.json
+          retention-days: 30
 
   docker-validation:
     name: Docker build validation
@@ -118,3 +168,47 @@ jobs:
 
       - name: Build frontend image
         run: docker build -t wedding-gallery-frontend:main frontend
+
+  quality-report:
+    name: Main quality report
+    runs-on: ubuntu-latest
+    needs: [backend-artifact, frontend-artifact, docker-validation]
+    if: always()
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download quality metric parts
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-quality-metrics"
+          path: quality-report-parts
+          merge-multiple: true
+
+      - name: Aggregate quality report
+        if: always()
+        env:
+          BACKEND_RESULT: ${{ needs.backend-artifact.result }}
+          FRONTEND_RESULT: ${{ needs.frontend-artifact.result }}
+          DOCKER_RESULT: ${{ needs.docker-validation.result }}
+          E2E_RESULT: skipped
+          E2E_REQUIRED: "false"
+        run: node .github/scripts/ci-metrics.mjs aggregate .
+
+      - name: Add quality report to run summary
+        if: always()
+        shell: bash
+        run: cat quality-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload machine quality report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: quality-report-json
+          path: |
+            quality-report.json
+            quality-report.md
+          retention-days: 90

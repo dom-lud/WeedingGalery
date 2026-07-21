@@ -24,7 +24,7 @@
 - [x] Testy backendowe, frontendowe, lint i build przechodza.
 - [x] Docker Compose config/build/health i Playwright E2E zostaly wykonane.
 - [x] Macierz Etapow 4/4B/5 obejmuje auth, ownership, limity, idempotency, storage, UI i migracje.
-- [x] Backend ma zapadke JaCoCo (40% instructions, 30% branches), a frontend Vitest/V8 (55% statements/lines, 75% branches, 45% functions).
+- [x] Historyczne minima zostaly zastapione podniesiona zapadka: backend JaCoCo 85% instructions/60% branches, frontend Vitest/V8 85% statements/lines, 80% branches i 70% functions.
 - [x] Krytyczne ekrany przechodza automatyczny audit WCAG A/AA przez Playwright + axe.
 - [x] Dodano kontrakt migracji Flyway na MySQL 8.4 przez Testcontainers; test uruchamia sie, gdy runtime udostepnia Docker API.
 - [x] Regresja replay po zakonczonym uploadzie zostala wykryta przez nowy test, poprawiona i zabezpieczona testem.

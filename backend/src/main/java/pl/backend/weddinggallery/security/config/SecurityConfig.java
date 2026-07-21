@@ -30,6 +30,12 @@ public class SecurityConfig {
 	@Value("${app.security.csrf.enabled:true}")
 	private boolean csrfEnabled;
 
+	@Value("${app.security.secure-cookies:false}")
+	private boolean secureCookies;
+
+	@Value("${app.security.cors.allowed-origin-patterns:http://localhost:*,http://127.0.0.1:*}")
+	private List<String> allowedOriginPatterns;
+
 	private final AuditLogoutSuccessHandler auditLogoutSuccessHandler;
 
 	@Bean
@@ -37,7 +43,9 @@ public class SecurityConfig {
 		http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
 		if (csrfEnabled) {
-			http.csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+			CookieCsrfTokenRepository csrfRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+			csrfRepository.setCookieCustomizer(cookie -> cookie.secure(secureCookies).sameSite("Lax"));
+			http.csrf(csrf -> csrf.csrfTokenRepository(csrfRepository)
 					.csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()));
 		} else {
 			http.csrf(AbstractHttpConfigurer::disable);
@@ -71,7 +79,8 @@ public class SecurityConfig {
 		CorsConfiguration configuration = new CorsConfiguration();
 		// Zezwolenie na lokalny frontend. W przyszłości można to przenieść do
 		// application.yml.
-		configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+		configuration.setAllowedOriginPatterns(
+				allowedOriginPatterns.stream().map(String::trim).filter(pattern -> !pattern.isBlank()).toList());
 		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 		configuration.setAllowedHeaders(List.of("*"));
 		configuration.setAllowCredentials(true);

@@ -1,9 +1,10 @@
 import { test, expect } from './fixtures/auth.fixture'
+import { adminEmail, adminPassword } from './fixtures/testCredentials'
 
 test.describe('Authentication Flow E2E', () => {
   test('should login and access dashboard', async ({ loginPage, dashboardPage }) => {
     await loginPage.goto()
-    const response = await loginPage.login('admin@example.com', 'password123')
+    const response = await loginPage.login(adminEmail, adminPassword)
     expect(response.status()).toBe(200)
     await dashboardPage.verifyIsLoaded()
   })
@@ -12,7 +13,7 @@ test.describe('Authentication Flow E2E', () => {
     loginPage,
     dashboardPage,
   }) => {
-    const response = await loginPage.loginQuickly('ADMIN@EXAMPLE.COM', 'password123')
+    const response = await loginPage.loginQuickly(adminEmail.toUpperCase(), adminPassword)
     expect(response.status()).toBe(200)
     await dashboardPage.verifyIsLoaded()
   })
@@ -55,7 +56,7 @@ test.describe('Authentication Flow E2E', () => {
     dashboardPage,
   }) => {
     await loginPage.goto()
-    const loginResponse = await loginPage.login('admin@example.com', 'password123')
+    const loginResponse = await loginPage.login(adminEmail, adminPassword)
     expect(loginResponse.status()).toBe(200)
     await dashboardPage.verifyIsLoaded()
 

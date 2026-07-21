@@ -19,14 +19,6 @@ jobs:
   backend:
     name: Backend tests
     runs-on: ubuntu-latest
-    outputs:
-      tests_total: ${{ steps.backend-summary.outputs.total }}
-      tests_passed: ${{ steps.backend-summary.outputs.passed }}
-      tests_failed: ${{ steps.backend-summary.outputs.failed }}
-      tests_skipped: ${{ steps.backend-summary.outputs.skipped }}
-      duration_ms: ${{ steps.backend-summary.outputs.duration_ms }}
-      instruction_pct: ${{ steps.backend-summary.outputs.instruction_pct }}
-      branch_pct: ${{ steps.backend-summary.outputs.branch_pct }}
 
     steps:
       - name: Check out repository
@@ -58,7 +50,6 @@ jobs:
           grep -q 'tests="1" errors="0" skipped="0" failures="0"' "$report"
 
       - name: Summarize backend tests and coverage
-        id: backend-summary
         if: always()
         run: node .github/scripts/ci-metrics.mjs backend backend
 
@@ -71,21 +62,20 @@ jobs:
           path: |
             backend/target/site/jacoco/
             backend/target/surefire-reports/
-          retention-days: 7
+          retention-days: 30
+
+      - name: Upload backend quality metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: warn
+          name: backend-quality-metrics
+          path: quality-report-parts/backend.json
+          retention-days: 30
 
   frontend:
     name: Frontend quality
     runs-on: ubuntu-latest
-    outputs:
-      tests_total: ${{ steps.frontend-summary.outputs.total }}
-      tests_passed: ${{ steps.frontend-summary.outputs.passed }}
-      tests_failed: ${{ steps.frontend-summary.outputs.failed }}
-      tests_skipped: ${{ steps.frontend-summary.outputs.skipped }}
-      duration_ms: ${{ steps.frontend-summary.outputs.duration_ms }}
-      statements_pct: ${{ steps.frontend-summary.outputs.statements_pct }}
-      branches_pct: ${{ steps.frontend-summary.outputs.branches_pct }}
-      functions_pct: ${{ steps.frontend-summary.outputs.functions_pct }}
-      lines_pct: ${{ steps.frontend-summary.outputs.lines_pct }}
 
     steps:
       - name: Check out repository
@@ -123,7 +113,6 @@ jobs:
         run: npm run test:coverage -- --reporter=default --reporter=json --outputFile=vitest-results.json
 
       - name: Summarize frontend tests and coverage
-        id: frontend-summary
         if: always()
         run: node .github/scripts/ci-metrics.mjs frontend frontend
 
@@ -136,7 +125,16 @@ jobs:
           path: |
             frontend/coverage/
             frontend/vitest-results.json
-          retention-days: 7
+          retention-days: 30
+
+      - name: Upload frontend quality metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: warn
+          name: frontend-quality-metrics
+          path: quality-report-parts/frontend.json
+          retention-days: 30
 
       - name: Run frontend build
         working-directory: frontend
@@ -166,16 +164,6 @@ jobs:
     name: Playwright E2E Tests
     runs-on: ubuntu-latest
     needs: [backend, frontend]
-    outputs:
-      playwright_status: ${{ steps.playwright-summary.outputs.status }}
-      playwright_total: ${{ steps.playwright-summary.outputs.total }}
-      playwright_passed: ${{ steps.playwright-summary.outputs.passed }}
-      playwright_failed: ${{ steps.playwright-summary.outputs.failed }}
-      playwright_flaky: ${{ steps.playwright-summary.outputs.flaky }}
-      playwright_skipped: ${{ steps.playwright-summary.outputs.skipped }}
-      playwright_timed_out: ${{ steps.playwright-summary.outputs.timed_out }}
-      playwright_duration_ms: ${{ steps.playwright-summary.outputs.duration_ms }}
-      playwright_failed_tests: ${{ steps.playwright-summary.outputs.failed_tests }}
 
     steps:
       - name: Check out repository
@@ -233,6 +221,10 @@ jobs:
 
       - name: Start Backend
         working-directory: backend
+        env:
+          BOOTSTRAP_ADMIN_ENABLED: "true"
+          BOOTSTRAP_ADMIN_EMAIL: admin@example.com
+          BOOTSTRAP_ADMIN_PASSWORD: password123!
         run: |
           chmod +x mvnw
           ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev &
@@ -253,7 +245,6 @@ jobs:
         run: npx playwright test
 
       - name: Summarize Playwright results
-        id: playwright-summary
         if: always()
         working-directory: frontend
         shell: bash
@@ -270,7 +261,16 @@ jobs:
           path: |
             frontend/playwright-report/
             frontend/test-results/
-          retention-days: 7
+          retention-days: 30
+
+      - name: Upload Playwright quality metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: warn
+          name: playwright-quality-metrics
+          path: frontend/quality-report-parts/e2e.json
+          retention-days: 30
 
       - name: Fail job when Playwright tests fail
         if: steps.playwright.outcome == 'failure'
@@ -280,78 +280,56 @@ jobs:
     name: Report PR validation status
     runs-on: ubuntu-latest
     needs: [backend, frontend, docker, e2e]
-    if: always() && github.event_name == 'pull_request'
+    if: always()
 
     steps:
-      - name: Upsert PR status comment
-        uses: actions/github-script@v7
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download quality metric parts
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-quality-metrics"
+          path: quality-report-parts
+          merge-multiple: true
+
+      - name: Aggregate quality report
+        if: always()
         env:
           BACKEND_RESULT: ${{ needs.backend.result }}
           FRONTEND_RESULT: ${{ needs.frontend.result }}
           DOCKER_RESULT: ${{ needs.docker.result }}
           E2E_RESULT: ${{ needs.e2e.result }}
-          PLAYWRIGHT_STATUS: ${{ needs.e2e.outputs.playwright_status }}
-          PLAYWRIGHT_TOTAL: ${{ needs.e2e.outputs.playwright_total }}
-          PLAYWRIGHT_PASSED: ${{ needs.e2e.outputs.playwright_passed }}
-          PLAYWRIGHT_FAILED: ${{ needs.e2e.outputs.playwright_failed }}
-          PLAYWRIGHT_FLAKY: ${{ needs.e2e.outputs.playwright_flaky }}
-          PLAYWRIGHT_SKIPPED: ${{ needs.e2e.outputs.playwright_skipped }}
-          PLAYWRIGHT_TIMED_OUT: ${{ needs.e2e.outputs.playwright_timed_out }}
-          PLAYWRIGHT_DURATION_MS: ${{ needs.e2e.outputs.playwright_duration_ms }}
-          PLAYWRIGHT_FAILED_TESTS: ${{ needs.e2e.outputs.playwright_failed_tests }}
-          BACKEND_TESTS_TOTAL: ${{ needs.backend.outputs.tests_total }}
-          BACKEND_TESTS_PASSED: ${{ needs.backend.outputs.tests_passed }}
-          BACKEND_TESTS_FAILED: ${{ needs.backend.outputs.tests_failed }}
-          BACKEND_TESTS_SKIPPED: ${{ needs.backend.outputs.tests_skipped }}
-          BACKEND_DURATION_MS: ${{ needs.backend.outputs.duration_ms }}
-          BACKEND_INSTRUCTION_PCT: ${{ needs.backend.outputs.instruction_pct }}
-          BACKEND_BRANCH_PCT: ${{ needs.backend.outputs.branch_pct }}
-          FRONTEND_TESTS_TOTAL: ${{ needs.frontend.outputs.tests_total }}
-          FRONTEND_TESTS_PASSED: ${{ needs.frontend.outputs.tests_passed }}
-          FRONTEND_TESTS_FAILED: ${{ needs.frontend.outputs.tests_failed }}
-          FRONTEND_TESTS_SKIPPED: ${{ needs.frontend.outputs.tests_skipped }}
-          FRONTEND_DURATION_MS: ${{ needs.frontend.outputs.duration_ms }}
-          FRONTEND_STATEMENTS_PCT: ${{ needs.frontend.outputs.statements_pct }}
-          FRONTEND_BRANCHES_PCT: ${{ needs.frontend.outputs.branches_pct }}
-          FRONTEND_FUNCTIONS_PCT: ${{ needs.frontend.outputs.functions_pct }}
-          FRONTEND_LINES_PCT: ${{ needs.frontend.outputs.lines_pct }}
+          E2E_REQUIRED: "true"
+        run: node .github/scripts/ci-metrics.mjs aggregate .
+
+      - name: Add quality report to run summary
+        if: always()
+        shell: bash
+        run: cat quality-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload machine quality report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: quality-report-json
+          path: |
+            quality-report.json
+            quality-report.md
+          retention-days: 30
+
+      - name: Upsert PR status comment
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
         with:
           script: |
+            const fs = require('node:fs');
             const marker = '<!-- pr-validation-report -->';
+            const report = JSON.parse(fs.readFileSync('quality-report.json', 'utf8'));
+            const markdown = fs.readFileSync('quality-report.md', 'utf8');
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            const statuses = [
-              ['Backend', process.env.BACKEND_RESULT],
-              ['Frontend', process.env.FRONTEND_RESULT],
-              ['Docker', process.env.DOCKER_RESULT],
-              ['Playwright E2E', process.env.E2E_RESULT],
-            ];
-
-            const iconFor = (status) => {
-              if (status === 'success') return '✅';
-              if (status === 'failure') return '❌';
-              if (status === 'cancelled') return '⛔';
-              if (status === 'skipped') return '⏭️';
-              return '⏳';
-            };
-
-            const overallPassed = statuses.every(([, status]) => status === 'success');
-            const number = (value) => Number(value || '0');
-            const percent = (value) => value === '' || value == null ? null : Number(value);
-            const duration = (value) => `${(number(value) / 1000).toFixed(1)}s`;
-            const bar = (value) => {
-              const parsed = percent(value);
-              if (parsed == null || Number.isNaN(parsed)) return 'n/a';
-              const filled = Math.max(0, Math.min(10, Math.round(parsed / 10)));
-              return `\`${'█'.repeat(filled)}${'░'.repeat(10 - filled)}\` **${parsed.toFixed(1)}%**`;
-            };
-            const gate = (value, threshold) => {
-              const parsed = percent(value);
-              if (parsed == null || Number.isNaN(parsed)) return '⚪ n/a';
-              return parsed >= threshold ? `✅ ≥ ${threshold}%` : `❌ < ${threshold}%`;
-            };
-            const testRow = (name, passed, failed, skipped, total, durationMs) =>
-              `| ${name} | ${number(passed)} | ${number(failed)} | ${number(skipped)} | ${number(total)} | ${duration(durationMs)} |`;
-
             const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -366,70 +344,20 @@ jobs:
               ['Backend: JaCoCo + Surefire', artifactUrl('backend-coverage')],
               ['Frontend: coverage + Vitest JSON', artifactUrl('frontend-coverage')],
               ['Playwright: HTML report + traces', artifactUrl('playwright-report')],
+              ['Machine JSON report', artifactUrl('quality-report-json')],
             ].filter(([, url]) => url);
-            const failedJobs = statuses.filter(([, status]) => status !== 'success');
-            const failedTests = (process.env.PLAYWRIGHT_FAILED_TESTS || '').trim();
-
-            const bodyLines = [
-              marker,
-              '## 🧪 PR quality report',
-              '',
-              overallPassed
-                ? '> ✅ **All quality gates passed.**'
-                : '> ❌ **Quality gates require attention.** See the failing jobs and reports below.',
-              '',
-              '### Quality gates',
-              '| Area | Result |',
-              '| --- | --- |',
-              ...statuses.map(([name, status]) => `| ${name} | ${iconFor(status)} ${status} |`),
-              '',
-              '### Test results',
-              '| Suite | Passed | Failed | Skipped | Total | Duration |',
-              '| --- | ---: | ---: | ---: | ---: | ---: |',
-              testRow('Backend / Surefire', process.env.BACKEND_TESTS_PASSED, process.env.BACKEND_TESTS_FAILED, process.env.BACKEND_TESTS_SKIPPED, process.env.BACKEND_TESTS_TOTAL, process.env.BACKEND_DURATION_MS),
-              testRow('Frontend / Vitest', process.env.FRONTEND_TESTS_PASSED, process.env.FRONTEND_TESTS_FAILED, process.env.FRONTEND_TESTS_SKIPPED, process.env.FRONTEND_TESTS_TOTAL, process.env.FRONTEND_DURATION_MS),
-              testRow('E2E / Playwright', process.env.PLAYWRIGHT_PASSED, number(process.env.PLAYWRIGHT_FAILED) + number(process.env.PLAYWRIGHT_TIMED_OUT), process.env.PLAYWRIGHT_SKIPPED, process.env.PLAYWRIGHT_TOTAL, process.env.PLAYWRIGHT_DURATION_MS),
-              '',
-              `Playwright stability: **${number(process.env.PLAYWRIGHT_FLAKY)} flaky**, **${number(process.env.PLAYWRIGHT_TIMED_OUT)} timed out**.`,
-              '',
-              '### Coverage',
-              '| Scope | Coverage | Gate |',
-              '| --- | --- | --- |',
-              `| Backend instructions | ${bar(process.env.BACKEND_INSTRUCTION_PCT)} | ${gate(process.env.BACKEND_INSTRUCTION_PCT, 40)} |`,
-              `| Backend branches | ${bar(process.env.BACKEND_BRANCH_PCT)} | ${gate(process.env.BACKEND_BRANCH_PCT, 30)} |`,
-              `| Frontend statements | ${bar(process.env.FRONTEND_STATEMENTS_PCT)} | ${gate(process.env.FRONTEND_STATEMENTS_PCT, 55)} |`,
-              `| Frontend branches | ${bar(process.env.FRONTEND_BRANCHES_PCT)} | ${gate(process.env.FRONTEND_BRANCHES_PCT, 75)} |`,
-              `| Frontend functions | ${bar(process.env.FRONTEND_FUNCTIONS_PCT)} | ${gate(process.env.FRONTEND_FUNCTIONS_PCT, 45)} |`,
-              `| Frontend lines | ${bar(process.env.FRONTEND_LINES_PCT)} | ${gate(process.env.FRONTEND_LINES_PCT, 55)} |`,
-              '',
-              '### Reports',
-              ...(reportLinks.length > 0
-                ? reportLinks.map(([label, url]) => `- [${label}](${url})`)
-                : ['- Reports are unavailable because their jobs did not produce artifacts.']),
-            ];
-
-            if (failedJobs.length > 0 || failedTests) {
-              bodyLines.push('', '<details><summary><strong>Failure details</strong></summary>', '');
-              if (failedJobs.length > 0) {
-                bodyLines.push('**Jobs:**', ...failedJobs.map(([name, status]) => `- ${name}: ${status}`), '');
-              }
-              if (failedTests) bodyLines.push('**Playwright tests:**', failedTests, '');
-              bodyLines.push('</details>');
-            }
-
-            bodyLines.push('', `Commit: \`${context.sha.slice(0, 7)}\` · [Workflow diagnostics](${runUrl})`);
-
-            const body = bodyLines.join('\n');
+            const links = reportLinks.length
+              ? ['### Artifact links', ...reportLinks.map(([label, url]) => `- [${label}](${url})`), ''].join('\n')
+              : '';
+            const body = `${marker}\n${markdown}\n${links}Schema: \`${report.schemaVersion}\``;
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
             });
-
             const existingComment = comments.find((comment) =>
               comment.user?.type === 'Bot' && comment.body?.includes(marker)
             );
-
             if (existingComment) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
@@ -437,12 +365,11 @@ jobs:
                 comment_id: existingComment.id,
                 body,
               });
-              return;
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              });
             }
-
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body,
-            });

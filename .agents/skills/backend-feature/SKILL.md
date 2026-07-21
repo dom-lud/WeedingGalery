@@ -1,4 +1,18 @@
+---
+name: backend-feature
+description: Implementacja i audyt funkcji backendowych WeedingGallery w modularnym monolicie, w tym API, use case, walidacja, auth, ownership, transakcje oraz testy ryzyk i coverage.
+---
+
 # Backend Feature
+
+## Obowiązkowy standard testów i coverage
+
+- Przed testami zapisz Test Design Brief: wymagania, ryzyka, błędne implementacje, scenariusze pozytywne, negatywne i graniczne oraz najniższa wiarygodna warstwa.
+- Jeśli dotyczą, sprawdź `N-1/N/N+1`, ownership dozwolony/zabroniony, idempotency pierwszy zapis/replay/konflikt i storage sukces/awaria/kompensacja/brak sierot.
+- Dodaj testy jednostkowe oraz kompletny test integracyjny lub E2E krytycznego flow. Zachowania zależne od bazy testuj na rzeczywistym wspieranym silniku, gdy H2 nie jest równoważne.
+- Przejrzyj JaCoCo globalnie, per zmieniona klasa oraz po niepokrytych gałęziach.
+- Utrzymaj blokujące bramki `90%` instructions i `90%` branches. Pokryj granice `N-1/N/N+1`, null/puste/zły format, replay/konflikt, expiry, ownership dozwolony i zabroniony, błędy zależności oraz kompensacje storage; sam wynik coverage nie zamyka zadania.
+- Nie obniżaj progów, nie wyłączaj sztucznie klas, nie wyłączaj security i nie dopisuj testów bez istotnych asercji.
 
 ## Cel dokumentu
 Skill wspierający implementację funkcji backendowej w modularnym monolicie.
