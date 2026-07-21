@@ -12,7 +12,7 @@ class FlywayMigrationContractTest {
 		String url = "jdbc:h2:mem:flyway-contract;DB_CLOSE_DELAY=-1;MODE=MySQL";
 		Flyway flyway = Flyway.configure().dataSource(url, "sa", "").locations("classpath:db/migration").load();
 
-		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(5);
+		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(6);
 
 		try (var connection = DriverManager.getConnection(url, "sa", "");
 				var users = connection.prepareStatement("SELECT COUNT(*) FROM users");
@@ -30,7 +30,12 @@ class FlywayMigrationContractTest {
 						.prepareStatement("SELECT gallery_id, public_access_id, grant_fingerprint, "
 								+ "idempotency_key, request_fingerprint, status, reserved_bytes FROM upload_sessions");
 				var mediaFiles = connection.prepareStatement("SELECT upload_session_id, gallery_id, storage_key, "
-						+ "declared_content_type, detected_content_type, status, checksum_sha256 FROM media_files");
+						+ "declared_content_type, detected_content_type, status, checksum_sha256, "
+						+ "width, height, processed_at FROM media_files");
+				var mediaProcessingJobs = connection.prepareStatement("SELECT media_file_id, job_type, status, "
+						+ "attempt_count, max_attempts, locked_by FROM media_processing_jobs");
+				var mediaThumbnails = connection.prepareStatement("SELECT media_file_id, variant, storage_key, "
+						+ "width, height, size_bytes FROM media_thumbnails");
 				var guestAudit = connection
 						.prepareStatement("SELECT actor_type, public_access_id, user_email FROM audit_events");
 				var history = connection.prepareStatement("SELECT \"version\" FROM \"flyway_schema_history\" "
@@ -48,6 +53,8 @@ class FlywayMigrationContractTest {
 			assertThat(galleryAccess.executeQuery()).isNotNull();
 			assertThat(uploadSessions.executeQuery()).isNotNull();
 			assertThat(mediaFiles.executeQuery()).isNotNull();
+			assertThat(mediaProcessingJobs.executeQuery()).isNotNull();
+			assertThat(mediaThumbnails.executeQuery()).isNotNull();
 			assertThat(guestAudit.executeQuery()).isNotNull();
 			var versions = history.executeQuery();
 			assertThat(versions.next()).isTrue();
@@ -60,6 +67,8 @@ class FlywayMigrationContractTest {
 			assertThat(versions.getString(1)).isEqualTo("4");
 			assertThat(versions.next()).isTrue();
 			assertThat(versions.getString(1)).isEqualTo("5");
+			assertThat(versions.next()).isTrue();
+			assertThat(versions.getString(1)).isEqualTo("6");
 			assertThat(versions.next()).isFalse();
 		}
 	}

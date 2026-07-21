@@ -49,8 +49,14 @@ public class MediaFile {
 	private String checksumSha256;
 	@Column(name = "failure_code", length = 100)
 	private String failureCode;
+	@Column(name = "width")
+	private Integer width;
+	@Column(name = "height")
+	private Integer height;
 	@Column(name = "stored_at")
 	private LocalDateTime storedAt;
+	@Column(name = "processed_at")
+	private LocalDateTime processedAt;
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 	@Column(name = "updated_at", nullable = false)

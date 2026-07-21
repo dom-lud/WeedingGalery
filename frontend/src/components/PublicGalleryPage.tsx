@@ -18,15 +18,26 @@ import {
 } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { publicAccessApi, type PublicGallery } from '../publicAccessApi'
-import { uploadApi, type UploadManifestFile } from '../uploadApi'
+import { uploadApi, type UploadFileStatus, type UploadManifestFile } from '../uploadApi'
 
 type AccessState = 'loading' | 'code-required' | 'ready' | 'not-found' | 'rate-limited' | 'error'
-type QueueStatus = 'PENDING' | 'UPLOADING' | 'STORED' | 'FAILED' | 'CANCELLED'
+type QueueStatus =
+  | 'PENDING'
+  | 'UPLOADING'
+  | 'STORED'
+  | 'PROCESSING'
+  | 'PROCESSED'
+  | 'PROCESSING_FAILED'
+  | 'FAILED'
+  | 'CANCELLED'
 
 const statusCopy: Record<QueueStatus, string> = {
   PENDING: 'Ready',
   UPLOADING: 'Uploading',
   STORED: 'Uploaded',
+  PROCESSING: 'Processing',
+  PROCESSED: 'Ready',
+  PROCESSING_FAILED: 'Processing failed',
   FAILED: 'Needs attention',
   CANCELLED: 'Cancelled',
 }
@@ -92,6 +103,23 @@ function fileValidation(file: File) {
   if (file.size === 0) return 'Empty files cannot be uploaded.'
   if (file.size > limit)
     return file.type === 'video/mp4' ? 'Video exceeds 500 MiB.' : 'Image exceeds 25 MiB.'
+  return null
+}
+
+function queueStatusFromApi(status: UploadFileStatus): QueueStatus {
+  if (status === 'RECEIVING') return 'UPLOADING'
+  if (status === 'CLEANUP_REQUIRED') return 'FAILED'
+  return status
+}
+
+function processingTerminal(status: QueueStatus) {
+  return status !== 'UPLOADING' && status !== 'PROCESSING'
+}
+
+function processingMessage(status: QueueStatus, error?: string) {
+  if (status === 'PROCESSING') return 'Generating preview and reading media details.'
+  if (status === 'PROCESSING_FAILED')
+    return error || 'The original upload is safe, but preview processing failed.'
   return null
 }
 
@@ -286,7 +314,7 @@ export default function PublicGalleryPage() {
   const uploadOne = async (activeSessionId: string, item: QueueFile, signal: AbortSignal) => {
     updateQueue(item.id, { status: 'UPLOADING', progress: 0, error: undefined })
     try {
-      await uploadApi.uploadFile(
+      const response = await uploadApi.uploadFile(
         slug,
         activeSessionId,
         item.id,
@@ -296,10 +324,50 @@ export default function PublicGalleryPage() {
         },
         signal,
       )
-      updateQueue(item.id, { status: 'STORED', progress: 100 })
+      updateQueue(item.id, {
+        status: queueStatusFromApi(response.data.status),
+        progress: 100,
+        error: response.data.errorCode,
+      })
     } catch (error) {
       if (signal.aborted) updateQueue(item.id, { status: 'CANCELLED', progress: 0 })
       else updateQueue(item.id, { status: 'FAILED', error: apiError(error).message })
+    }
+  }
+
+  const refreshSessionState = async (
+    activeSessionId: string,
+    trackedIds: Set<string>,
+    signal: AbortSignal,
+  ) => {
+    try {
+      for (let attempt = 0; attempt < 8 && !signal.aborted; attempt += 1) {
+        const response = await uploadApi.getSession(slug, activeSessionId)
+        const serverFiles = response.data.files.filter((file) => trackedIds.has(file.clientFileId))
+        setQueue((current) =>
+          current.map((item) => {
+            const serverFile = serverFiles.find((file) => file.clientFileId === item.id)
+            if (!serverFile) return item
+            const nextStatus = queueStatusFromApi(serverFile.status)
+            return {
+              ...item,
+              status: nextStatus,
+              progress:
+                nextStatus === 'PROCESSED' ||
+                nextStatus === 'PROCESSING' ||
+                nextStatus === 'PROCESSING_FAILED' ||
+                nextStatus === 'STORED'
+                  ? 100
+                  : item.progress,
+              error: serverFile.errorCode ?? item.error,
+            }
+          }),
+        )
+        if (serverFiles.every((file) => processingTerminal(queueStatusFromApi(file.status)))) return
+        await new Promise((resolve) => setTimeout(resolve, 500))
+      }
+    } catch {
+      // Status polling is best-effort; the upload result remains visible and retryable.
     }
   }
 
@@ -331,6 +399,11 @@ export default function PublicGalleryPage() {
         }
       }
       await Promise.all(Array.from({ length: Math.min(3, pending.length) }, () => worker()))
+      await refreshSessionState(
+        activeSessionId,
+        new Set(pending.map((item) => item.id)),
+        controller.signal,
+      )
     } catch (error) {
       setMessage(apiError(error).message)
     } finally {
@@ -352,7 +425,11 @@ export default function PublicGalleryPage() {
       }
     }
     setQueue((current) =>
-      current.map((item) => (item.status === 'STORED' ? item : { ...item, status: 'CANCELLED' })),
+      current.map((item) =>
+        ['STORED', 'PROCESSING', 'PROCESSED', 'PROCESSING_FAILED'].includes(item.status)
+          ? item
+          : { ...item, status: 'CANCELLED' },
+      ),
     )
     setUploading(false)
   }
@@ -400,8 +477,13 @@ export default function PublicGalleryPage() {
     )
   }
 
-  const storedCount = queue.filter((item) => item.status === 'STORED').length
-  const failedCount = queue.filter((item) => item.status === 'FAILED').length
+  const uploadedCount = queue.filter((item) =>
+    ['STORED', 'PROCESSING', 'PROCESSED', 'PROCESSING_FAILED'].includes(item.status),
+  ).length
+  const processingCount = queue.filter((item) => item.status === 'PROCESSING').length
+  const failedCount = queue.filter((item) =>
+    ['FAILED', 'PROCESSING_FAILED'].includes(item.status),
+  ).length
   const totalProgress = queue.length
     ? Math.round(queue.reduce((total, item) => total + item.progress, 0) / queue.length)
     : 0
@@ -588,24 +670,37 @@ export default function PublicGalleryPage() {
                                   size="small"
                                   label={statusCopy[item.status]}
                                   color={
-                                    item.status === 'STORED'
+                                    item.status === 'STORED' || item.status === 'PROCESSED'
                                       ? 'success'
-                                      : item.status === 'FAILED'
+                                      : item.status === 'FAILED' ||
+                                          item.status === 'PROCESSING_FAILED'
                                         ? 'error'
-                                        : item.status === 'UPLOADING'
+                                        : item.status === 'UPLOADING' ||
+                                            item.status === 'PROCESSING'
                                           ? 'primary'
                                           : 'default'
                                   }
                                 />
                               </Stack>
-                              {(item.status === 'UPLOADING' || item.status === 'STORED') && (
+                              {['UPLOADING', 'STORED', 'PROCESSING', 'PROCESSED'].includes(
+                                item.status,
+                              ) && (
                                 <LinearProgress
                                   variant="determinate"
                                   value={item.progress}
                                   aria-label={`Upload progress for ${item.file.name}`}
                                 />
                               )}
-                              {item.error && (
+                              {processingMessage(item.status, item.error) && (
+                                <Alert
+                                  severity={
+                                    item.status === 'PROCESSING_FAILED' ? 'warning' : 'info'
+                                  }
+                                >
+                                  {processingMessage(item.status, item.error)}
+                                </Alert>
+                              )}
+                              {item.error && item.status === 'FAILED' && (
                                 <Alert
                                   severity="error"
                                   action={
@@ -626,7 +721,9 @@ export default function PublicGalleryPage() {
 
                   {queue.length > 0 && (
                     <Typography aria-live="polite" role="status">
-                      {storedCount} uploaded{failedCount ? `, ${failedCount} failed` : ''}.
+                      {uploadedCount} uploaded
+                      {processingCount ? `, ${processingCount} processing` : ''}
+                      {failedCount ? `, ${failedCount} failed` : ''}.
                     </Typography>
                   )}
 

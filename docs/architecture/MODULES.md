@@ -10,6 +10,9 @@ Opisuje docelowy podział odpowiedzialności między moduły backendowe i ich gr
 
 ## Stan obecny
 - Kod jest organizowany pakietami domenowymi; Etap 3 ma oddzielne pakiety `event` i `membership`, korzystajace z `audit`, `user` i wspolnych bledow.
+- Aktualny pakiet `auth` implementuje pierwszy zakres docelowego modulu `identity`: administracyjne tworzenie kont, logowanie, sesje i audit identity.
+- `publicaccess` jest wydzielonym pakietem dla publicznego dostepu do galerii: tokeny, kody, grant sesyjny i rate limiting wejscia publicznego.
+- `security` jest pakietem przekrojowym Spring Security, a nie domena biznesowa; nie powinien zawierac use case domenowych.
 - Formalne egzekwowanie granic modulow narzedziem architektonicznym pozostaje do zrobienia.
 
 ## Stan docelowy
@@ -18,10 +21,12 @@ Opisuje docelowy podział odpowiedzialności między moduły backendowe i ich gr
 | Moduł | Odpowiedzialność |
 | --- | --- |
 | `identity` | konta, hasła, sesje, tokeny weryfikacyjne, reset hasła |
+| `auth` | obecna implementacja pierwszego zakresu `identity`; docelowo do scalenia nazewniczego albo opisania jako adapter identity |
 | `user` | profil użytkownika, preferencje, wykorzystanie konta |
 | `event` | tworzenie, edycja, status i lifecycle wydarzeń |
 | `membership` | członkostwo, role wydarzenia, zaproszenia, transfer własności |
 | `gallery` | galerie, widoczność, publikacja, personalizacja kontekstu galerii |
+| `publicaccess` | publiczny dostep do galerii przez slug, token, kod i grant sesyjny |
 | `media` | metadane plików, statusy, moderacja, miniatury |
 | `storage` | abstrakcja zapisu, odczytu i usuwania plików |
 | `upload` | sesje uploadu, walidacja, retry, limity |
@@ -33,6 +38,7 @@ Opisuje docelowy podział odpowiedzialności między moduły backendowe i ich gr
 | `subscription` | plany, limity, wykorzystanie i przypisania planów |
 | `admin` | panel administracyjny i operacje operatorskie |
 | `audit` | log audytowy i korelacja działań |
+| `security` | konfiguracja i adaptery Spring Security, filtry oraz handlery techniczne |
 | `configuration` | ustawienia systemowe i feature toggles |
 | `common` | komponenty współdzielone, bez logiki domenowej specyficznej dla jednego modułu |
 

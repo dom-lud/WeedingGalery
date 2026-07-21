@@ -599,3 +599,84 @@ CSRF. Idempotentnie ustawia `CANCELLED`, zwalnia rezerwacje plikow bez statusu
 - media po zapisie maja status `STORED`, nie sa publicznie listowane ani pobierane,
 - blad po zapisie uruchamia kompensacyjne usuniecie; nierozwiazany cleanup jest
   jawnie oznaczany stanem wymagajacym reconciliacji.
+
+## Kontrakt MEDIA-001 - Etap 6
+
+Status: `IMPLEMENTED`. Sekcja definiuje kontrakt pierwszej implementacji
+Etapu 6. Publiczne listowanie mediow, download, streaming, signed links,
+lightbox i moderacja pozostaja poza tym kontraktem.
+
+### Semantyka po uploadzie
+
+Po udanym zapisie oryginalu backend nadal zwraca wynik uploadu dla konkretnego
+pliku, ale dalsze przetwarzanie jest asynchroniczne:
+
+- oryginal nie jest modyfikowany ani usuwany przez processing,
+- backend tworzy trwaly job processingu w bazie,
+- plik przechodzi przez status processingu widoczny w odczycie sesji uploadu,
+- replay uploadu po sukcesie nie tworzy drugiego oryginalu ani drugiego joba
+  tego samego typu,
+- blad processingu nie uniewaznia samego uploadu.
+
+Pierwsza implementacja gwarantuje thumbnail dla obrazow, ktore runtime JDK
+potrafi odczytac przez `ImageIO` (w praktyce JPEG/PNG w bazowej konfiguracji).
+Upload WebP pozostaje dozwolony przez Etap 5, ale jesli dany runtime nie ma
+providera WebP dla `ImageIO`, processing konczy sie stabilnym kodem
+`MEDIA_PROCESSING_UNSUPPORTED_FORMAT`.
+
+### Status pliku w odpowiedziach upload session
+
+Etap 6 rozszerza wartosci `status` w plikach zwracanych przez:
+
+- `POST /api/public/galleries/{slug}/upload-sessions`,
+- `GET /api/public/galleries/{slug}/upload-sessions/{sessionId}`,
+- `PUT /api/public/galleries/{slug}/upload-sessions/{sessionId}/files/{clientFileId}`.
+
+Dozwolone wartosci po Etapie 6:
+
+- `PENDING`
+- `RECEIVING`
+- `STORED`
+- `PROCESSING`
+- `PROCESSED`
+- `PROCESSING_FAILED`
+- `FAILED`
+- `CANCELLED`
+- `CLEANUP_REQUIRED`
+
+`STORED` oznacza, ze oryginal jest zapisany. `PROCESSED` oznacza, ze job Etapu 6
+zakonczyl sie sukcesem. `PROCESSING_FAILED` oznacza, ze oryginal nadal istnieje,
+ale metadane lub warianty pochodne nie zostaly wygenerowane.
+
+### Model pliku w upload session
+
+Pole `failureCode` pozostaje opcjonalne. Dla `PROCESSING_FAILED` zawiera stabilny
+kod bledu processingu, np.:
+
+- `MEDIA_PROCESSING_UNSUPPORTED_FORMAT`
+- `MEDIA_PROCESSING_METADATA_FAILED`
+- `MEDIA_PROCESSING_THUMBNAIL_FAILED`
+- `MEDIA_PROCESSING_STORAGE_FAILED`
+- `MEDIA_PROCESSING_RETRY_EXHAUSTED`
+
+Etap 6 moze dodac pola tylko, jesli zostana najpierw zapisane tutaj. Minimalny
+kontrakt statusu nie wymaga zwracania URL-i, object key ani sciezek storage.
+
+### Background job status
+
+Pierwsza implementacja nie musi wystawiac publicznego endpointu statusu joba.
+Jesli endpoint diagnostyczny lub administracyjny zostanie dodany, musi miec
+osobna sekcje kontraktu i nie moze omijac ownership ani przyszlego admin API.
+
+### Audyt i logi
+
+Udany zapis oryginalu nadal wymaga fail-closed `MEDIA_STORED`. Terminalny wynik
+workera zapisuje best-effort systemowy audit event:
+
+- `MEDIA_PROCESSING_SUCCEEDED`
+- `MEDIA_PROCESSING_FAILED`
+
+Retry przejsciowy jest logowany operacyjnie, ale nie tworzy osobnego audit
+eventu. Szczegoly audytu moga zawierac `mediaId`, `jobId`, status joba, liczbe
+prob i stabilny kod bledu, ale nie moga ujawniac sciezek storage, tokenow, kodow
+dostepu ani prywatnych linkow.

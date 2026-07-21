@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 class LegacyAdminMigrationContractTest {
 
 	@Test
-	void v5PreservesReferencedLegacyAdministratorButDisablesTheKnownCredential() throws Exception {
+	void v5AndLaterPreserveReferencedLegacyAdministratorButDisableTheKnownCredential() throws Exception {
 		String url = "jdbc:h2:mem:legacy-admin-contract;DB_CLOSE_DELAY=-1;MODE=MySQL";
 		Flyway.configure().dataSource(url, "sa", "").locations("classpath:db/migration").target("4").load().migrate();
 
@@ -26,7 +26,7 @@ class LegacyAdminMigrationContractTest {
 		}
 
 		Flyway flyway = Flyway.configure().dataSource(url, "sa", "").locations("classpath:db/migration").load();
-		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(1);
+		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(2);
 
 		try (var connection = DriverManager.getConnection(url, "sa", "");
 				var statement = connection.prepareStatement("SELECT password_hash, locked_until FROM users WHERE id = "

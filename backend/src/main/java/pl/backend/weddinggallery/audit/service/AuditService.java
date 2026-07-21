@@ -33,6 +33,21 @@ public class AuditService {
 		}
 	}
 
+	public void logSystemGalleryEvent(EventType eventType, String eventId, String galleryId, String details) {
+		try {
+			TransactionTemplate transaction = new TransactionTemplate(transactionManager);
+			transaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+			transaction.executeWithoutResult(status -> {
+				AuditEvent event = AuditEvent.galleryEvent(eventType, null, eventId, galleryId, details);
+				event.setActorType("SYSTEM");
+				auditEventRepository.saveAndFlush(event);
+			});
+			log.debug("System audit event saved: {} for gallery: {}", eventType, galleryId);
+		} catch (Exception e) {
+			log.error("Failed to save system audit event: [{}] for gallery: {}", eventType, galleryId, e);
+		}
+	}
+
 	@Transactional
 	public void logRequiredIdentityEvent(String userEmail, EventType eventType, String details) {
 		AuditEvent event = new AuditEvent(eventType, userEmail, details);

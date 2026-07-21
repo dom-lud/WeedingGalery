@@ -111,6 +111,135 @@ describe('PublicGalleryPage', () => {
     expect(uploadApi.uploadFile).toHaveBeenCalledTimes(2)
   })
 
+  it('keeps uploaded files visible while backend processing finishes asynchronously', async () => {
+    vi.mocked(publicAccessApi.access).mockResolvedValue({ data: gallery } as never)
+    vi.mocked(uploadApi.createSession).mockResolvedValue({ data: { id: 'session-1' } } as never)
+    let uploadedId = ''
+    vi.mocked(uploadApi.uploadFile).mockImplementationOnce(
+      async (_slug, _session, id, _file, progress) => {
+        uploadedId = id
+        progress(100)
+        return { data: { status: 'PROCESSING' } } as never
+      },
+    )
+    let sessionPoll = 0
+    vi.mocked(uploadApi.getSession).mockImplementation(async () => {
+      sessionPoll += 1
+      return {
+        data: {
+          id: 'session-1',
+          status: 'COMPLETED',
+          expiresAt: '2026-07-21T12:00:00Z',
+          files: [
+            {
+              clientFileId: uploadedId,
+              fileName: 'photo.jpg',
+              size: 5,
+              status: sessionPoll === 1 ? 'PROCESSING' : 'PROCESSED',
+            },
+          ],
+        },
+      } as never
+    })
+    const view = renderPage()
+    await screen.findByRole('heading', { name: 'Reception gallery' })
+    const input = view.container.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(input, {
+      target: { files: [new File(['photo'], 'photo.jpg', { type: 'image/jpeg' })] },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Upload pending files' }))
+
+    expect(await screen.findByText('Processing')).toBeInTheDocument()
+    expect(screen.getByText(/Generating preview/i)).toBeInTheDocument()
+    expect(await screen.findByText('Ready', {}, { timeout: 2500 })).toBeInTheDocument()
+    expect(screen.getByText('1 uploaded.')).toBeInTheDocument()
+  })
+
+  it('surfaces backend processing failure while keeping the original upload counted', async () => {
+    vi.mocked(publicAccessApi.access).mockResolvedValue({ data: gallery } as never)
+    vi.mocked(uploadApi.createSession).mockResolvedValue({ data: { id: 'session-1' } } as never)
+    vi.mocked(uploadApi.uploadFile).mockImplementationOnce(
+      async (_slug, _session, _id, _file, progress) => {
+        progress(100)
+        return {
+          data: {
+            status: 'PROCESSING_FAILED',
+            errorCode: 'MEDIA_PROCESSING_UNSUPPORTED_FORMAT',
+          },
+        } as never
+      },
+    )
+    vi.mocked(uploadApi.getSession).mockRejectedValue(new Error('poll unavailable'))
+    const view = renderPage()
+    await screen.findByRole('heading', { name: 'Reception gallery' })
+    const input = view.container.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(input, {
+      target: { files: [new File(['photo'], 'photo.jpg', { type: 'image/jpeg' })] },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Upload pending files' }))
+
+    expect(await screen.findByText('Processing failed')).toBeInTheDocument()
+    expect(screen.getByText('MEDIA_PROCESSING_UNSUPPORTED_FORMAT')).toBeInTheDocument()
+    expect(screen.getByText('1 uploaded, 1 failed.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+  })
+
+  it('reports upload session creation failures without changing selected files', async () => {
+    vi.mocked(publicAccessApi.access).mockResolvedValue({ data: gallery } as never)
+    vi.mocked(uploadApi.createSession).mockRejectedValue({
+      response: { data: { message: 'Upload sessions are temporarily unavailable.' } },
+    })
+    const view = renderPage()
+    await screen.findByRole('heading', { name: 'Reception gallery' })
+    const input = view.container.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(input, {
+      target: { files: [new File(['photo'], 'photo.jpg', { type: 'image/jpeg' })] },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Upload pending files' }))
+
+    expect(
+      await screen.findByText('Upload sessions are temporarily unavailable.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Ready')).toBeInTheDocument()
+    expect(screen.getByText('0 uploaded.')).toBeInTheDocument()
+  })
+
+  it('preserves backend processing statuses when cancelling remaining active uploads', async () => {
+    vi.mocked(publicAccessApi.access).mockResolvedValue({ data: gallery } as never)
+    vi.mocked(uploadApi.createSession).mockResolvedValue({ data: { id: 'session-1' } } as never)
+    vi.mocked(uploadApi.cancel).mockResolvedValue({ data: { status: 'CANCELLED' } } as never)
+    vi.mocked(uploadApi.uploadFile)
+      .mockImplementationOnce(async (_slug, _session, _id, _file, progress) => {
+        progress(100)
+        return { data: { status: 'PROCESSING' } } as never
+      })
+      .mockImplementationOnce(
+        async (_slug, _session, _id, _file, _progress, signal) =>
+          await new Promise((_, reject) => {
+            signal?.addEventListener('abort', () => reject(new Error('aborted')))
+          }),
+      )
+    const view = renderPage()
+    await screen.findByRole('heading', { name: 'Reception gallery' })
+    const input = view.container.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(input, {
+      target: {
+        files: [
+          new File(['photo'], 'ready.jpg', { type: 'image/jpeg' }),
+          new File(['photo'], 'active.jpg', { type: 'image/jpeg' }),
+        ],
+      },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Upload pending files' }))
+    expect(await screen.findByText('Processing')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel upload' }))
+
+    expect(await screen.findByText('Cancelled')).toBeInTheDocument()
+    expect(screen.getByText('Processing')).toBeInTheDocument()
+    expect(screen.getByText('1 uploaded, 1 processing.')).toBeInTheDocument()
+  })
+
   it('shows a generic unavailable state for an invalid or private gallery', async () => {
     vi.mocked(publicAccessApi.access).mockRejectedValue({
       response: { status: 404, data: { code: 'PUBLIC_GALLERY_NOT_FOUND' } },
@@ -120,6 +249,18 @@ describe('PublicGalleryPage', () => {
     await waitFor(() =>
       expect(screen.getByText(/invalid, expired or no longer available/i)).toBeVisible(),
     )
+  })
+
+  it('shows a recoverable error when the access response has no gallery payload', async () => {
+    vi.mocked(publicAccessApi.access).mockResolvedValue({ data: null } as never)
+    renderPage()
+
+    expect(
+      await screen.findByRole('heading', { name: 'Unable to open gallery' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('We could not open this gallery. Please try again.'),
+    ).toBeInTheDocument()
   })
 
   it('shows a dedicated throttling state without leaking gallery details', async () => {

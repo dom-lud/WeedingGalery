@@ -27,6 +27,7 @@ export class PublicGalleryPage {
       ),
     })
     await this.page.getByRole('button', { name: 'Upload pending files' }).click()
-    await expect(this.page.getByText('1 uploaded.')).toBeVisible()
+    await expect(this.page.getByText(/^1 uploaded(, 1 processing)?\.$/)).toBeVisible()
+    await expect(this.page.getByText(/Processing|Ready/).first()).toBeVisible()
   }
 }

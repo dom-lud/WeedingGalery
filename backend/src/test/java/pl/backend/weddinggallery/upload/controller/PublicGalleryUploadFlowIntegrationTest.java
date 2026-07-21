@@ -33,6 +33,7 @@ import pl.backend.weddinggallery.event.repository.EventRepository;
 import pl.backend.weddinggallery.gallery.model.*;
 import pl.backend.weddinggallery.gallery.repository.GalleryRepository;
 import pl.backend.weddinggallery.media.repository.MediaFileRepository;
+import pl.backend.weddinggallery.media.repository.MediaProcessingJobRepository;
 import pl.backend.weddinggallery.membership.repository.EventMembershipRepository;
 import pl.backend.weddinggallery.publicaccess.repository.GalleryAccessRepository;
 import pl.backend.weddinggallery.storage.StorageService;
@@ -62,6 +63,8 @@ class PublicGalleryUploadFlowIntegrationTest {
 	@Autowired
 	private MediaFileRepository media;
 	@Autowired
+	private MediaProcessingJobRepository processingJobs;
+	@Autowired
 	private AuditEventRepository audit;
 	@Autowired
 	private PasswordEncoder passwords;
@@ -79,6 +82,7 @@ class PublicGalleryUploadFlowIntegrationTest {
 			if (storage.exists(file.getStorageKey()))
 				storage.delete(file.getStorageKey());
 		});
+		processingJobs.deleteAll();
 		media.deleteAll();
 		sessions.deleteAll();
 		accesses.deleteAll();
@@ -197,13 +201,16 @@ class PublicGalleryUploadFlowIntegrationTest {
 
 		assertThat(guest.multipart(sessionsPath + "/" + sessionId + "/files/good", "good.jpg", "image/jpeg", jpeg, true)
 				.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(processingJobs.count()).isEqualTo(1);
+		assertThat(media.findByUploadSessionIdAndClientFileId(sessionId, "good").orElseThrow().getStatus().name())
+				.isEqualTo("PROCESSING");
 		ResponseEntity<String> spoofed = guest.multipart(sessionsPath + "/" + sessionId + "/files/spoofed",
 				"spoofed.jpg", "image/jpeg", "text".getBytes(), true);
 		assertThat(spoofed.getStatusCode().value()).isEqualTo(422);
 		assertThat(string(spoofed, "code")).isEqualTo("UPLOAD_CONTENT_MISMATCH");
 		ResponseEntity<String> state = guest.json(HttpMethod.GET, sessionsPath + "/" + sessionId, null, false,
 				Map.of());
-		assertThat(state.getBody()).contains("STORED", "FAILED").doesNotContain("storageKey");
+		assertThat(state.getBody()).contains("PROCESSING", "FAILED").doesNotContain("storageKey");
 		assertThat(guest.json(HttpMethod.POST, sessionsPath + "/" + sessionId + "/cancel", null, true, Map.of())
 				.getStatusCode()).isEqualTo(HttpStatus.OK);
 

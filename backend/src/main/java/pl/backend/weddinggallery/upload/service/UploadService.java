@@ -5,6 +5,7 @@ import java.time.ZoneOffset;
 import java.util.*;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,6 +19,7 @@ import pl.backend.weddinggallery.gallery.model.Gallery;
 import pl.backend.weddinggallery.gallery.repository.GalleryRepository;
 import pl.backend.weddinggallery.media.model.*;
 import pl.backend.weddinggallery.media.repository.MediaFileRepository;
+import pl.backend.weddinggallery.media.service.MediaProcessingJobService;
 import pl.backend.weddinggallery.publicaccess.model.GalleryAccess;
 import pl.backend.weddinggallery.publicaccess.repository.GalleryAccessRepository;
 import pl.backend.weddinggallery.publicaccess.service.GalleryAccessService;
@@ -30,6 +32,7 @@ import pl.backend.weddinggallery.upload.repository.UploadSessionRepository;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UploadService {
 	private final UploadSessionRepository sessionRepository;
 	private final MediaFileRepository mediaRepository;
@@ -38,6 +41,7 @@ public class UploadService {
 	private final GalleryAccessService accessService;
 	private final UploadFileValidator fileValidator;
 	private final StorageService storageService;
+	private final MediaProcessingJobService processingJobs;
 	private final TokenService tokenService;
 	private final AuditService auditService;
 	private final PlatformTransactionManager transactionManager;
@@ -98,6 +102,8 @@ public class UploadService {
 			}
 			gallery.setStorageReservedBytes(gallery.getStorageReservedBytes() + total);
 			sessionRepository.save(upload);
+			log.info("Upload session created sessionId={} galleryId={} files={} totalBytes={}", sessionId,
+					gallery.getId(), request.files().size(), total);
 			return new CreateResult(response(upload), true);
 		});
 	}
@@ -138,7 +144,7 @@ public class UploadService {
 			UploadSession session = requireSession(sessionId, grant);
 			MediaFile media = mediaRepository.findByUploadSessionIdAndClientFileId(sessionId, clientFileId)
 					.orElseThrow(() -> new AppException(UploadErrorCode.UPLOAD_FILE_NOT_FOUND));
-			if (media.getStatus() != MediaStatus.STORED && session.getStatus() != UploadSessionStatus.OPEN)
+			if (!isStoredOrProcessing(media.getStatus()) && session.getStatus() != UploadSessionStatus.OPEN)
 				throw new AppException(UploadErrorCode.UPLOAD_SESSION_NOT_OPEN);
 			return media.getExpectedSizeBytes();
 		});
@@ -191,6 +197,8 @@ public class UploadService {
 		} catch (RuntimeException ex) {
 			media.setStatus(MediaStatus.CLEANUP_REQUIRED);
 			media.setFailureCode("INTERRUPTED_UPLOAD_CLEANUP_FAILED");
+			log.warn("Interrupted upload cleanup failed mediaId={} galleryId={}", media.getId(),
+					media.getGallery().getId(), ex);
 		}
 	}
 
@@ -198,7 +206,7 @@ public class UploadService {
 		UploadSession session = requireSession(sessionId, grant);
 		MediaFile media = mediaRepository.findByUploadSessionIdAndClientFileId(sessionId, clientFileId)
 				.orElseThrow(() -> new AppException(UploadErrorCode.UPLOAD_FILE_NOT_FOUND));
-		if (media.getStatus() == MediaStatus.STORED)
+		if (isStoredOrProcessing(media.getStatus()))
 			return Claim.completed(fileResponse(media));
 		if (session.getStatus() != UploadSessionStatus.OPEN)
 			throw new AppException(UploadErrorCode.UPLOAD_SESSION_NOT_OPEN);
@@ -218,17 +226,20 @@ public class UploadService {
 		MediaFile media = mediaRepository.findById(claim.mediaId()).orElseThrow();
 		if (media.getStatus() != MediaStatus.RECEIVING)
 			throw new AppException(UploadErrorCode.UPLOAD_IN_PROGRESS);
-		media.setStatus(MediaStatus.STORED);
+		media.setStatus(MediaStatus.PROCESSING);
 		media.setDetectedContentType(detected.detectedContentType());
 		media.setSizeBytes(stored.size());
 		media.setChecksumSha256(stored.checksumSha256());
 		media.setStoredAt(LocalDateTime.now());
+		processingJobs.enqueue(media);
+		log.info("Media original stored mediaId={} galleryId={} sessionId={} size={} status={}", media.getId(),
+				claim.galleryId(), claim.sessionId(), stored.size(), media.getStatus());
 		UploadSession session = media.getUploadSession();
 		Gallery gallery = galleryRepository.findWithLockById(claim.galleryId()).orElseThrow();
 		gallery.setStorageReservedBytes(Math.max(0, gallery.getStorageReservedBytes() - media.getExpectedSizeBytes()));
 		gallery.setStorageUsedBytes(gallery.getStorageUsedBytes() + stored.size());
 		session.setReservedBytes(Math.max(0, session.getReservedBytes() - media.getExpectedSizeBytes()));
-		if (session.getFiles().stream().allMatch(item -> item.getStatus() == MediaStatus.STORED))
+		if (session.getFiles().stream().allMatch(item -> isStoredOrProcessing(item.getStatus())))
 			session.setStatus(UploadSessionStatus.COMPLETED);
 		auditService.logRequiredGuestGalleryEvent(claim.accessId(), EventType.MEDIA_STORED, claim.eventId(),
 				claim.galleryId(), "mediaId=" + media.getId() + ",size=" + stored.size());
@@ -242,6 +253,8 @@ public class UploadService {
 				storageService.delete(claim.storageKey());
 			} catch (Exception ex) {
 				cleanupFailed = true;
+				log.warn("Upload compensation cleanup failed mediaId={} galleryId={} failureCode={}", claim.mediaId(),
+						claim.galleryId(), failureCode, ex);
 			}
 		}
 		boolean finalCleanupFailed = cleanupFailed;
@@ -274,7 +287,7 @@ public class UploadService {
 	private void releaseSessionReservation(UploadSession session, UploadSessionStatus targetStatus) {
 		long release = 0;
 		for (MediaFile file : session.getFiles()) {
-			if (file.getStatus() == MediaStatus.STORED || file.getStatus() == MediaStatus.CLEANUP_REQUIRED)
+			if (isStoredOrProcessing(file.getStatus()) || file.getStatus() == MediaStatus.CLEANUP_REQUIRED)
 				continue;
 			if (file.getStatus() == MediaStatus.RECEIVING) {
 				try {
@@ -332,6 +345,10 @@ public class UploadService {
 		return new UploadFileResponse(file.getClientFileId(), file.getOriginalFilename(),
 				file.getSizeBytes() == null ? file.getExpectedSizeBytes() : file.getSizeBytes(), file.getStatus(),
 				file.getDetectedContentType(), file.getChecksumSha256(), file.getFailureCode());
+	}
+	private boolean isStoredOrProcessing(MediaStatus status) {
+		return status == MediaStatus.STORED || status == MediaStatus.PROCESSING || status == MediaStatus.PROCESSED
+				|| status == MediaStatus.PROCESSING_FAILED;
 	}
 	private <T> T tx(Supplier<T> work) {
 		return new TransactionTemplate(transactionManager).execute(status -> work.get());
