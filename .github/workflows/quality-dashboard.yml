@@ -1,0 +1,84 @@
+name: Quality Dashboard
+
+on:
+  workflow_run:
+    workflows:
+      - Main Build
+      - Nightly Quality
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: quality-dashboard
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish quality dashboard
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.head_branch == 'main' &&
+        (
+          github.event.workflow_run.event == 'push' ||
+          github.event.workflow_run.event == 'schedule' ||
+          github.event.workflow_run.event == 'workflow_dispatch'
+        )
+      )
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download quality report artifact
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: quality-report-json
+          path: .
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Build manual dashboard seed
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          BACKEND_RESULT: skipped
+          FRONTEND_RESULT: skipped
+          DOCKER_RESULT: skipped
+          E2E_RESULT: skipped
+          E2E_REQUIRED: "false"
+        run: node .github/scripts/ci-metrics.mjs aggregate .
+
+      - name: Fetch previous dashboard history
+        shell: bash
+        env:
+          PAGES_HISTORY_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/history.json
+        run: |
+          mkdir -p quality-dashboard
+          curl --fail --silent --show-error --location "$PAGES_HISTORY_URL" --output quality-dashboard/history.json || echo "[]" > quality-dashboard/history.json
+
+      - name: Render quality dashboard
+        run: node .github/scripts/render-quality-dashboard.mjs
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: quality-dashboard
+
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

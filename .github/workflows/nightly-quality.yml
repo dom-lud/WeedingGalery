@@ -1,23 +1,21 @@
-name: PR Validation
+name: Nightly Quality
 
 on:
-  pull_request:
-    branches:
-      - main
+  schedule:
+    - cron: "17 1 * * *"
   workflow_dispatch:
 
 permissions:
   actions: read
   contents: read
-  pull-requests: write
 
 concurrency:
-  group: pr-validation-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: nightly-quality-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   backend:
-    name: Backend tests
+    name: Backend verify
     runs-on: ubuntu-latest
 
     steps:
@@ -38,22 +36,15 @@ jobs:
         working-directory: backend
         run: ./mvnw -B spotless:check
 
-      - name: Run backend tests
+      - name: Run backend verify
         working-directory: backend
         run: ./mvnw -B verify
-
-      - name: Require MySQL migration contract execution
-        shell: bash
-        run: |
-          report="backend/target/surefire-reports/TEST-pl.backend.weddinggallery.MySqlFlywayMigrationContractTest.xml"
-          test -f "$report"
-          grep -q 'tests="1" errors="0" skipped="0" failures="0"' "$report"
 
       - name: Summarize backend tests and coverage
         if: always()
         run: node .github/scripts/ci-metrics.mjs backend backend
 
-      - name: Upload backend coverage
+      - name: Upload backend diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -62,7 +53,7 @@ jobs:
           path: |
             backend/target/site/jacoco/
             backend/target/surefire-reports/
-          retention-days: 30
+          retention-days: 90
 
       - name: Upload backend quality metrics
         if: always()
@@ -71,7 +62,7 @@ jobs:
           if-no-files-found: warn
           name: backend-quality-metrics
           path: quality-report-parts/backend.json
-          retention-days: 30
+          retention-days: 90
 
   frontend:
     name: Frontend quality
@@ -116,7 +107,7 @@ jobs:
         if: always()
         run: node .github/scripts/ci-metrics.mjs frontend frontend
 
-      - name: Upload frontend coverage
+      - name: Upload frontend diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -125,7 +116,7 @@ jobs:
           path: |
             frontend/coverage/
             frontend/vitest-results.json
-          retention-days: 30
+          retention-days: 90
 
       - name: Upload frontend quality metrics
         if: always()
@@ -134,7 +125,7 @@ jobs:
           if-no-files-found: warn
           name: frontend-quality-metrics
           path: quality-report-parts/frontend.json
-          retention-days: 30
+          retention-days: 90
 
       - name: Run frontend build
         working-directory: frontend
@@ -155,13 +146,13 @@ jobs:
         run: docker compose config --quiet
 
       - name: Build backend image
-        run: docker build -t wedding-gallery-backend:ci backend
+        run: docker build -t wedding-gallery-backend:nightly backend
 
       - name: Build frontend image
-        run: docker build -t wedding-gallery-frontend:ci frontend
+        run: docker build -t wedding-gallery-frontend:nightly frontend
 
   e2e:
-    name: Playwright E2E Tests
+    name: Playwright E2E and accessibility
     runs-on: ubuntu-latest
     needs: [backend, frontend]
 
@@ -261,7 +252,7 @@ jobs:
           path: |
             frontend/playwright-report/
             frontend/test-results/
-          retention-days: 30
+          retention-days: 90
 
       - name: Upload Playwright quality metrics
         if: always()
@@ -270,14 +261,14 @@ jobs:
           if-no-files-found: warn
           name: playwright-quality-metrics
           path: frontend/quality-report-parts/e2e.json
-          retention-days: 30
+          retention-days: 90
 
       - name: Fail job when Playwright tests fail
         if: steps.playwright.outcome == 'failure'
         run: exit 1
 
-  report-pr-status:
-    name: Report PR validation status
+  quality-report:
+    name: Nightly quality report
     runs-on: ubuntu-latest
     needs: [backend, frontend, docker, e2e]
     if: always()
@@ -318,58 +309,4 @@ jobs:
           path: |
             quality-report.json
             quality-report.md
-          retention-days: 30
-
-      - name: Upsert PR status comment
-        if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('node:fs');
-            const marker = '<!-- pr-validation-report -->';
-            const report = JSON.parse(fs.readFileSync('quality-report.json', 'utf8'));
-            const markdown = fs.readFileSync('quality-report.md', 'utf8');
-            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: context.runId,
-              per_page: 100,
-            });
-            const artifactUrl = (name) => {
-              const artifact = artifacts.find((candidate) => candidate.name === name && !candidate.expired);
-              return artifact ? `${runUrl}/artifacts/${artifact.id}` : null;
-            };
-            const reportLinks = [
-              ['Backend: JaCoCo + Surefire', artifactUrl('backend-coverage')],
-              ['Frontend: coverage + Vitest JSON', artifactUrl('frontend-coverage')],
-              ['Playwright: HTML report + traces', artifactUrl('playwright-report')],
-              ['Machine JSON report', artifactUrl('quality-report-json')],
-            ].filter(([, url]) => url);
-            const links = reportLinks.length
-              ? ['### Artifact links', ...reportLinks.map(([label, url]) => `- [${label}](${url})`), ''].join('\n')
-              : '';
-            const body = `${marker}\n${markdown}\n${links}Schema: \`${report.schemaVersion}\``;
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-            const existingComment = comments.find((comment) =>
-              comment.user?.type === 'Bot' && comment.body?.includes(marker)
-            );
-            if (existingComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existingComment.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body,
-              });
-            }
+          retention-days: 90

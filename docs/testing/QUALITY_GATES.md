@@ -30,6 +30,10 @@ Opisuje warunki, ktore musza byc spelnione przed scaleniem zmian i przed wdrozen
   i branches oraz frontend statements, branches, functions i lines.
 - Raport per plik/klasa zostal przejrzany; wysoki wynik globalny nie moze
   maskowac nieprzetestowanej krytycznej logiki.
+- CI generuje `quality-report.json`, `quality-report.md`, komentarz PR oraz
+  run summary z tymi samymi danymi o testach, coverage i wynikach gates.
+- GitHub Pages dashboard pokazuje dlugoterminowa historie main/nightly. Jest
+  narzedziem obserwowalnosci trendow, nie argumentem za slabszymi testami.
 - Progi dzialaja jako ratchet: nie sa obnizane, a po stabilnym wzroscie coverage
   powinny byc podnoszone z niewielkim marginesem ponizej wyniku bazowego.
 - Krytyczne ekrany przechodza automatyczny audit WCAG A/AA w Playwright.

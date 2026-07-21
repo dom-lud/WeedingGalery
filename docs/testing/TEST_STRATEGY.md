@@ -61,6 +61,14 @@ Opisuje docelowa strategie testowania platformy na poziomie backendu, frontendu 
 - Nie mieszaj testow API z testami E2E UI. Nalezy je utrzymywac oddzielnie, uzywajac innych narzedzi, np. Playwright do E2E, a Spring Boot Test lub REST Assured do API.
 - W testach Playwright preferowany jest page object pattern, aby selektory i techniczne kroki byly utrzymywane centralnie, a specy pozostawaly opisem zachowania biznesowego.
 - Wyniki Playwright w CI powinny byc widoczne zarowno w artefakcie HTML, jak i w komentarzu PR z podsumowaniem przebiegu, aby reviewer od razu widzial skale problemu bez przeklikiwania calego workflow.
+- Kazdy istotny feature powinien zostawic dwa slady: macierz ryzyk/test design
+  brief w dokumentacji lub artefakcie pracy oraz raport CI z `quality-report.json`.
+  Raport historyczny sluzy do trendow, wykrywania regresji i diagnostyki runow,
+  ale nie uzasadnia pomijania scenariuszy negatywnych, granicznych albo
+  security.
+- Nightly quality jest miejscem na pelniejszy, drozszy przebieg regresji:
+  backend verify, frontend coverage/build, Docker/Compose, Playwright E2E,
+  accessibility i publikacje dashboardu Pages.
 - Lokalna weryfikacja krytycznych flow E2E i integracyjnych powinna byc odpalana na komponentach dockerowych po ich przebudowaniu: najpierw `backend\mvnw.cmd -DskipTests package`, potem `docker compose up --build`, a dopiero potem testy.
 
 ## Powiazane dokumenty
