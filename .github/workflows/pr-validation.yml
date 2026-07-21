@@ -252,6 +252,19 @@ jobs:
           PLAYWRIGHT_OUTCOME: ${{ steps.playwright.outcome }}
         run: node ../.github/scripts/ci-metrics.mjs playwright .
 
+      - name: Write Allure metadata
+        if: always()
+        working-directory: frontend
+        run: node scripts/write-allure-metadata.mjs
+
+      - name: Generate Allure report
+        if: always()
+        continue-on-error: true
+        working-directory: frontend
+        env:
+          ALLURE_NO_ANALYTICS: "1"
+        run: npx allure generate allure-results --clean -o allure-report
+
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v7
@@ -261,6 +274,17 @@ jobs:
           path: |
             frontend/playwright-report/
             frontend/test-results/
+          retention-days: 30
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          if-no-files-found: warn
+          name: allure-report
+          path: |
+            frontend/allure-report/
+            frontend/allure-results/
           retention-days: 30
 
       - name: Upload Playwright quality metrics
@@ -344,6 +368,7 @@ jobs:
               ['Backend: JaCoCo + Surefire', artifactUrl('backend-coverage')],
               ['Frontend: coverage + Vitest JSON', artifactUrl('frontend-coverage')],
               ['Playwright: HTML report + traces', artifactUrl('playwright-report')],
+              ['Allure: professional E2E report', artifactUrl('allure-report')],
               ['Machine JSON report', artifactUrl('quality-report-json')],
             ].filter(([, url]) => url);
             const links = reportLinks.length

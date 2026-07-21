@@ -68,6 +68,10 @@ Opisuje docelowa strategie testowania platformy na poziomie backendu, frontendu 
 - Nie mieszaj testow API z testami E2E UI. Nalezy je utrzymywac oddzielnie, uzywajac innych narzedzi, np. Playwright do E2E, a Spring Boot Test lub REST Assured do API.
 - W testach Playwright preferowany jest page object pattern, aby selektory i techniczne kroki byly utrzymywane centralnie, a specy pozostawaly opisem zachowania biznesowego.
 - Wyniki Playwright w CI powinny byc widoczne zarowno w artefakcie HTML, jak i w komentarzu PR z podsumowaniem przebiegu, aby reviewer od razu widzial skale problemu bez przeklikiwania calego workflow.
+- Allure Report jest dodatkowa warstwa prezentacji E2E dla czlowieka:
+  pokazuje testy, kroki, retry/flaky i metadane runu. Z raportu Allure musi
+  byc widoczny link do Quality Dashboardu oraz runu GitHub Actions, zeby
+  reviewer mogl przejsc do trendow, coverage gates i `quality-report.json`.
 - Kazdy istotny feature powinien zostawic dwa slady: macierz ryzyk/test design
   brief w dokumentacji lub artefakcie pracy oraz raport CI z `quality-report.json`.
   Raport historyczny sluzy do trendow, wykrywania regresji i diagnostyki runow,

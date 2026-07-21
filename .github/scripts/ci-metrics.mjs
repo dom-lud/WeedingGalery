@@ -343,6 +343,7 @@ function markdownReport(report) {
     "- Backend: `backend-coverage` artifact",
     "- Frontend: `frontend-coverage` artifact",
     "- Playwright: `playwright-report` artifact",
+    "- Allure: `allure-report` artifact with Quality Dashboard link in environment metadata",
     "- Machine report: `quality-report-json` artifact",
   ];
 

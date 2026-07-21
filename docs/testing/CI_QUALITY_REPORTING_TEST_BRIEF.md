@@ -24,6 +24,8 @@ dokumentacje, wiec jeden agent utrzymuje najnizsze ryzyko konfliktow plikow.
 | Pages publikuje dane z niezaufanego PR                 | Workflow deployuje dla `pull_request` lub forkow                   | review triggerow `workflow_run` i permissions Pages              | workflow          |
 | Dashboard pada na runie bez raportu jakosci            | `quality-dashboard.yml` pobiera `quality-report-json` bez guardow  | najpierw sprawdzic artefakt przez API, deploy tylko gdy istnieje | workflow          |
 | Workflow emituje ostrzezenia Node 20                   | Akcje artifact/github-script zostaja na runtime Node 20            | podniesc artifact actions i github-script do wersji Node 24      | workflow          |
+| Allure odcina review od metryk CI                      | Raport Allure nie ma linku do Quality Dashboardu ani runu Actions  | sprawdzic `environment.properties` i `executor.json`             | skrypt + workflow |
+| Allure zastępuje quality gates                         | Reviewer ufa ladnemu raportowi bez `quality-report.json`           | dokumentacja i komentarz PR wskazuja SSOT metryk                 | review + docs     |
 | Dane testow moga wstrzyknac HTML                       | Renderer wstawia tytuly testow bez escapowania                     | review funkcji escape i renderowania listy awarii                | skrypt dashboardu |
 | Artefakty diagnostyczne znikaja zbyt szybko            | Retencja zostaje na 7 dni                                          | sprawdzenie `retention-days` w uploadach                         | workflow          |
 | Failujacy job gubi raporty                             | Upload artefaktow nie ma `if: always()`                            | review krokow uploadu i agregacji                                | workflow          |
@@ -72,6 +74,14 @@ dokumentacje, wiec jeden agent utrzymuje najnizsze ryzyko konfliktow plikow.
 - Artifact actions zostaly podniesione do `actions/upload-artifact@v7` i
   `actions/download-artifact@v7`, a `actions/github-script` do `@v8`, zeby
   korzystac z runtime Node 24.
+- Playwright E2E generuje `allure-results` i `allure-report`; raport Allure
+  zawiera metadane z linkiem do Quality Dashboardu, GitHub Actions runu oraz
+  wskazaniem artefaktu `quality-report-json`.
+- `node scripts/write-allure-metadata.mjs` tworzy `environment.properties` i
+  `executor.json`; w wariancie CI link do Quality Dashboardu sklada sie jako
+  `https://dom-lud.github.io/WeedingGalery/`.
+- Komenda generowania Allure z `ALLURE_NO_ANALYTICS=1` tworzy `allure-report`
+  bez prob wysylania analytics.
 - `git diff --check` przechodzi po jednorazowym `safe.directory`; lokalny Git
   wymaga tej opcji przez roznice wlasciciela repo i uzytkownika sandboxa.
 - `actionlint` nie jest dostepny lokalnie, wiec nie wykonano dedykowanej
