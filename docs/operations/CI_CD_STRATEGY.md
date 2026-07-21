@@ -1,14 +1,17 @@
 # Strategia CI/CD
 
 ## Cel dokumentu
+
 Opisuje docelowa strategie CI/CD dla GitHub Actions oraz aktualne repo truth dla workflow walidacyjnych.
 
 ## Status dokumentu
+
 - Status: draft
 - Zakres: pull request flow, quality gates, pipeline build/test/deploy, artefakty i rollback
 - Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
+
 - Repozytorium ma workflow PR validation oraz workflow buildowy dla `main`.
 - Backend `verify` z JaCoCo, kontrakt migracji na MySQL, frontend lint/test/coverage/build, walidacja `docker compose config` i budowa obrazow sa egzekwowane automatycznie w GitHub Actions.
 - Coverage gates sa blokujace i wynosza 90% dla kazdej metryki: backend
@@ -31,11 +34,13 @@ Opisuje docelowa strategie CI/CD dla GitHub Actions oraz aktualne repo truth dla
 - Quality gates sa czesciowo zautomatyzowane; obszary biznesowe, security review i dalsza rozbudowa zakresu E2E nadal wymagaja pracy.
 
 ## Stan docelowy
+
 - Kazda zmiana przechodzi przez pull request, automatyczne quality gates i review.
 - `main` jest zawsze w stanie mozliwym do zbudowania.
 - Deployment wykonuje sie z wersjonowanych artefaktow po przejsciu kontroli jakosci.
 
 ## Pull request flow
+
 Kazda zmiana powinna przechodzic przez pull request.
 
 Zakladany flow:
@@ -55,9 +60,11 @@ feature branch
 ## Workflow
 
 ### PR validation
+
 Uruchamiany dla pull requestow do `main`.
 
 Zakres:
+
 - checkout,
 - setup Java i Node,
 - cache Maven i npm,
@@ -71,9 +78,11 @@ Zakres:
 - komentarz w PR z podsumowaniem jobow i wyniku Playwright.
 
 ### Main build
+
 Uruchamiany po merge do `main`.
 
 Zakres:
+
 - backend format (Spotless check), testy i budowa JAR,
 - frontend format (Prettier check), lint, testy i build,
 - testy backendowe,
@@ -84,9 +93,11 @@ Zakres:
 - publikacja maszynowego `quality-report-json` dla historii trendow.
 
 ### Nightly quality
+
 Uruchamiany harmonogramem GitHub Actions oraz recznie przez `workflow_dispatch`.
 
 Zakres:
+
 - backend `./mvnw -B verify`,
 - frontend format, lint, `test:coverage` i build,
 - Docker Compose config oraz build obrazow,
@@ -95,10 +106,12 @@ Zakres:
 - publikacja `quality-report-json` dla dashboardu historii.
 
 ### Quality dashboard
+
 Dashboard GitHub Pages jest generowany ze statycznego HTML/JSON przez
 `.github/scripts/render-quality-dashboard.mjs`.
 
 Publikowane pliki:
+
 - `index.html` - czytelny widok ostatniego runu i trendow,
 - `history.json` - historia przycieta do ostatnich 365 wpisow,
 - `latest.json` - ostatni wpis,
@@ -108,9 +121,11 @@ Dashboard pokazuje widocznosc jakosci i trendy. Nie zastepuje test design brief,
 macierzy ryzyk ani review scenariuszy testowych.
 
 ### Deployment
+
 Uruchamiany recznie albo po zatwierdzeniu srodowiska.
 
 Zakres:
+
 - pobranie wersjonowanych artefaktow,
 - weryfikacja konfiguracji i sekretow,
 - backup przed migracja, jesli zmiana dotyczy danych,
@@ -124,6 +139,7 @@ Zakres:
 ## Obowiazkowe quality gates
 
 ### Backend
+
 - Maven build przechodzi.
 - Testy jednostkowe przechodza.
 - Testy integracyjne przechodza, jesli zmiana dotyczy API, bazy, security, storage lub background jobs.
@@ -132,6 +148,7 @@ Zakres:
 - Brak znanych krytycznych podatnosci w zaleznosciach.
 
 ### Frontend
+
 - TypeScript build przechodzi.
 - Lint przechodzi.
 - Testy frontendu przechodza.
@@ -141,6 +158,7 @@ Zakres:
 - Frontend uzywa MUI zgodnie z [../frontend/UI_SYSTEM.md](../frontend/UI_SYSTEM.md).
 
 ### Docker i operacje
+
 - `docker compose config` przechodzi.
 - Obrazy backendu i frontendu buduja sie.
 - Health checks sa zdefiniowane dla uslug runtime, gdy zostana wdrozone.
@@ -148,12 +166,15 @@ Zakres:
 - Zmiany wymagajace sekretow nie zapisuja sekretow w repozytorium.
 
 ### Dokumentacja
+
 - Dokumentacja jest zaktualizowana, jesli zmiana wplywa na architekture, API, model danych, security, operacje, workflow lub UX.
 - ADR jest dodany lub zaktualizowany, jesli decyzja wplywa na architekture, bezpieczenstwo, dane albo operacje.
 - Linki wzgledne w nowych dokumentach sa poprawne.
 
 ## Gates blokujace i ostrzegawcze
+
 Docelowo blokujace:
+
 - backend build,
 - frontend build,
 - lint,
@@ -163,6 +184,7 @@ Docelowo blokujace:
 - brak krytycznych podatnosci.
 
 Poczatkowo ostrzegawcze moga byc:
+
 - pelne E2E,
 - skanowanie licencji,
 - rozbudowane testy wydajnosciowe,
@@ -171,6 +193,7 @@ Poczatkowo ostrzegawcze moga byc:
 Zmiana gate z ostrzegawczego na blokujacy powinna zostac odnotowana w dokumentacji.
 
 ## Cache i artefakty
+
 - Cache Maven powinien byc oparty o `backend/pom.xml`.
 - Cache npm powinien byc oparty o `frontend/package-lock.json`.
 - Cache przegladarek Playwright powinien byc utrzymywany oddzielnie od cache npm.
@@ -186,24 +209,29 @@ Zmiana gate z ostrzegawczego na blokujacy powinna zostac odnotowana w dokumentac
 - Obrazy Docker powinny byc tagowane co najmniej przez commit SHA; tag `latest` nie moze byc jedynym identyfikatorem produkcyjnym.
 
 ## Sekrety CI
+
 - Sekrety przechowujemy w GitHub Actions secrets albo docelowym mechanizmie secret management.
 - Sekrety nie moga trafiac do logow.
 - Workflow nie moze wypisywac pelnych wartosci env.
 - Srodowiska produkcyjne powinny wymagac recznego zatwierdzenia albo environment protection rules.
 
 ## Migracje i dane
+
 - Migracje schematu uruchamiamy przed startem nowej wersji aplikacji albo jako jawny etap deploymentu, gdy mechanizm migracji zostanie wdrozony.
 - Destrukcyjne migracje wymagaja planu danych, backupu i rollbacku.
 - Zmiany schematu musza byc kompatybilne z procesem rollbacku albo miec osobny plan operacyjny.
 
 ## Deployment i rollback
+
 - Deployment powinien uzywac wersjonowanych obrazow lub artefaktow.
 - Przed deploymentem zmian danych wymagany jest backup.
 - Rollback musi wskazywac wersje aplikacji, migracje, konfiguracje i wplyw na dane.
 - Po deploymentcie wymagane sa smoke tests dla API, frontendu i krytycznych sciezek.
 
 ## Smoke tests
+
 Minimalne smoke tests po deploymentcie:
+
 - frontend odpowiada przez Nginx,
 - backend health endpoint odpowiada,
 - polaczenie z baza dziala,
@@ -212,6 +240,7 @@ Minimalne smoke tests po deploymentcie:
 - upload testowy jest wykonywany na srodowisku testowym, gdy jest dostepny.
 
 ## Powiazane dokumenty
+
 - [DEPLOYMENT.md](DEPLOYMENT.md)
 - [CONFIGURATION.md](CONFIGURATION.md)
 - [ENVIRONMENTS.md](ENVIRONMENTS.md)
@@ -220,6 +249,7 @@ Minimalne smoke tests po deploymentcie:
 - [../development/WORKFLOW.md](../development/WORKFLOW.md)
 
 ## Decyzje otwarte
+
 - Docelowy registry obrazow Docker.
 - Czy staging bedzie obowiazkowy przed pierwszym produkcyjnym wdrozeniem.
 - Kiedy E2E stana sie gate blokujacym.

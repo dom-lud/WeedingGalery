@@ -184,9 +184,12 @@ function summarizeFrontend() {
 }
 
 function summarizePlaywright() {
-  const report = readJson(path.join(root, "playwright-report", "results.json"), {
-    suites: [],
-  });
+  const report = readJson(
+    path.join(root, "playwright-report", "results.json"),
+    {
+      suites: [],
+    },
+  );
   const summary = {
     total: 0,
     passed: 0,
@@ -200,7 +203,8 @@ function summarizePlaywright() {
 
   const visitSuite = (suite, parents = []) => {
     const suitePath = suite.title ? [...parents, suite.title] : parents;
-    for (const childSuite of suite.suites ?? []) visitSuite(childSuite, suitePath);
+    for (const childSuite of suite.suites ?? [])
+      visitSuite(childSuite, suitePath);
 
     for (const spec of suite.specs ?? []) {
       for (const test of spec.tests ?? []) {
@@ -224,12 +228,16 @@ function summarizePlaywright() {
           summary.flaky += 1;
         else if (lastResult.status === "timedOut" || outcome === "timedOut") {
           summary.timedOut += 1;
-          failedTests.push([...suitePath, spec.title].filter(Boolean).join(" > "));
+          failedTests.push(
+            [...suitePath, spec.title].filter(Boolean).join(" > "),
+          );
         } else if (lastResult.status === "passed" || outcome === "expected")
           summary.passed += 1;
         else {
           summary.failed += 1;
-          failedTests.push([...suitePath, spec.title].filter(Boolean).join(" > "));
+          failedTests.push(
+            [...suitePath, spec.title].filter(Boolean).join(" > "),
+          );
         }
       }
     }
@@ -247,7 +255,10 @@ function summarizePlaywright() {
       value,
     );
   }
-  setOutput("failed_tests", failedTests.map((title) => `- ${title}`).join("\n"));
+  setOutput(
+    "failed_tests",
+    failedTests.map((title) => `- ${title}`).join("\n"),
+  );
   writePart("e2e", { result, tests: summary, failedTests });
 }
 
@@ -286,9 +297,11 @@ function gateItem(name, value, threshold) {
 
 function markdownReport(report) {
   const icon = (passed) => (passed ? "PASS" : "FAIL");
-  const result = (value) => (value === "success" ? "PASS" : value.toUpperCase());
+  const result = (value) =>
+    value === "success" ? "PASS" : value.toUpperCase();
   const duration = (value) => `${(toInt(value) / 1000).toFixed(1)}s`;
-  const percent = (value) => (pct(value) == null ? "n/a" : `${pct(value).toFixed(2)}%`);
+  const percent = (value) =>
+    pct(value) == null ? "n/a" : `${pct(value).toFixed(2)}%`;
   const testRow = (name, component) =>
     `| ${name} | ${result(component.result)} | ${toInt(component.tests.passed)} | ${toInt(component.tests.failed) + toInt(component.tests.timedOut)} | ${toInt(component.tests.skipped)} | ${toInt(component.tests.total)} | ${duration(component.tests.durationMs)} |`;
 
@@ -334,10 +347,18 @@ function markdownReport(report) {
   ];
 
   if ((report.e2e.failedTests ?? []).length > 0) {
-    lines.push("", "### Failed tests", ...report.e2e.failedTests.map((test) => `- ${test}`));
+    lines.push(
+      "",
+      "### Failed tests",
+      ...report.e2e.failedTests.map((test) => `- ${test}`),
+    );
   }
 
-  lines.push("", `Run: ${report.run.runUrl}`, `Commit: \`${report.run.sha.slice(0, 7)}\``);
+  lines.push(
+    "",
+    `Run: ${report.run.runUrl}`,
+    `Commit: \`${report.run.sha.slice(0, 7)}\``,
+  );
   return `${lines.join("\n")}\n`;
 }
 
@@ -366,7 +387,8 @@ function aggregateReport() {
     { name: "Docker job", passed: dockerResult === "success" },
     {
       name: "Playwright E2E job",
-      passed: e2e.result === "success" || (!e2eRequired && e2e.result === "skipped"),
+      passed:
+        e2e.result === "success" || (!e2eRequired && e2e.result === "skipped"),
     },
     gateItem(
       "Backend instructions coverage",
@@ -427,7 +449,8 @@ function aggregateReport() {
     },
   };
   const reportPath = process.env.QUALITY_REPORT_PATH ?? "quality-report.json";
-  const markdownPath = process.env.QUALITY_REPORT_MARKDOWN_PATH ?? "quality-report.md";
+  const markdownPath =
+    process.env.QUALITY_REPORT_MARKDOWN_PATH ?? "quality-report.md";
   writeJson(reportPath, report);
   ensureDir(markdownPath);
   fs.writeFileSync(markdownPath, markdownReport(report));

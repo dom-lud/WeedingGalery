@@ -1,25 +1,31 @@
 # Strategia Testow
 
 ## Cel dokumentu
+
 Opisuje docelowa strategie testowania platformy na poziomie backendu, frontendu i end-to-end.
 
 ## Status dokumentu
+
 - Status: draft
 - Zakres: test strategy dla stanu docelowego
 - Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
+
 - Istniejacy szkielet projektu nie zapewnia jeszcze pelnego pokrycia testowego.
 
 ## Stan docelowy
+
 - Testy pokrywaja krytyczne sciezki biznesowe, bezpieczenstwo, ownership, storage i zadania asynchroniczne.
 
 ## Piramida testow
+
 - Testy jednostkowe dla logiki domenowej i UI
 - Testy integracyjne dla API, repozytoriow, storage i security
 - Testy E2E dla glownych przeplywow uzytkownika
 
 ## Priorytety
+
 - Ownership i autoryzacja
 - Upload i przetwarzanie mediow
 - Retencja i usuwanie danych
@@ -27,6 +33,7 @@ Opisuje docelowa strategie testowania platformy na poziomie backendu, frontendu 
 - Stabilnosc kontraktow API
 
 ## Zasady jakosci testow
+
 - Przed napisaniem testow przygotuj krotki test design brief: wymaganie/ryzyko,
   poprawne zachowanie, bledna implementacja do wykrycia, wariant pozytywny,
   negatywny i graniczny oraz wlasciwa warstwa testu.
@@ -72,9 +79,11 @@ Opisuje docelowa strategie testowania platformy na poziomie backendu, frontendu 
 - Lokalna weryfikacja krytycznych flow E2E i integracyjnych powinna byc odpalana na komponentach dockerowych po ich przebudowaniu: najpierw `backend\mvnw.cmd -DskipTests package`, potem `docker compose up --build`, a dopiero potem testy.
 
 ## Powiazane dokumenty
+
 - [BACKEND_TESTING.md](BACKEND_TESTING.md)
 - [FRONTEND_TESTING.md](FRONTEND_TESTING.md)
 - [E2E_SCENARIOS.md](E2E_SCENARIOS.md)
 
 ## Decyzje otwarte
+
 - Zakres automatycznych testow wydajnosciowych przed pierwsza produkcja.

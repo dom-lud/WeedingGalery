@@ -1,22 +1,27 @@
 # Quality Gates
 
 ## Cel dokumentu
+
 Opisuje warunki, ktore musza byc spelnione przed scaleniem zmian i przed wdrozeniem.
 
 ## Status dokumentu
+
 - Status: draft
 - Zakres: quality gates dla rozwoju i releasow
 - Ostatnia aktualizacja: 2026-07-13
 
 ## Stan obecny
+
 - Quality gates sa zdefiniowane docelowo, a aktualne workflowy GitHub Actions egzekwuja backend testy, frontend lint, frontend testy, frontend build, `docker compose config` oraz budowe obrazow backendu i frontendu.
 - Nie wszystkie docelowe quality gates sa jeszcze automatycznie egzekwowane.
 
 ## Stan docelowy
+
 - Kazdy relewantny change przechodzi przez spojny zestaw kontroli jakosci.
 - Quality gates sa zintegrowane z docelowym GitHub Actions flow opisanym w [../operations/CI_CD_STRATEGY.md](../operations/CI_CD_STRATEGY.md).
 
 ## Gates dla kodu
+
 - Build przechodzi
 - Lint przechodzi
 - Testy wlasciwe dla zakresu przechodza
@@ -24,6 +29,7 @@ Opisuje warunki, ktore musza byc spelnione przed scaleniem zmian i przed wdrozen
 - Dokumentacja zaktualizowana
 
 ## Gates CI dla pull requestow
+
 - Backend `verify` przechodzi wraz z zapadka JaCoCo.
 - Frontend `test:coverage` przechodzi wraz z progami Vitest/V8.
 - Aktualne minima to 90% dla wszystkich raportowanych metryk: backend instructions
@@ -48,6 +54,7 @@ Opisuje warunki, ktore musza byc spelnione przed scaleniem zmian i przed wdrozen
 - Dokumentacja i ADR sa zaktualizowane, jesli zmiana wplywa na decyzje, API, dane, security, UX lub operacje.
 
 ## Gates dla funkcji biznesowych
+
 - Istnieje jawne mapowanie wymaganie/ryzyko -> test oraz lista luk, ktorych nie zweryfikowano.
 - Ownership sprawdzony
 - Autoryzacja sprawdzona
@@ -58,16 +65,19 @@ Opisuje warunki, ktore musza byc spelnione przed scaleniem zmian i przed wdrozen
 - Dla krytycznych zmian istnieje przynajmniej jeden test, ktory odtwarza realistyczny wariant awarii, szybkiej interakcji albo scenariusz brzegowy
 
 ## Gates przed wdrozeniem
+
 - Migracje zweryfikowane
 - Backup gotowy
 - Plan rollbacku gotowy
 - Monitoring i alerty zaktualizowane, jesli dotyczy
 
 ## Powiazane dokumenty
+
 - [TEST_STRATEGY.md](TEST_STRATEGY.md)
 - [../DEFINITION_OF_DONE.md](../DEFINITION_OF_DONE.md)
 - [../security/SECURITY_CHECKLIST.md](../security/SECURITY_CHECKLIST.md)
 - [../operations/CI_CD_STRATEGY.md](../operations/CI_CD_STRATEGY.md)
 
 ## Decyzje otwarte
+
 - Ktore quality gates beda blokujace w pierwszym CI, a ktore ostrzegawcze.

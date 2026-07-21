@@ -57,7 +57,7 @@ function metricPoint(report) {
 
 function sparkline(values, color) {
   const numeric = values.filter((value) => typeof value === "number");
-  if (numeric.length < 2) return "<span class=\"muted\">za malo danych</span>";
+  if (numeric.length < 2) return '<span class="muted">za malo danych</span>';
   const width = 240;
   const height = 48;
   const min = Math.min(...numeric);
@@ -78,7 +78,9 @@ if (!report) throw new Error(`Missing quality report: ${reportPath}`);
 
 const previousHistory = readJson(previousHistoryPath, []);
 const history = [...previousHistory, metricPoint(report)]
-  .sort((a, b) => String(a.run.createdAt).localeCompare(String(b.run.createdAt)))
+  .sort((a, b) =>
+    String(a.run.createdAt).localeCompare(String(b.run.createdAt)),
+  )
   .filter(
     (entry, index, entries) =>
       entries.findIndex(
@@ -94,14 +96,23 @@ const runDir = path.join(outputDir, "runs");
 fs.mkdirSync(runDir, { recursive: true });
 writeJson(path.join(outputDir, "history.json"), history);
 writeJson(path.join(outputDir, "latest.json"), latest);
-writeJson(path.join(runDir, `${report.run.id}-${report.run.attempt}.json`), report);
+writeJson(
+  path.join(runDir, `${report.run.id}-${report.run.attempt}.json`),
+  report,
+);
 
 const coverageHistory = {
-  backendInstructions: history.map((entry) => entry.backend.coverage.instructionsPct),
+  backendInstructions: history.map(
+    (entry) => entry.backend.coverage.instructionsPct,
+  ),
   backendBranches: history.map((entry) => entry.backend.coverage.branchesPct),
-  frontendStatements: history.map((entry) => entry.frontend.coverage.statementsPct),
+  frontendStatements: history.map(
+    (entry) => entry.frontend.coverage.statementsPct,
+  ),
   frontendBranches: history.map((entry) => entry.frontend.coverage.branchesPct),
-  frontendFunctions: history.map((entry) => entry.frontend.coverage.functionsPct),
+  frontendFunctions: history.map(
+    (entry) => entry.frontend.coverage.functionsPct,
+  ),
   frontendLines: history.map((entry) => entry.frontend.coverage.linesPct),
 };
 const testDurationHistory = history.map(
@@ -204,7 +215,7 @@ const html = `<!doctype html>
 
     <section class="card" style="margin-top: 14px;">
       <h2>Failed tests</h2>
-      ${failedTests ? `<ul>${failedTests}</ul>` : "<p class=\"muted\">Brak awarii w ostatnim raporcie.</p>"}
+      ${failedTests ? `<ul>${failedTests}</ul>` : '<p class="muted">Brak awarii w ostatnim raporcie.</p>'}
     </section>
 
     <section style="margin-top: 18px;">
@@ -219,4 +230,6 @@ const html = `<!doctype html>
 </html>`;
 
 fs.writeFileSync(path.join(outputDir, "index.html"), html);
-console.log(`Rendered ${path.join(outputDir, "index.html")} with ${history.length} history entries.`);
+console.log(
+  `Rendered ${path.join(outputDir, "index.html")} with ${history.length} history entries.`,
+);

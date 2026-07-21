@@ -7,7 +7,6 @@ on:
       - Nightly Quality
     types:
       - completed
-  workflow_dispatch:
 
 permissions:
   actions: read
@@ -24,14 +23,11 @@ jobs:
     name: Publish quality dashboard
     runs-on: ubuntu-latest
     if: >
-      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.head_branch == 'main' &&
       (
-        github.event.workflow_run.head_branch == 'main' &&
-        (
-          github.event.workflow_run.event == 'push' ||
-          github.event.workflow_run.event == 'schedule' ||
-          github.event.workflow_run.event == 'workflow_dispatch'
-        )
+        github.event.workflow_run.event == 'push' ||
+        github.event.workflow_run.event == 'schedule' ||
+        github.event.workflow_run.event == 'workflow_dispatch'
       )
     environment:
       name: github-pages
@@ -42,23 +38,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download quality report artifact
-        if: github.event_name == 'workflow_run'
         uses: actions/download-artifact@v4
         with:
           name: quality-report-json
           path: .
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
-
-      - name: Build manual dashboard seed
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          BACKEND_RESULT: skipped
-          FRONTEND_RESULT: skipped
-          DOCKER_RESULT: skipped
-          E2E_RESULT: skipped
-          E2E_REQUIRED: "false"
-        run: node .github/scripts/ci-metrics.mjs aggregate .
 
       - name: Fetch previous dashboard history
         shell: bash
