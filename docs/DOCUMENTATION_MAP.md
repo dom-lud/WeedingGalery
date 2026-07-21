@@ -83,6 +83,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | Stage 4/5 test matrix | Powiazanie wymagan galerii, public access, uploadu i storage z testami | QA, backend, frontend, security | przy zmianie Etapow 4, 4B lub 5 | [docs/testing/STAGE_4_5_TEST_MATRIX.md](testing/STAGE_4_5_TEST_MATRIX.md) |
 | Stage 0-5 closure test brief | Macierz ryzyk hardeningu zamykajacego Etapy 0-5 | QA, backend, security, ops | przy zmianie closure sprintu 0-5 | [docs/testing/STAGE_0_5_CLOSURE_TEST_BRIEF.md](testing/STAGE_0_5_CLOSURE_TEST_BRIEF.md) |
 | Coverage hardening test brief | Macierz ryzyk i kryteria podnoszenia zapadek coverage | QA, backend, frontend, AI | przy zmianie progow lub istotnym rozszerzeniu testow | [docs/testing/COVERAGE_HARDENING_TEST_BRIEF.md](testing/COVERAGE_HARDENING_TEST_BRIEF.md) |
+| Coverage 90 test brief | Corner case'y i warunki podniesienia wszystkich metryk do 90% | QA, backend, frontend, security | przy rozszerzaniu testow i bramek do 90% | [docs/testing/COVERAGE_90_TEST_BRIEF.md](testing/COVERAGE_90_TEST_BRIEF.md) |
 | Quality gates | Warunki jakości | wszyscy | przy zmianie procesu release | [docs/testing/QUALITY_GATES.md](testing/QUALITY_GATES.md) |
 
 ## Operacje

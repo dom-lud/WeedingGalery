@@ -1,4 +1,18 @@
+---
+name: frontend-feature
+description: Implementacja i audyt funkcji frontendowych WeedingGallery, w tym widoki, komponenty, formularze, routing i integracje REST z mobile-first, accessibility oraz rygorystycznymi testami zachowania i coverage.
+---
+
 # Frontend Feature
+
+## Obowiązkowy standard testów i coverage
+
+- Przed testami zapisz Test Design Brief z ryzykami stanów, ról, kontraktu, race conditions i dostępności.
+- Testuj zachowanie komponentów i kontrakt wrapperów API; nie mockuj zachowania będącego przedmiotem testu.
+- Przejrzyj raport globalnie, per zmieniony plik oraz po niepokrytych gałęziach.
+- Utrzymaj blokujące bramki `90%` dla statements, branches, functions i lines. Pokryj klawiaturę/focus/responsywność oraz stany empty/loading/success/error/retry, anulowanie, wielokrotne kliknięcie, utratę sieci, odświeżenie i granice danych; sam wynik coverage nie zamyka zadania.
+- Krytyczny flow musi przejść E2E, automatyczny audit WCAG A/AA, klawiaturę, focus i responsywność.
+- Nie obniżaj progów, nie wyłączaj sztucznie plików i nie dodawaj testów bez istotnych asercji.
 
 ## Cel dokumentu
 Skill wspierający implementację funkcji frontendowej z naciskiem na mobile-first i jakość stanów UI.

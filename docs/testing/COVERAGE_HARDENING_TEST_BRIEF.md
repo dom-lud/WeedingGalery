@@ -30,9 +30,16 @@ ownership i walidacji uploadu, a nastepnie podniesc blokujace zapadki CI.
 
 ## Warunek zakonczenia
 - nowe testy przechodza i maja asercje kontraktu/zachowania,
-- frontend osiaga co najmniej 70% statements/lines, 80% branches i 60% functions,
-- backend osiaga co najmniej 80% instructions i 50% branches,
+- frontend osiaga co najmniej 85% statements/lines, 80% branches i 70% functions,
+- backend osiaga co najmniej 85% instructions i 60% branches,
 - progi CI sa podniesione i nie wyzsze od stabilnie osiagnietego wyniku,
 - full backend verify, frontend coverage/lint/build oraz E2E przechodza,
 - skills i dokumentacja wymagaja analizy raportu per plik oraz ratchet policy,
 - self-review nie pozostawia findingow P0/P1.
+
+## Wynik
+
+- frontend: 38 testow; 89.33% statements/lines, 81.37% branches i 72.41% functions,
+- backend: 58 testow, w tym 1 lokalnie pominiety Testcontainers; 88.53% instructions i 68.57% branches,
+- `UploadFileValidator`: 95.3% instructions i 69.9% branches po dodaniu przypadkow poprawnych, uszkodzonych, granicznych i przeciążenia walidatora,
+- bramki w Vitest, JaCoCo, CI, dokumentacji i skills zostaly podniesione oraz zsynchronizowane.

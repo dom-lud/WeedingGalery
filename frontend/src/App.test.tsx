@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { ThemeProvider } from '@mui/material/styles'
 import { describe, expect, it, vi } from 'vitest'
 import App from './App'
@@ -26,5 +26,7 @@ describe('App foundation shell', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /Sign in to your gallery/i })).toBeInTheDocument()
     })
+    cleanup()
+    await new Promise((resolve) => setTimeout(resolve, 0))
   })
 })

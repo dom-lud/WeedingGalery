@@ -5,6 +5,13 @@ description: Skill prowadzący przez Etap 1 – Fundament techniczny (FND-002). 
 
 # Stage 1 Foundation
 
+## Standard testów etapu
+
+- Przed testami przygotuj Test Design Brief i przypisz ryzyka konfiguracji, migracji, health oraz profili do najniższej wiarygodnej warstwy.
+- Weryfikuj migracje i zachowania zależne od SQL na rzeczywistym MySQL, jeżeli H2 nie jest równoważne.
+- Analizuj JaCoCo globalnie, per zmieniona klasa i po niepokrytych gałęziach. Blokujące bramki to `90%` instructions i `90%` branches; macierz ryzyk i testy graniczne są wymagane niezależnie od wyniku.
+- Pełna walidacja obejmuje testy, `verify`, Docker Compose i krytyczny flow E2E/integracyjny; progów nie wolno obniżać ani obchodzić wykluczeniami.
+
 ## Cel dokumentu
 Skill prowadzący przez **Etap 1 – Fundament techniczny** (FND-002 i powiązane zadania operacyjne).
 Etap 1 domyka techniczny szkielet repozytorium bez wchodzenia w funkcje biznesowe (auth, galerie, upload).
@@ -112,10 +119,11 @@ Dobierz komendy do stanu repo, ale preferuj:
 
 ```bash
 # Backend
-cd backend && .\mvnw.cmd test
+cd backend && .\mvnw.cmd clean verify
 cd backend && .\mvnw.cmd spring-boot:run
 
 # Frontend
+cd frontend && npm run test:coverage
 cd frontend && npm run lint
 cd frontend && npm run build
 

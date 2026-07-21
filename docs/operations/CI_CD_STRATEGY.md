@@ -11,8 +11,8 @@ Opisuje docelowa strategie CI/CD dla GitHub Actions oraz aktualne repo truth dla
 ## Stan obecny
 - Repozytorium ma workflow PR validation oraz workflow buildowy dla `main`.
 - Backend `verify` z JaCoCo, kontrakt migracji na MySQL, frontend lint/test/coverage/build, walidacja `docker compose config` i budowa obrazow sa egzekwowane automatycznie w GitHub Actions.
-- Coverage gates sa blokujace: backend 85% instructions/60% branches, frontend
-  85% statements i lines/80% branches/70% functions. Komentarz PR pokazuje te
+- Coverage gates sa blokujace i wynosza 90% dla kazdej metryki: backend
+  instructions/branches oraz frontend statements/branches/functions/lines. Komentarz PR pokazuje te
   same progi; ich zmiana wymaga jednoczesnej aktualizacji konfiguracji testow,
   workflow i dokumentacji.
 - Workflow PR validation uruchamia tez Playwright E2E z audytem accessibility, publikuje raporty Playwright i coverage oraz aktualizuje rzeczowy komentarz PR z tabelami testow, wykresami coverage, lista awarii i bezposrednimi linkami do artefaktow.

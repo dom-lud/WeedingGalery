@@ -122,12 +122,109 @@ class UploadFileValidatorTest {
 
 	@Test
 	void rejectsSignatureOnlyPayloads() {
+		assertInvalidContent("photo.jpg", "image/jpeg", new byte[]{(byte) 0xff, (byte) 0xd8, (byte) 0xff});
 		byte[] fakeJpeg = {(byte) 0xff, (byte) 0xd8, (byte) 0xff, (byte) 0xe0};
 		assertCode(new MockMultipartFile("file", "photo.jpg", "image/jpeg", fakeJpeg), "photo.jpg", "image/jpeg",
 				fakeJpeg.length, UploadErrorCode.UPLOAD_CONTENT_MISMATCH);
 		byte[] fakeMp4 = {0, 0, 0, 12, 'f', 't', 'y', 'p', 'i', 's', 'o', 'm'};
 		assertCode(new MockMultipartFile("file", "video.mp4", "video/mp4", fakeMp4), "video.mp4", "video/mp4",
 				fakeMp4.length, UploadErrorCode.UPLOAD_CONTENT_MISMATCH);
+	}
+
+	@Test
+	void rejectsEveryFileLevelBoundaryBeforeParsingContent() throws Exception {
+		byte[] jpeg = jpeg();
+		MultipartFile tooLarge = mock(MultipartFile.class);
+		when(tooLarge.isEmpty()).thenReturn(false);
+		when(tooLarge.getSize()).thenReturn(2049L);
+		when(tooLarge.getOriginalFilename()).thenReturn("photo.jpg");
+		assertThatThrownBy(() -> validator.validate("photo.jpg", "image/jpeg", 2049, tooLarge)).isInstanceOfSatisfying(
+				AppException.class,
+				ex -> assertThat(ex.getErrorCode()).isEqualTo(UploadErrorCode.UPLOAD_FILE_TOO_LARGE));
+
+		String nameAtLimit = "a".repeat(251) + ".jpg";
+		assertThat(validator.validate(nameAtLimit, "image/jpeg", jpeg.length,
+				new MockMultipartFile("file", "/tmp/" + nameAtLimit, "image/jpeg", jpeg)).mediaType())
+				.isEqualTo(MediaType.IMAGE);
+	}
+
+	@Test
+	void rejectsEachJpegAndPngSignatureBoundaryAndUnreadablePayload() {
+		byte[] jpeg = jpeg();
+		for (int index = 0; index < 3; index++) {
+			byte[] invalid = jpeg.clone();
+			invalid[index] = 0;
+			assertInvalidContent("photo.jpg", "image/jpeg", invalid);
+		}
+		byte[] missingJpegEoi = jpeg.clone();
+		missingJpegEoi[missingJpegEoi.length - 2] = 0;
+		assertInvalidContent("photo.jpg", "image/jpeg", missingJpegEoi);
+
+		byte[] png = image("png");
+		for (int index = 0; index < 8; index++) {
+			byte[] invalid = png.clone();
+			invalid[index] ^= 1;
+			assertInvalidContent("photo.png", "image/png", invalid);
+		}
+		byte[] missingPngTrailer = png.clone();
+		missingPngTrailer[missingPngTrailer.length - 12] = 1;
+		assertInvalidContent("photo.png", "image/png", missingPngTrailer);
+		assertInvalidContent("photo.png", "image/png", new byte[]{(byte) 0x89, 'P', 'N', 'G', 13, 10, 26, 10});
+	}
+
+	@Test
+	void rejectsEveryWebpStructuralBoundary() {
+		for (int length : new int[]{0, 20})
+			assertInvalidContent("photo.webp", "image/webp", new byte[length]);
+		for (int index : new int[]{0, 8}) {
+			byte[] invalid = webp("VP8L");
+			invalid[index] ^= 1;
+			assertInvalidContent("photo.webp", "image/webp", invalid);
+		}
+		byte[] invalidLosslessMarker = webp("VP8L");
+		invalidLosslessMarker[20] = 0;
+		assertInvalidContent("photo.webp", "image/webp", invalidLosslessMarker);
+		byte[] shortLossy = java.util.Arrays.copyOf(webp("VP8 "), 25);
+		littleEndian(shortLossy, 4, shortLossy.length - 8);
+		assertInvalidContent("photo.webp", "image/webp", shortLossy);
+		for (int index : new int[]{23, 24, 25}) {
+			byte[] invalid = webp("VP8 ");
+			invalid[index] ^= 1;
+			assertInvalidContent("photo.webp", "image/webp", invalid);
+		}
+		byte[] shortExtended = java.util.Arrays.copyOf(webp("VP8X"), 29);
+		littleEndian(shortExtended, 4, shortExtended.length - 8);
+		assertInvalidContent("photo.webp", "image/webp", shortExtended);
+		byte[] invalidExtendedSize = webp("VP8X");
+		littleEndian(invalidExtendedSize, 16, 9);
+		assertInvalidContent("photo.webp", "image/webp", invalidExtendedSize);
+	}
+
+	@Test
+	void acceptsAllSupportedMp4BrandsAndRejectsBoxCornerCases() {
+		for (String brand : new String[]{"isom", "iso2", "mp41", "mp42", "avc1"})
+			assertDetected("clip.mp4", "video/mp4", concat(ftyp(brand), box("free", new byte[]{1}),
+					box("mdat", new byte[]{1}), box("moov", new byte[]{1})), MediaType.VIDEO, "video/mp4");
+
+		byte[] wrongType = mp4();
+		wrongType[4] = 'x';
+		assertInvalidContent("clip.mp4", "video/mp4", wrongType);
+		byte[] tooSmallFtyp = mp4();
+		bigEndian(tooSmallFtyp, 0, 15);
+		assertInvalidContent("clip.mp4", "video/mp4", tooSmallFtyp);
+		assertInvalidContent("clip.mp4", "video/mp4",
+				concat(ftyp("isom"), box("mdat", new byte[0]), box("moov", new byte[]{1})));
+		assertInvalidContent("clip.mp4", "video/mp4",
+				concat(ftyp("isom"), box("mdat", new byte[]{1}), box("moov", new byte[0])));
+		assertInvalidContent("clip.mp4", "video/mp4", concat(mp4(), new byte[]{1}));
+		byte[] boxBelowHeader = mp4();
+		bigEndian(boxBelowHeader, 16, 7);
+		assertInvalidContent("clip.mp4", "video/mp4", boxBelowHeader);
+	}
+
+	private void assertInvalidContent(String name, String mime, byte[] content) {
+		assertCode(new MockMultipartFile("file", name, mime, content), name, mime, content.length,
+				UploadErrorCode.UPLOAD_CONTENT_MISMATCH);
 	}
 
 	private byte[] jpeg() {

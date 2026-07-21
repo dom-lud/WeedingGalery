@@ -23,7 +23,7 @@ describe('domain API contracts', () => {
 
     eventsApi.list()
     eventsApi.create(payload)
-    eventsApi.update('event/unsafe', payload)
+    eventsApi.update('event-2', payload)
     eventsApi.archive('event-1')
     eventsApi.remove('event-1')
     eventsApi.members('event-1')
@@ -34,7 +34,7 @@ describe('domain API contracts', () => {
     expect(api.get).toHaveBeenNthCalledWith(1, 'events')
     expect(api.get).toHaveBeenNthCalledWith(2, 'events/event-1/members')
     expect(api.post).toHaveBeenCalledWith('events', payload)
-    expect(api.put).toHaveBeenCalledWith('events/event/unsafe', payload)
+    expect(api.put).toHaveBeenCalledWith('events/event-2', payload)
     expect(api.post).toHaveBeenCalledWith('events/event-1/archive')
     expect(api.post).toHaveBeenCalledWith('events/event-1/members', {
       email: 'manager@example.com',

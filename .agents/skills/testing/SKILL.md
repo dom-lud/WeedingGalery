@@ -14,9 +14,9 @@ description: Projektowanie, implementacja i audyt testów oraz coverage w Weedin
 5. Podnoś progi z bezpiecznym marginesem i synchronizuj konfigurację, CI oraz dokumentację.
 6. Wykonaj self-review jako reviewer i powtarzaj testy oraz review do skutku.
 
-Aktualne bramki: backend JaCoCo instructions `85%`, branches `60%`; frontend Vitest statements `85%`, branches `80%`, functions `70%`, lines `85%`. Dla istotnie zmienionej logiki celuj w około `90%` instructions/statements/lines i `80%` branches.
+Aktualne blokujące bramki globalne wynoszą `90%` dla każdej raportowanej metryki: backend JaCoCo instructions i branches oraz frontend Vitest statements, branches, functions i lines. Nie traktuj 90% jako celu testu: macierz ryzyk i istotne asercje są wymagane niezależnie od wyniku.
 
-Obowiązkowe klasy ryzyka, jeśli dotyczą zmiany: limit `N-1/N/N+1`, ownership dozwolony/zabroniony, idempotency pierwszy zapis/replay/konflikt, auth i CSRF, storage sukces/awaria/kompensacja/brak sierot oraz UI loading/success/empty/error/retry/forbidden/offline.
+Obowiązkowe klasy ryzyka, jeśli dotyczą zmiany: poprawne/brakujące/puste/zły format, limit `N-1/N/N+1`, ownership dozwolony/zabroniony, idempotency pierwszy zapis/replay/konflikt, auth i CSRF, expiry/timeout, anulowanie i powtórzenie akcji, storage sukces/awaria/kompensacja/brak sierot oraz UI loading/success/empty/error/retry/forbidden/offline.
 
 Nie wolno obniżać progów, sztucznie wyłączać plików, dopisywać pustych asercji, mockować testowanego zachowania ani uznawać wysokiego coverage za dowód kompletności scenariuszy.
 

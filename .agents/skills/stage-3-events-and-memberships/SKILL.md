@@ -63,10 +63,13 @@ Rozwaz subagentow tylko wtedy, gdy:
 9. Zaktualizuj dokumentacje i wykonaj self-review.
 
 ## Testy, ktore musza powstac
+- Najpierw zapisz Test Design Brief z ryzykami IDOR, ownership, ról, duplikatów, limitów i audytu; każde ryzyko przypisz do najniższej wiarygodnej warstwy.
 - Pozytywne scenariusze tworzenia i edycji wydarzenia przez wlasciciela.
 - Negatywne scenariusze IDOR i braku ownership.
 - Czlonkostwo: dodanie, zmiana roli, usuniecie i ograniczenia managera.
 - Regresja dla przypadkow granicznych: obcy `eventId`, usuniety membership, duplikat czlonkostwa, proba modyfikacji przez zwyklego `USER` bez relacji do wydarzenia.
+- Analizuj coverage globalnie, per zmieniony plik/klasa i po niepokrytych gałęziach. Blokujące bramki to `90%` dla backend instructions/branches oraz frontend statements/branches/functions/lines. Wynik nie zastępuje negatywnych testów IDOR, ownership, ról, duplikatów i granic.
+- Krytyczny flow ownership musi przejść E2E na przebudowanym środowisku, razem z accessibility i wariantem dozwolonym oraz zabronionym.
 
 ## Typowe pulapki
 - Implementacja filtrowania tylko po `owner_id` bez uwzglednienia czlonkostwa.

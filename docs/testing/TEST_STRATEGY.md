@@ -39,9 +39,14 @@ Opisuje docelowa strategie testowania platformy na poziomie backendu, frontendu 
   uzupelnij scenariusze wynikajace z ryzyka, dopiero potem podnos zapadke.
 - Zabronione jest poprawianie wyniku przez testy bez istotnych asercji, masowe
   wykluczenia kodu produkcyjnego albo wykonywanie metod bez weryfikacji skutku.
-- Dla nowej lub zmienionej logiki celem orientacyjnym jest 90% linii/instrukcji
-  i 80% branchy. Security, ownership, limity, storage i idempotency wymagaja
+- Blokujaca zapadka wynosi 90% dla kazdej raportowanej metryki backendu i
+  frontendu. Security, ownership, limity, storage i idempotency wymagaja
   wszystkich scenariuszy z macierzy nawet wtedy, gdy procent jest wyzszy.
+- Dla kazdego wejscia dobierz klasy rownowaznosci: poprawne, brakujace, puste,
+  minimalne, maksymalne, `N-1/N/N+1`, zly format/typ, replay/konflikt,
+  anulowanie/powtorzenie, timeout/expiry, offline/blad zaleznosci oraz zmiane
+  kolejnosci akcji. Nie obiecuj enumeracji nieskonczonej przestrzeni wejsc;
+  uzasadnij, dlaczego klasy i interakcje pokrywaja realne zachowania uzytkownika.
 - Dla krytycznych ekranow uruchamiaj automatyczny audit WCAG A/AA oraz test
   klawiatury, focusu i braku poziomego overflow.
 - Test ma bronic wymagania, kontraktu albo regresji, nie aktualnej struktury kodu.

@@ -184,4 +184,119 @@ describe('Dashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Log out' }))
     expect(auth.logout).toHaveBeenCalledOnce()
   })
+
+  it('selects another event, edits every writable field and deletes it only after confirmation', async () => {
+    const birthday = {
+      ...ownerEvent,
+      id: 'event-2',
+      name: 'Birthday',
+      type: 'BIRTHDAY' as const,
+      eventDate: null,
+      description: null,
+    }
+    vi.mocked(eventsApi.list)
+      .mockResolvedValueOnce({ data: [ownerEvent, birthday] } as never)
+      .mockResolvedValue({ data: [ownerEvent, birthday] } as never)
+    vi.mocked(eventsApi.update).mockResolvedValue({ data: birthday } as never)
+    renderDashboard()
+
+    await screen.findByText('Galleries for Summer Wedding')
+    fireEvent.click(screen.getByRole('button', { name: 'Manage' }))
+    expect(await screen.findByText('Galleries for Birthday')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Edit details' }))
+    expect(screen.getByRole('dialog', { name: 'Edit event' })).toBeVisible()
+    fireEvent.change(screen.getByRole('textbox', { name: /Event name/ }), {
+      target: { value: 'Birthday updated' },
+    })
+    fireEvent.change(screen.getByLabelText('Event date'), { target: { value: '2026-09-10' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Description' }), {
+      target: { value: 'All details' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() =>
+      expect(eventsApi.update).toHaveBeenCalledWith('event-2', {
+        name: 'Birthday updated',
+        type: 'BIRTHDAY',
+        eventDate: '2026-09-10',
+        description: 'All details',
+        privacyMode: 'PRIVATE',
+      }),
+    )
+    expect(await screen.findByText('Event updated.')).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Edit event' })).not.toBeInTheDocument(),
+    )
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Settings' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Delete event' }))
+    let dialog = screen.getByRole('dialog', { name: 'Delete event?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+    expect(eventsApi.remove).not.toHaveBeenCalled()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: 'Delete event' }))
+    dialog = screen.getByRole('dialog', { name: 'Delete event?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete event' }))
+    await waitFor(() => expect(eventsApi.remove).toHaveBeenCalledWith('event-2'))
+  })
+
+  it('keeps dialogs actionable and reports create, member and confirmation failures', async () => {
+    vi.mocked(eventsApi.list).mockResolvedValue({ data: [ownerEvent] } as never)
+    vi.mocked(eventsApi.create).mockRejectedValue(new Error('offline'))
+    vi.mocked(eventsApi.members).mockRejectedValueOnce({ response: { data: {} } })
+    vi.mocked(eventsApi.addManager).mockRejectedValue({
+      response: { data: { message: 'Manager already belongs to this event.' } },
+    })
+    vi.mocked(eventsApi.archive).mockRejectedValue(new Error('offline'))
+    renderDashboard()
+
+    await screen.findByText('Galleries for Summer Wedding')
+    expect(await screen.findByText('Operation failed.')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create event' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Create event' })).not.toBeInTheDocument(),
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Create event' }))
+    fireEvent.change(screen.getByRole('textbox', { name: /Event name/ }), {
+      target: { value: 'Failure case' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    expect(await screen.findByText('Operation failed.')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Create event' })).not.toBeInTheDocument(),
+    )
+    fireEvent.click(screen.getByRole('tab', { name: 'People' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Manager email' }), {
+      target: { value: 'duplicate@example.com' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Add manager' }))
+    expect(await screen.findByText('Manager already belongs to this event.')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Settings' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Archive event' }))
+    const dialog = screen.getByRole('dialog', { name: 'Archive event?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Archive event' }))
+    await waitFor(() => expect(eventsApi.archive).toHaveBeenCalled())
+    expect(await screen.findByText('Operation failed.')).toBeInTheDocument()
+  })
+
+  it('renders archived events as read-only and preserves alternate event types', async () => {
+    const archived = {
+      ...ownerEvent,
+      type: 'CORPORATE' as const,
+      status: 'ARCHIVED' as const,
+    }
+    vi.mocked(eventsApi.list).mockResolvedValue({ data: [archived] } as never)
+    renderDashboard()
+
+    await screen.findByText('Galleries for Summer Wedding')
+    expect(screen.getAllByText('Corporate')).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Edit details' })).toBeDisabled()
+    fireEvent.click(screen.getByRole('tab', { name: 'Settings' }))
+    expect(screen.getByRole('button', { name: 'Archive event' })).toBeDisabled()
+  })
 })

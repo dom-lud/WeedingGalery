@@ -66,6 +66,9 @@ Wdrozenie i dalsze uszczelnianie tozsamosci uzytkownika, tak aby przyszle endpoi
 
 ### 4. Testy
 - Testy maja bronic wymagan i kontraktu, a nie aktualnej implementacji.
+- Przed testami zapisz Test Design Brief z ryzykami sesji, CSRF, ról, blokady logowania, audytu i race conditions.
+- Analizuj coverage globalnie, per zmieniony plik/klasa i po niepokrytych gałęziach. Blokujące bramki to `90%` dla backend instructions/branches oraz frontend statements/branches/functions/lines. Wynik nie zastępuje testów sesji, CSRF, ról, blokady, replay i race conditions.
+- Nie wolno obniżać progów, wyłączać security ani sztucznie wykluczać kodu. Krytyczny flow musi przejść realne E2E z accessibility.
 - Dla logowania musza istniec scenariusze realistyczne, w tym szybki klik po otwarciu strony.
 - Page Object ma porzadkowac API testowe, ale nie moze maskowac bugow przez sztuczne czekanie na odpowiedzi, ktorych uzytkownik jeszcze nie wyzwolil.
 - Minimalny zestaw powinien laczyc:

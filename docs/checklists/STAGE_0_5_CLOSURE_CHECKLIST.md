@@ -22,10 +22,10 @@
 - [x] Ownership, autoryzacja, idempotency, quota, kompensacja storage i public grant zostaly ponownie obronione pelnym backendem i E2E.
 
 ## Dowody testowe
-- [x] Backend `clean verify`: 51 testow, 0 failures/errors, JaCoCo pass; lokalny Testcontainers zostal pominiety z powodu niekompatybilnego wykrywania Docker Desktop przez klienta Java.
+- [x] Backend `verify`: 90 testow uruchomionych, 0 failures/errors, 1 lokalny Testcontainers pominiety; JaCoCo 94.41% instructions i 90.00% branches przy blokujacych bramkach 90/90.
 - [x] Kontrakty Flyway H2: fresh V1-V5 oraz upgrade V4-V5 przechodza.
 - [x] Realny MySQL 8.4 Compose: V5 `success=1`, zachowany wolumen, konto aktywowane, wymagany audyt zapisany, backend healthy.
-- [x] Frontend Vitest: 24/24, progi V8 przechodza bez obnizania.
+- [x] Frontend Vitest: 52/52; V8 97.36% statements/lines, 90.03% branches i 92.04% functions przy blokujacych bramkach 90/90/90/90.
 - [x] Frontend lint, Prettier na Windows i build przechodza.
 - [x] Docker Compose config, build obrazow, health calego stacku i produkcyjny config contract przechodza.
 - [x] Playwright: 15/15, w tym auth, ownership/membership, galerie, public upload, WCAG A/AA, klawiatura/focus i responsywnosc.
