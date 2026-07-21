@@ -59,12 +59,45 @@ jobs:
               );
             }
 
+      - name: Locate Allure report artifact
+        id: allure-report-artifact
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+              per_page: 100,
+            });
+            const artifact = artifacts.find((candidate) =>
+              candidate.name === 'allure-report' && !candidate.expired
+            );
+            core.setOutput('found', artifact ? 'true' : 'false');
+            core.setOutput('artifact_id', artifact?.id ?? '');
+            if (!artifact) {
+              core.warning(
+                `Quality dashboard will be published without Allure: workflow run ${context.payload.workflow_run.id} did not publish allure-report.`
+              );
+            }
+
       - name: Download quality report artifact
         if: steps.quality-report-artifact.outputs.found == 'true'
         uses: actions/download-artifact@v7
         with:
           name: quality-report-json
           path: .
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Download Allure report artifact
+        if: >
+          steps.quality-report-artifact.outputs.found == 'true' &&
+          steps.allure-report-artifact.outputs.found == 'true'
+        uses: actions/download-artifact@v7
+        with:
+          name: allure-report
+          path: allure-artifact
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
 
@@ -77,8 +110,29 @@ jobs:
           mkdir -p quality-dashboard
           curl --fail --silent --show-error --location "$PAGES_HISTORY_URL" --output quality-dashboard/history.json || echo "[]" > quality-dashboard/history.json
 
+      - name: Publish Allure report into Pages tree
+        id: publish-allure
+        if: >
+          steps.quality-report-artifact.outputs.found == 'true' &&
+          steps.allure-report-artifact.outputs.found == 'true'
+        shell: bash
+        run: |
+          mkdir -p quality-dashboard/allure/latest
+          if [ -d allure-artifact/frontend/allure-report ]; then
+            cp -R allure-artifact/frontend/allure-report/. quality-dashboard/allure/latest/
+            echo "url=./allure/latest/" >> "$GITHUB_OUTPUT"
+          elif [ -d allure-artifact/allure-report ]; then
+            cp -R allure-artifact/allure-report/. quality-dashboard/allure/latest/
+            echo "url=./allure/latest/" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Allure artifact was downloaded, but no allure-report HTML directory was found."
+            echo "url=" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Render quality dashboard
         if: steps.quality-report-artifact.outputs.found == 'true'
+        env:
+          QUALITY_ALLURE_REPORT_URL: ${{ steps.publish-allure.outputs.url }}
         run: node .github/scripts/render-quality-dashboard.mjs
 
       - name: Configure GitHub Pages

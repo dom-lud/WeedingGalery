@@ -43,6 +43,9 @@ Opisuje warunki, ktore musza byc spelnione przed scaleniem zmian i przed wdrozen
   progow ani historii metryk.
 - GitHub Pages dashboard pokazuje dlugoterminowa historie main/nightly. Jest
   narzedziem obserwowalnosci trendow, nie argumentem za slabszymi testami.
+- GitHub Pages publikuje takze najnowszy zaufany raport Allure pod
+  `allure/latest/`, o ile zrodlowy run `main`/nightly wystawil artefakt
+  `allure-report`.
 - Progi dzialaja jako ratchet: nie sa obnizane, a po stabilnym wzroscie coverage
   powinny byc podnoszone z niewielkim marginesem ponizej wyniku bazowego.
 - Krytyczne ekrany przechodza automatyczny audit WCAG A/AA w Playwright.

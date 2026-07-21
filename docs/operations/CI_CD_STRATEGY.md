@@ -33,6 +33,8 @@ Opisuje docelowa strategie CI/CD dla GitHub Actions oraz aktualne repo truth dla
   Cron `17 1 * * *` dziala w UTC.
 - `quality-dashboard.yml` publikuje statyczny dashboard GitHub Pages tylko po
   zaufanych przebiegach `main`/`schedule`/`workflow_dispatch`, a nie po PR.
+  Jesli run zawiera artefakt `allure-report`, ten sam workflow publikuje
+  najnowszy raport Allure pod `allure/latest/` i linkuje go z dashboardu.
 - Cache przegladarki Playwright jest kluczowany systemem, projektem Chromium i wersja `@playwright/test`, dlatego zmiany pozostalych zaleznosci nie wymuszaja ponownego pobrania browsera.
 - Quality gates sa czesciowo zautomatyzowane; obszary biznesowe, security review i dalsza rozbudowa zakresu E2E nadal wymagaja pracy.
 
@@ -121,7 +123,9 @@ Publikowane pliki:
 - `index.html` - czytelny widok ostatniego runu i trendow,
 - `history.json` - historia przycieta do ostatnich 365 wpisow,
 - `latest.json` - ostatni wpis,
-- `runs/<run-id>-<attempt>.json` - szczegoly konkretnego runu.
+- `runs/<run-id>-<attempt>.json` - szczegoly konkretnego runu,
+- `allure/latest/` - najnowszy zaufany raport Allure E2E, jesli zrodlowy run
+  opublikowal artefakt `allure-report`.
 
 Dashboard pokazuje widocznosc jakosci i trendy. Nie zastepuje test design brief,
 macierzy ryzyk ani review scenariuszy testowych.
@@ -208,6 +212,9 @@ Zmiana gate z ostrzegawczego na blokujacy powinna zostac odnotowana w dokumentac
 - Artefakt `allure-report` powinien byc publikowany dla przebiegow E2E jako
   profesjonalny raport testow. Link z Allure prowadzi do Quality Dashboardu,
   ale decyzje CI i trendy nadal wynikaja z `quality-report.json`.
+- GitHub Pages powinien publikowac najnowszy zaufany raport Allure E2E pod
+  `allure/latest/`; raporty z PR pozostaja artefaktami Actions i nie sa
+  publikowane na Pages.
 - Artefakty backendu i frontendu na `main` powinny byc dostepne do pobrania z workflow jako punkt odniesienia dla dalszych etapow delivery.
 - Artefakty diagnostyczne PR maja retencje 30 dni. Artefakty nightly i
   historyczne raporty jakosci maja retencje 90 dni, natomiast dlugoterminowa
