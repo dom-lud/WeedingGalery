@@ -26,6 +26,7 @@ dokumentacje, wiec jeden agent utrzymuje najnizsze ryzyko konfliktow plikow.
 | Workflow emituje ostrzezenia Node 20                   | Akcje artifact/github-script zostaja na runtime Node 20            | podniesc artifact actions i github-script do wersji Node 24      | workflow          |
 | Allure odcina review od metryk CI                      | Raport Allure nie ma linku do Quality Dashboardu ani runu Actions  | sprawdzic `environment.properties` i `executor.json`             | skrypt + workflow |
 | Allure zastępuje quality gates                         | Reviewer ufa ladnemu raportowi bez `quality-report.json`           | dokumentacja i komentarz PR wskazuja SSOT metryk                 | review + docs     |
+| Pages pokazuje stary widok bez Allure                  | `quality-dashboard.yml` publikuje tylko dashboard bez HTML Allure  | pobrac `allure-report` i opublikowac go pod `allure/latest/`     | workflow + Pages  |
 | Dane testow moga wstrzyknac HTML                       | Renderer wstawia tytuly testow bez escapowania                     | review funkcji escape i renderowania listy awarii                | skrypt dashboardu |
 | Artefakty diagnostyczne znikaja zbyt szybko            | Retencja zostaje na 7 dni                                          | sprawdzenie `retention-days` w uploadach                         | workflow          |
 | Failujacy job gubi raporty                             | Upload artefaktow nie ma `if: always()`                            | review krokow uploadu i agregacji                                | workflow          |
@@ -77,6 +78,9 @@ dokumentacje, wiec jeden agent utrzymuje najnizsze ryzyko konfliktow plikow.
 - Playwright E2E generuje `allure-results` i `allure-report`; raport Allure
   zawiera metadane z linkiem do Quality Dashboardu, GitHub Actions runu oraz
   wskazaniem artefaktu `quality-report-json`.
+- `quality-dashboard.yml` pobiera artefakt `allure-report` z zaufanego runu
+  `main`/nightly i publikuje HTML Allure w GitHub Pages pod
+  `allure/latest/`; dashboard root zawiera link do tego raportu.
 - `node scripts/write-allure-metadata.mjs` tworzy `environment.properties` i
   `executor.json`; w wariancie CI link do Quality Dashboardu sklada sie jako
   `https://dom-lud.github.io/WeedingGalery/`.

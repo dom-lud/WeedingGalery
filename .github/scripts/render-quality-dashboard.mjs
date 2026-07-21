@@ -6,6 +6,7 @@ const outputDir = process.env.QUALITY_DASHBOARD_DIR ?? "quality-dashboard";
 const previousHistoryPath =
   process.env.QUALITY_HISTORY_PATH ?? path.join(outputDir, "history.json");
 const historyLimit = Number(process.env.QUALITY_HISTORY_LIMIT ?? 365);
+const allureReportUrl = process.env.QUALITY_ALLURE_REPORT_URL ?? "";
 
 function readJson(filePath, fallback) {
   if (!fs.existsSync(filePath)) return fallback;
@@ -128,6 +129,10 @@ const failedTests = (latest.e2e.failedTests ?? [])
   .map((test) => `<li>${escapeHtml(test)}</li>`)
   .join("");
 
+const allureCard = allureReportUrl
+  ? `<article class="card"><h2>Allure E2E report</h2><p class="metric"><a href="${escapeHtml(allureReportUrl)}">Open</a></p><p class="muted">Profesjonalny raport QA dla ostatniego przebiegu E2E.</p></article>`
+  : "";
+
 const rows = history
   .slice()
   .reverse()
@@ -201,6 +206,7 @@ const html = `<!doctype html>
       <article class="card"><h2>Frontend tests</h2><p class="metric">${latest.frontend.tests.passed ?? 0}/${latest.frontend.tests.total ?? 0}</p><p class="muted">${escapeHtml(latest.frontend.result)}</p></article>
       <article class="card"><h2>E2E tests</h2><p class="metric">${latest.e2e.tests.passed ?? 0}/${latest.e2e.tests.total ?? 0}</p><p class="muted">${latest.e2e.tests.flaky ?? 0} flaky, ${latest.e2e.tests.timedOut ?? 0} timed out</p></article>
       <article class="card"><h2>Latest run</h2><p class="metric"><a href="${escapeHtml(latest.run.runUrl)}">${escapeHtml(latest.run.id)}</a></p><p class="muted">${escapeHtml(latest.run.event)} / ${escapeHtml(latest.run.branch)}</p></article>
+      ${allureCard}
     </section>
 
     <section class="charts">
