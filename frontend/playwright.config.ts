@@ -10,6 +10,14 @@ export default defineConfig({
     ? [
         ['html', { open: 'never', outputFolder: 'playwright-report' }],
         ['json', { outputFile: 'playwright-report/results.json' }],
+        [
+          'allure-playwright',
+          {
+            resultsDir: 'allure-results',
+            detail: true,
+            suiteTitle: true,
+          },
+        ],
       ]
     : 'html',
   use: {

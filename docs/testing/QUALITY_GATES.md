@@ -38,6 +38,9 @@ Opisuje warunki, ktore musza byc spelnione przed scaleniem zmian i przed wdrozen
   maskowac nieprzetestowanej krytycznej logiki.
 - CI generuje `quality-report.json`, `quality-report.md`, komentarz PR oraz
   run summary z tymi samymi danymi o testach, coverage i wynikach gates.
+- Playwright E2E publikuje `allure-report` jako czytelny raport QA. Allure
+  prowadzi linkami do Quality Dashboardu i runu Actions, ale nie jest SSOT dla
+  progow ani historii metryk.
 - GitHub Pages dashboard pokazuje dlugoterminowa historie main/nightly. Jest
   narzedziem obserwowalnosci trendow, nie argumentem za slabszymi testami.
 - Progi dzialaja jako ratchet: nie sa obnizane, a po stabilnym wzroscie coverage

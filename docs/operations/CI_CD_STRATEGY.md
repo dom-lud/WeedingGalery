@@ -19,6 +19,9 @@ Opisuje docelowa strategie CI/CD dla GitHub Actions oraz aktualne repo truth dla
   same progi; ich zmiana wymaga jednoczesnej aktualizacji konfiguracji testow,
   workflow i dokumentacji.
 - Workflow PR validation uruchamia tez Playwright E2E z audytem accessibility, publikuje raporty Playwright i coverage oraz aktualizuje rzeczowy komentarz PR z tabelami testow, wykresami coverage, lista awarii i bezposrednimi linkami do artefaktow.
+- Playwright E2E generuje rowniez artefakt `allure-report`. Allure jest
+  raportem wejsciowym dla review QA i zawiera metadane z linkiem do Quality
+  Dashboardu, GitHub Actions runu oraz artefaktu `quality-report-json`.
 - Workflow PR validation generuje maszynowy `quality-report.json` jako SSOT
   raportu runu, dodaje ten sam raport do `GITHUB_STEP_SUMMARY` i publikuje
   artefakt `quality-report-json` z 30-dniowa retencja.
@@ -75,6 +78,8 @@ Zakres:
 - budowa obrazu frontendu,
 - start backendu i frontendu dla Playwright E2E,
 - publikacja artefaktu `playwright-report`,
+- publikacja artefaktu `allure-report` z linkiem do Quality Dashboardu w
+  metadanych raportu,
 - komentarz w PR z podsumowaniem jobow i wyniku Playwright.
 
 ### Main build
@@ -102,6 +107,7 @@ Zakres:
 - frontend format, lint, `test:coverage` i build,
 - Docker Compose config oraz build obrazow,
 - Playwright E2E wraz ze scenariuszami accessibility,
+- Allure Report dla Playwright E2E jako czytelny raport QA,
 - publikacja diagnostycznych artefaktow z 90-dniowa retencja,
 - publikacja `quality-report-json` dla dashboardu historii.
 
@@ -199,6 +205,9 @@ Zmiana gate z ostrzegawczego na blokujacy powinna zostac odnotowana w dokumentac
 - Cache przegladarek Playwright powinien byc utrzymywany oddzielnie od cache npm.
 - Artefakty builda musza byc powiazane z commit SHA.
 - Artefakt `playwright-report` powinien byc publikowany dla kazdego przebiegu E2E, tak aby review mialo dostep do HTML reportu i trace.
+- Artefakt `allure-report` powinien byc publikowany dla przebiegow E2E jako
+  profesjonalny raport testow. Link z Allure prowadzi do Quality Dashboardu,
+  ale decyzje CI i trendy nadal wynikaja z `quality-report.json`.
 - Artefakty backendu i frontendu na `main` powinny byc dostepne do pobrania z workflow jako punkt odniesienia dla dalszych etapow delivery.
 - Artefakty diagnostyczne PR maja retencje 30 dni. Artefakty nightly i
   historyczne raporty jakosci maja retencje 90 dni, natomiast dlugoterminowa

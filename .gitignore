@@ -81,6 +81,8 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+allure-results/
+allure-report/
 
 # Local CI quality report outputs
 quality-dashboard/
