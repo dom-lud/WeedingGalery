@@ -76,3 +76,14 @@ CREATE INDEX idx_event_memberships_event_removed ON event_memberships (event_id,
 CREATE INDEX idx_audit_events_event_id ON audit_events (event_id);
 CREATE INDEX idx_galleries_event_status ON galleries (event_id, status);
 
+INSERT INTO users (id, email, password_hash, system_role, failed_login_attempts, created_at, updated_at)
+VALUES (
+    '00000000-0000-0000-0000-000000000001',
+    'admin@example.com',
+    '$2a$10$ikl3ddSI2Mil0Zdq57fzQuTBiPXjM3lOnJhhi6bznAAf3ODMJjrvq',
+    'ADMIN',
+    0,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+);
+

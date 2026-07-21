@@ -12,7 +12,7 @@ class FlywayMigrationContractTest {
 		String url = "jdbc:h2:mem:flyway-contract;DB_CLOSE_DELAY=-1;MODE=MySQL";
 		Flyway flyway = Flyway.configure().dataSource(url, "sa", "").locations("classpath:db/migration").load();
 
-		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(4);
+		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(5);
 
 		try (var connection = DriverManager.getConnection(url, "sa", "");
 				var users = connection.prepareStatement("SELECT COUNT(*) FROM users");
@@ -58,6 +58,8 @@ class FlywayMigrationContractTest {
 			assertThat(versions.getString(1)).isEqualTo("3");
 			assertThat(versions.next()).isTrue();
 			assertThat(versions.getString(1)).isEqualTo("4");
+			assertThat(versions.next()).isTrue();
+			assertThat(versions.getString(1)).isEqualTo("5");
 			assertThat(versions.next()).isFalse();
 		}
 	}

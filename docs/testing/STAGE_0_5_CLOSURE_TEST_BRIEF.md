@@ -7,7 +7,7 @@ uploadu.
 
 ## Zakres
 - bezpieczny, jawnie wlaczany bootstrap pierwszego administratora,
-- brak kont testowych i sekretow w migracjach produkcyjnych,
+- brak aktywnych kont testowych i znanych credentiali po pelnej migracji produkcyjnej,
 - fail-fast konfiguracji produkcyjnej bez wymaganych zmiennych,
 - bezpieczne cookies sesji i CSRF oraz konfigurowalny CORS,
 - powtarzalne formatowanie na Windows i Linux,
@@ -23,7 +23,8 @@ uploadu.
 
 | Wymaganie / ryzyko | Bledna implementacja, ktora test ma wykryc | Scenariusze | Najnizsza wiarygodna warstwa |
 | --- | --- | --- | --- |
-| Czysta migracja nie tworzy znanego admina | V1 nadal zapisuje `admin@example.com` lub hash znanego hasla | migracja na pusta H2 i MySQL; liczba uzytkownikow = 0 | kontrakt migracji H2 + Testcontainers MySQL |
+| Czysta migracja nie pozostawia znanego admina | historyczna V1 zapisuje `admin@example.com`, a V5 go nie neutralizuje | pelna migracja V1-V5 na pusta H2 i MySQL; liczba uzytkownikow = 0 | kontrakt migracji H2 + Testcontainers MySQL |
+| Upgrade nie niszczy danych historycznego admina | V5 usuwa ownera istniejacego wydarzenia albo po zmianie e-maila pozostawia znany hash | migracja V1-V4, zmiana e-maila, wydarzenie ownera, upgrade V5; konto zachowane, hash zastapiony sentinel value i blokada ustawiona | kontrakt upgrade H2 + runtime E2E na zachowanym wolumenie MySQL |
 | Bootstrap jest jawny i idempotentny | admin powstaje bez flagi, haslo jest resetowane przy restarcie albo bootstrap nadaje role istniejacemu USER | disabled; create; replay; konflikt istniejacego USER; konflikt innego ADMIN; normalizacja e-mail | unit/service + context smoke |
 | Bootstrap nie przyjmuje slabych danych | puste/niepoprawne dane tworza uprzywilejowane konto | zly e-mail, haslo ponizej minimum | unit/service |
 | Produkcja nie ma domyslnych sekretow | aplikacja laczy sie domyslnym haslem lub przypadkowa lokalna baza | kontrakt placeholderow `DB_*`, storage i bootstrap disabled | configuration contract |
@@ -40,7 +41,8 @@ uploadu.
 - brak wymaganej zmiennej produkcyjnej powoduje blad konfiguracji zamiast
   uzycia wartosci domyslnej,
 - request z obcego originu nie otrzymuje naglowkow CORS bez jawnego allowlist,
-- migracje V1-V4 przechodza na rzeczywistym MySQL 8.4.
+- migracje V1-V5 przechodza na rzeczywistym MySQL 8.4,
+- upgrade V4-V5 zachowuje referencje i blokuje historyczny credential.
 
 ## Warunek zakonczenia
 - wszystkie nowe scenariusze przechodza,
@@ -49,4 +51,3 @@ uploadu.
 - `docker compose config` i build obrazow przechodza,
 - Playwright Etapow 0-5 przechodzi bez pominietych scenariuszy,
 - self-review nie pozostawia findingow P0/P1 w zakresie closure sprintu.
-

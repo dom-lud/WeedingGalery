@@ -21,7 +21,7 @@ class MySqlFlywayMigrationContractTest {
 		Flyway flyway = Flyway.configure().dataSource(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())
 				.locations("classpath:db/migration").load();
 
-		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(4);
+		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(5);
 
 		try (Connection connection = MYSQL.createConnection("");
 				var users = connection.prepareStatement("SELECT COUNT(*) FROM users");

@@ -117,6 +117,7 @@ Zbiera wszystkie kluczowe dokumenty projektu, wskazuje ich przeznaczenie, odbior
 | Stage 4 readiness checklist | DoR i granice pierwszego zakresu GALLERY-001 | autor, reviewer | przed rozpoczeciem Etapu 4 | [docs/checklists/STAGE_4_READINESS_CHECKLIST.md](checklists/STAGE_4_READINESS_CHECKLIST.md) |
 | Stage 4 completion checklist | Historyczne dowody domkniecia GALLERY-001 | autor, reviewer | przy audycie Etapu 4 | [docs/checklists/STAGE_4_COMPLETION_CHECKLIST.md](checklists/STAGE_4_COMPLETION_CHECKLIST.md) |
 | Stage 5 completion checklist | Dowody domkniecia Etapow 4B/5 | autor, reviewer | przy domknieciu public access i uploadu | [docs/checklists/STAGE_5_COMPLETION_CHECKLIST.md](checklists/STAGE_5_COMPLETION_CHECKLIST.md) |
+| Stage 0-5 closure checklist | Dowody hardeningu i koncowej regresji zamykajacej Etapy 0-5 | autor, reviewer, security, ops | przed rozpoczeciem Etapu 6 | [docs/checklists/STAGE_0_5_CLOSURE_CHECKLIST.md](checklists/STAGE_0_5_CLOSURE_CHECKLIST.md) |
 | Code review checklist | Checklista review | reviewer | przy review kodu | [docs/checklists/CODE_REVIEW_CHECKLIST.md](checklists/CODE_REVIEW_CHECKLIST.md) |
 | Security review checklist | Checklista security | reviewer, security | przy security review | [docs/checklists/SECURITY_REVIEW_CHECKLIST.md](checklists/SECURITY_REVIEW_CHECKLIST.md) |
 | Database change checklist | Checklista zmian bazy | backend, DBA | przy migracjach | [docs/checklists/DATABASE_CHANGE_CHECKLIST.md](checklists/DATABASE_CHANGE_CHECKLIST.md) |

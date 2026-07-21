@@ -24,9 +24,9 @@ public class AdminBootstrapRunner implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) {
-		boolean created = adminBootstrapService.bootstrap(email, password);
-		if (created) {
-			log.info("Initial administrator account was created; disable bootstrap configuration now");
+		boolean provisioned = adminBootstrapService.bootstrap(email, password);
+		if (provisioned) {
+			log.info("Initial administrator account was provisioned; disable bootstrap configuration now");
 		} else {
 			log.info("Initial administrator already exists; bootstrap did not modify credentials");
 		}

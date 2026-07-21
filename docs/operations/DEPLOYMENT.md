@@ -13,7 +13,7 @@ Opisuje docelowy model wdrożenia platformy, z naciskiem na start na jednym VPS.
 - Aktualny `docker-compose.yml` uruchamia `mysql`, `backend`, `frontend` i `nginx`.
 - Backend nie publikuje portu na hosta, dziala jako uzytkownik nie-root i zapisuje media w trwalym volume `media_data` montowanym jako `/data/media`.
 - Nginx ogranicza zwykle requesty do 2 MiB, a do 505 MiB dopuszcza tylko sciezke pojedynczego uploadu, chroniona osobna strefa rate limit.
-- Bazowa migracja nie zawiera konta administratora. Pierwszy admin jest tworzony jednorazowo przez bootstrap konfiguracyjny, ktory po sukcesie musi zostac wylaczony.
+- Historyczna V1 pozostaje niezmienna, a forward-only V5 usuwa lub blokuje jej znany developerski credential. Pierwszy admin jest tworzony albo bezpiecznie aktywowany jednorazowo przez bootstrap konfiguracyjny, ktory po sukcesie musi zostac wylaczony.
 - Profil produkcyjny ufa naglowkom forwardowanym przez Nginx i domyslnie oznacza cookies jako `Secure`, `HttpOnly` oraz `SameSite=Lax`.
 
 ## Stan docelowy

@@ -34,6 +34,13 @@ public class AuditService {
 	}
 
 	@Transactional
+	public void logRequiredIdentityEvent(String userEmail, EventType eventType, String details) {
+		AuditEvent event = new AuditEvent(eventType, userEmail, details);
+		auditEventRepository.save(event);
+		log.debug("Required identity audit event saved: {} for user: {}", eventType, userEmail);
+	}
+
+	@Transactional
 	public void logRequiredEvent(String userEmail, EventType eventType, String eventId, String targetUserId,
 			String details) {
 		AuditEvent event = new AuditEvent(eventType, userEmail, eventId, targetUserId, details);

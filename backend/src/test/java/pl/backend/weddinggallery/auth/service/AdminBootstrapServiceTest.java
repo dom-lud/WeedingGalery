@@ -52,8 +52,25 @@ class AdminBootstrapServiceTest {
 		assertThat(user.getValue().getEmail()).isEqualTo("admin@example.com");
 		assertThat(user.getValue().getPasswordHash()).isEqualTo("encoded");
 		assertThat(user.getValue().getSystemRole()).isEqualTo(SystemRole.ADMIN);
-		verify(audit).logEvent("admin@example.com", EventType.USER_REGISTERED,
+		verify(audit).logRequiredIdentityEvent("admin@example.com", EventType.ADMIN_BOOTSTRAPPED,
 				"Initial administrator bootstrapped");
+	}
+
+	@Test
+	void replacesOnlyTheDisabledHistoricalAdministratorCredential() {
+		User legacy = User.builder().id("00000000-0000-0000-0000-000000000001").email("admin@example.com")
+				.passwordHash("BOOTSTRAP_DISABLED").systemRole(SystemRole.ADMIN).failedLoginAttempts(4).build();
+		when(users.findByEmail("admin@example.com")).thenReturn(Optional.of(legacy));
+		when(passwords.encode("a-strong-password")).thenReturn("encoded");
+
+		assertThat(service.bootstrap("admin@example.com", "a-strong-password")).isTrue();
+
+		assertThat(legacy.getPasswordHash()).isEqualTo("encoded");
+		assertThat(legacy.getFailedLoginAttempts()).isZero();
+		assertThat(legacy.getLockedUntil()).isNull();
+		verify(users).saveAndFlush(legacy);
+		verify(audit).logRequiredIdentityEvent("admin@example.com", EventType.ADMIN_BOOTSTRAPPED,
+				"Legacy initial administrator credential replaced");
 	}
 
 	@Test
@@ -65,7 +82,7 @@ class AdminBootstrapServiceTest {
 
 		verify(passwords, never()).encode(any());
 		verify(users, never()).saveAndFlush(any());
-		verify(audit, never()).logEvent(any(), any(), any());
+		verify(audit, never()).logRequiredIdentityEvent(any(), any(), any());
 	}
 
 	@Test
