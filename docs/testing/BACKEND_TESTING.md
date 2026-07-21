@@ -28,8 +28,15 @@ Opisuje zakres i standardy testów backendowych.
 - Przed implementacja testu opisz bledna implementacje, ktora test powinien wykryc.
 - Limity testuj na granicy, a idempotencje przez replay i konflikt payloadu.
 - Dla storage testuj awarie zapisu/usuwania, kompensacje i brak orphanow.
-- JaCoCo w fazie `verify` jest blokujaca zapadka: minimum 40% instructions i
-  30% branches dla calego backendu. Progi maja rosnac wraz z pokryciem.
+- JaCoCo w fazie `verify` jest blokujaca zapadka: minimum 85% instructions i
+  60% branches dla calego backendu. Progow nie wolno obnizac bez jawnej zgody,
+  udokumentowanej przyczyny i planu przywrocenia.
+- Po kazdej zmianie logiki analizuj raport per klasa, nie tylko bundle. Nowa lub
+  istotnie zmieniona logika powinna dazyc do co najmniej 90% instrukcji i 80%
+  branchy; wyjatek wymaga wskazania konkretnych nieosiagalnych albo
+  niewiarygodnych sciezek.
+- Klasy security, ownership, upload, storage, idempotency i migracji wymagaja
+  kompletnej macierzy ryzyk niezaleznie od procentu coverage.
 - Zachowanie zalezne od MySQL i migracji wymaga testu na rzeczywistym silniku;
   H2 nie jest wystarczajacym dowodem zgodnosci produkcyjnej.
 - Każda nowa reguła ownership wymaga testu pozytywnego i negatywnego.

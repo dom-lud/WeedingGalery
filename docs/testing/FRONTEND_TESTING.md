@@ -29,9 +29,14 @@ Opisuje zakres testow komponentow, hookow, warstwy API i widokow.
 
 ## Wzorzec dla Playwright E2E
 - `npm run test:coverage` jest wymagane w CI.
-- Minimalne progi startowe: statements 55%, branches 75%, functions 45%, lines 55%.
+- Blokujace progi: statements 85%, branches 80%, functions 70%, lines 85%.
 - Progi sa zapadka regresyjna; nie oznaczaja pelnego pokrycia i nie wolno ich
   obnizac bez udokumentowanego uzasadnienia.
+- Po kazdej zmianie analizuj raport per plik. Nowe lub istotnie zmienione
+  komponenty i moduly API powinny dazyc do 90% statements/lines oraz 80%
+  branches; wyjatek musi wskazywac brakujace scenariusze i ryzyko.
+- Nie wykluczaj trudnego komponentu z coverage. Testuj zachowanie: loading,
+  empty, error/retry, role, keyboard/focus oraz pozytywne i negatywne akcje.
 - Krytyczne ekrany przechodza Playwright + axe dla WCAG A/AA. Test komponentu
   nadal sprawdza focus, keyboard, loading/error/retry i role zalezne od uprawnien.
 - Scenariusze E2E powinny korzystac z page object pattern.

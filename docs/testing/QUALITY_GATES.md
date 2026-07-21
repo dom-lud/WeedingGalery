@@ -26,6 +26,12 @@ Opisuje warunki, ktore musza byc spelnione przed scaleniem zmian i przed wdrozen
 ## Gates CI dla pull requestow
 - Backend `verify` przechodzi wraz z zapadka JaCoCo.
 - Frontend `test:coverage` przechodzi wraz z progami Vitest/V8.
+- Aktualne minima to backend 85% instructions i 60% branches oraz frontend 85%
+  statements/lines, 80% branches i 70% functions.
+- Raport per plik/klasa zostal przejrzany; wysoki wynik globalny nie moze
+  maskowac nieprzetestowanej krytycznej logiki.
+- Progi dzialaja jako ratchet: nie sa obnizane, a po stabilnym wzroscie coverage
+  powinny byc podnoszone z niewielkim marginesem ponizej wyniku bazowego.
 - Krytyczne ekrany przechodza automatyczny audit WCAG A/AA w Playwright.
 - Zmiany sa automatycznie formatowane i walidowane przez formatery (Spotless dla backendu, Prettier dla frontendu).
 - Backend Maven build przechodzi.

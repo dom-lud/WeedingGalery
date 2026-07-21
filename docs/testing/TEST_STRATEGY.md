@@ -34,6 +34,14 @@ Opisuje docelowa strategie testowania platformy na poziomie backendu, frontendu 
   Etapow 4/4B/5 zrodlem jest [STAGE_4_5_TEST_MATRIX.md](STAGE_4_5_TEST_MATRIX.md).
 - Coverage jest zapadka regresyjna, a nie dowodem kompletnosci. Progu nie wolno
   obnizac tylko po to, aby zmiana przeszla CI.
+- Kazdy przebieg coverage konczy sie analiza na trzech poziomach: wynik globalny,
+  wynik per plik/klasa oraz niepokryte branche krytycznych regul. Najpierw
+  uzupelnij scenariusze wynikajace z ryzyka, dopiero potem podnos zapadke.
+- Zabronione jest poprawianie wyniku przez testy bez istotnych asercji, masowe
+  wykluczenia kodu produkcyjnego albo wykonywanie metod bez weryfikacji skutku.
+- Dla nowej lub zmienionej logiki celem orientacyjnym jest 90% linii/instrukcji
+  i 80% branchy. Security, ownership, limity, storage i idempotency wymagaja
+  wszystkich scenariuszy z macierzy nawet wtedy, gdy procent jest wyzszy.
 - Dla krytycznych ekranow uruchamiaj automatyczny audit WCAG A/AA oraz test
   klawiatury, focusu i braku poziomego overflow.
 - Test ma bronic wymagania, kontraktu albo regresji, nie aktualnej struktury kodu.
