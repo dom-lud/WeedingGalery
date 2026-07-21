@@ -169,10 +169,150 @@ jobs:
       - name: Build frontend image
         run: docker build -t wedding-gallery-frontend:main frontend
 
+  e2e:
+    name: Playwright E2E Tests
+    runs-on: ubuntu-latest
+    needs: [backend-artifact, frontend-artifact]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Restore frontend node_modules cache
+        id: e2e-node-modules-cache
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node24-frontend-modules-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install frontend dependencies
+        if: steps.e2e-node-modules-cache.outputs.cache-hit != 'true'
+        working-directory: frontend
+        run: npm install --no-audit --no-fund
+
+      - name: Resolve Playwright version
+        id: playwright-version
+        working-directory: frontend
+        shell: bash
+        run: |
+          playwright_version="$(node -p 'require("./node_modules/@playwright/test/package.json").version')"
+          printf 'version=%s\n' "$playwright_version" >> "$GITHUB_OUTPUT"
+
+      - name: Restore Playwright browser cache
+        id: playwright-browser-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-chromium-${{ steps.playwright-version.outputs.version }}
+
+      - name: Install Chromium system dependencies
+        working-directory: frontend
+        run: npx playwright install-deps chromium
+
+      - name: Install Chromium browser
+        if: steps.playwright-browser-cache.outputs.cache-hit != 'true'
+        working-directory: frontend
+        run: npx playwright install chromium
+
+      - name: Start Backend
+        working-directory: backend
+        env:
+          BOOTSTRAP_ADMIN_ENABLED: "true"
+          BOOTSTRAP_ADMIN_EMAIL: admin@example.com
+          BOOTSTRAP_ADMIN_PASSWORD: password123!
+        run: |
+          chmod +x mvnw
+          ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev &
+
+      - name: Start Frontend
+        working-directory: frontend
+        run: npm run dev &
+
+      - name: Wait for services
+        run: npx wait-on http-get://localhost:8080/actuator/health http-get://localhost:5173 -t 60000
+
+      - name: Run Playwright tests
+        id: playwright
+        continue-on-error: true
+        working-directory: frontend
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:5173
+        run: npx playwright test
+
+      - name: Summarize Playwright results
+        if: always()
+        working-directory: frontend
+        shell: bash
+        env:
+          PLAYWRIGHT_OUTCOME: ${{ steps.playwright.outcome }}
+        run: node ../.github/scripts/ci-metrics.mjs playwright .
+
+      - name: Write Allure metadata
+        if: always()
+        working-directory: frontend
+        run: node scripts/write-allure-metadata.mjs
+
+      - name: Generate Allure report
+        if: always()
+        continue-on-error: true
+        working-directory: frontend
+        env:
+          ALLURE_NO_ANALYTICS: "1"
+        run: npx allure generate allure-results --clean -o allure-report
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          if-no-files-found: warn
+          name: playwright-report
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          retention-days: 90
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          if-no-files-found: warn
+          name: allure-report
+          path: |
+            frontend/allure-report/
+            frontend/allure-results/
+          retention-days: 90
+
+      - name: Upload Playwright quality metrics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          if-no-files-found: warn
+          name: playwright-quality-metrics
+          path: frontend/quality-report-parts/e2e.json
+          retention-days: 90
+
+      - name: Fail job when Playwright tests fail
+        if: steps.playwright.outcome == 'failure'
+        run: exit 1
+
   quality-report:
     name: Main quality report
     runs-on: ubuntu-latest
-    needs: [backend-artifact, frontend-artifact, docker-validation]
+    needs: [backend-artifact, frontend-artifact, docker-validation, e2e]
     if: always()
 
     steps:
@@ -193,8 +333,8 @@ jobs:
           BACKEND_RESULT: ${{ needs.backend-artifact.result }}
           FRONTEND_RESULT: ${{ needs.frontend-artifact.result }}
           DOCKER_RESULT: ${{ needs.docker-validation.result }}
-          E2E_RESULT: skipped
-          E2E_REQUIRED: "false"
+          E2E_RESULT: ${{ needs.e2e.result }}
+          E2E_REQUIRED: "true"
         run: node .github/scripts/ci-metrics.mjs aggregate .
 
       - name: Add quality report to run summary

@@ -26,8 +26,9 @@ Opisuje docelowa strategie CI/CD dla GitHub Actions oraz aktualne repo truth dla
   raportu runu, dodaje ten sam raport do `GITHUB_STEP_SUMMARY` i publikuje
   artefakt `quality-report-json` z 30-dniowa retencja.
 - `main-build.yml` publikuje artefakty builda oraz `quality-report-json` z
-  backend/frontend/Docker; E2E jest w nim jawnie oznaczone jako `skipped`,
-  poniewaz pelny przebieg E2E jest wykonywany w PR i nightly.
+  backend/frontend/Docker/E2E. Zaufany run `main` generuje takze
+  `allure-report`, z ktorego `quality-dashboard.yml` publikuje najnowszy raport
+  Pages pod `allure/latest/`.
 - `nightly-quality.yml` uruchamia codziennie pelny backend verify, frontend
   coverage/build, Docker/Compose validation oraz Playwright E2E/accessibility.
   Cron `17 1 * * *` dziala w UTC.

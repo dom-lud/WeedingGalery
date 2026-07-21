@@ -78,6 +78,8 @@ dokumentacje, wiec jeden agent utrzymuje najnizsze ryzyko konfliktow plikow.
 - Playwright E2E generuje `allure-results` i `allure-report`; raport Allure
   zawiera metadane z linkiem do Quality Dashboardu, GitHub Actions runu oraz
   wskazaniem artefaktu `quality-report-json`.
+- `main-build.yml` uruchamia Playwright E2E i publikuje `allure-report`, zeby
+  zaufany push na `main` mogl od razu odswiezyc Allure na GitHub Pages.
 - `quality-dashboard.yml` pobiera artefakt `allure-report` z zaufanego runu
   `main`/nightly i publikuje HTML Allure w GitHub Pages pod
   `allure/latest/`; dashboard root zawiera link do tego raportu.
