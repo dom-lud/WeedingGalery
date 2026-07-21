@@ -37,8 +37,31 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Locate quality report artifact
+        id: quality-report-artifact
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+              per_page: 100,
+            });
+            const artifact = artifacts.find((candidate) =>
+              candidate.name === 'quality-report-json' && !candidate.expired
+            );
+            core.setOutput('found', artifact ? 'true' : 'false');
+            core.setOutput('artifact_id', artifact?.id ?? '');
+            if (!artifact) {
+              core.warning(
+                `Skipping dashboard deploy: workflow run ${context.payload.workflow_run.id} did not publish quality-report-json.`
+              );
+            }
+
       - name: Download quality report artifact
-        uses: actions/download-artifact@v4
+        if: steps.quality-report-artifact.outputs.found == 'true'
+        uses: actions/download-artifact@v7
         with:
           name: quality-report-json
           path: .
@@ -46,6 +69,7 @@ jobs:
           github-token: ${{ github.token }}
 
       - name: Fetch previous dashboard history
+        if: steps.quality-report-artifact.outputs.found == 'true'
         shell: bash
         env:
           PAGES_HISTORY_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/history.json
@@ -54,16 +78,20 @@ jobs:
           curl --fail --silent --show-error --location "$PAGES_HISTORY_URL" --output quality-dashboard/history.json || echo "[]" > quality-dashboard/history.json
 
       - name: Render quality dashboard
+        if: steps.quality-report-artifact.outputs.found == 'true'
         run: node .github/scripts/render-quality-dashboard.mjs
 
       - name: Configure GitHub Pages
+        if: steps.quality-report-artifact.outputs.found == 'true'
         uses: actions/configure-pages@v5
 
       - name: Upload GitHub Pages artifact
+        if: steps.quality-report-artifact.outputs.found == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: quality-dashboard
 
       - name: Deploy GitHub Pages
+        if: steps.quality-report-artifact.outputs.found == 'true'
         id: deployment
         uses: actions/deploy-pages@v4

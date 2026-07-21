@@ -55,7 +55,7 @@ jobs:
 
       - name: Upload backend coverage
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: backend-coverage
@@ -66,7 +66,7 @@ jobs:
 
       - name: Upload backend quality metrics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: backend-quality-metrics
@@ -118,7 +118,7 @@ jobs:
 
       - name: Upload frontend coverage
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: frontend-coverage
@@ -129,7 +129,7 @@ jobs:
 
       - name: Upload frontend quality metrics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: frontend-quality-metrics
@@ -254,7 +254,7 @@ jobs:
 
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: playwright-report
@@ -265,7 +265,7 @@ jobs:
 
       - name: Upload Playwright quality metrics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: playwright-quality-metrics
@@ -288,7 +288,7 @@ jobs:
 
       - name: Download quality metric parts
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: "*-quality-metrics"
           path: quality-report-parts
@@ -311,7 +311,7 @@ jobs:
 
       - name: Upload machine quality report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: error
           name: quality-report-json
@@ -322,7 +322,7 @@ jobs:
 
       - name: Upsert PR status comment
         if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('node:fs');
