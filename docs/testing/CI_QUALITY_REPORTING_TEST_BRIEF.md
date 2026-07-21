@@ -15,16 +15,18 @@ dokumentacje, wiec jeden agent utrzymuje najnizsze ryzyko konfliktow plikow.
 
 ## Macierz ryzyk
 
-| Ryzyko                                                 | Bledna implementacja, ktora ma zostac wykryta                      | Weryfikacja                                                    | Warstwa           |
-| ------------------------------------------------------ | ------------------------------------------------------------------ | -------------------------------------------------------------- | ----------------- |
-| Raport PR pokazuje niepelne dane po awarii joba        | Skrypt zaklada, ze kazdy raport istnieje i przerywa generowanie    | uruchomienie agregacji z brakujacymi plikami czesciowymi       | skrypt CI         |
-| Coverage gate w raporcie nie zgadza sie z konfiguracja | Progi w komentarzu sa nizsze niz `pom.xml` albo `vitest.config.ts` | porownanie dokumentacji i workflow, self-review progow 90%     | review + config   |
-| Historia dashboardu jest nadpisywana                   | Renderer zapisuje tylko ostatni run                                | lokalne uruchomienie rendera z istniejacym `history.json`      | skrypt dashboardu |
-| Dashboard miesza PR, main i nightly                    | Wpisy nie maja eventu, brancha i SHA                               | walidacja `run.event`, `run.branch`, `run.sha` w `latest.json` | skrypt dashboardu |
-| Pages publikuje dane z niezaufanego PR                 | Workflow deployuje dla `pull_request` lub forkow                   | review triggerow `workflow_run` i permissions Pages            | workflow          |
-| Dane testow moga wstrzyknac HTML                       | Renderer wstawia tytuly testow bez escapowania                     | review funkcji escape i renderowania listy awarii              | skrypt dashboardu |
-| Artefakty diagnostyczne znikaja zbyt szybko            | Retencja zostaje na 7 dni                                          | sprawdzenie `retention-days` w uploadach                       | workflow          |
-| Failujacy job gubi raporty                             | Upload artefaktow nie ma `if: always()`                            | review krokow uploadu i agregacji                              | workflow          |
+| Ryzyko                                                 | Bledna implementacja, ktora ma zostac wykryta                      | Weryfikacja                                                      | Warstwa           |
+| ------------------------------------------------------ | ------------------------------------------------------------------ | ---------------------------------------------------------------- | ----------------- |
+| Raport PR pokazuje niepelne dane po awarii joba        | Skrypt zaklada, ze kazdy raport istnieje i przerywa generowanie    | uruchomienie agregacji z brakujacymi plikami czesciowymi         | skrypt CI         |
+| Coverage gate w raporcie nie zgadza sie z konfiguracja | Progi w komentarzu sa nizsze niz `pom.xml` albo `vitest.config.ts` | porownanie dokumentacji i workflow, self-review progow 90%       | review + config   |
+| Historia dashboardu jest nadpisywana                   | Renderer zapisuje tylko ostatni run                                | lokalne uruchomienie rendera z istniejacym `history.json`        | skrypt dashboardu |
+| Dashboard miesza PR, main i nightly                    | Wpisy nie maja eventu, brancha i SHA                               | walidacja `run.event`, `run.branch`, `run.sha` w `latest.json`   | skrypt dashboardu |
+| Pages publikuje dane z niezaufanego PR                 | Workflow deployuje dla `pull_request` lub forkow                   | review triggerow `workflow_run` i permissions Pages              | workflow          |
+| Dashboard pada na runie bez raportu jakosci            | `quality-dashboard.yml` pobiera `quality-report-json` bez guardow  | najpierw sprawdzic artefakt przez API, deploy tylko gdy istnieje | workflow          |
+| Workflow emituje ostrzezenia Node 20                   | Akcje artifact/github-script zostaja na runtime Node 20            | podniesc artifact actions i github-script do wersji Node 24      | workflow          |
+| Dane testow moga wstrzyknac HTML                       | Renderer wstawia tytuly testow bez escapowania                     | review funkcji escape i renderowania listy awarii                | skrypt dashboardu |
+| Artefakty diagnostyczne znikaja zbyt szybko            | Retencja zostaje na 7 dni                                          | sprawdzenie `retention-days` w uploadach                         | workflow          |
+| Failujacy job gubi raporty                             | Upload artefaktow nie ma `if: always()`                            | review krokow uploadu i agregacji                                | workflow          |
 
 ## Scenariusze
 
@@ -64,6 +66,12 @@ dokumentacje, wiec jeden agent utrzymuje najnizsze ryzyko konfliktow plikow.
 - `node --check` przechodzi dla obu skryptow Node.
 - `frontend/node_modules/.bin/prettier.cmd --check ...` przechodzi dla
   zmienionych plikow JS/YAML/MD.
+- `quality-dashboard.yml` sprawdza istnienie `quality-report-json` przed
+  pobraniem artefaktu; stare albo przerwane runy bez raportu sa pomijane z
+  warningiem, bez czerwonego deploy workflow.
+- Artifact actions zostaly podniesione do `actions/upload-artifact@v7` i
+  `actions/download-artifact@v7`, a `actions/github-script` do `@v8`, zeby
+  korzystac z runtime Node 24.
 - `git diff --check` przechodzi po jednorazowym `safe.directory`; lokalny Git
   wymaga tej opcji przez roznice wlasciciela repo i uzytkownika sandboxa.
 - `actionlint` nie jest dostepny lokalnie, wiec nie wykonano dedykowanej

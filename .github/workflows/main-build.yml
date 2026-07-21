@@ -49,7 +49,7 @@ jobs:
         run: ./mvnw -B -DskipTests package
 
       - name: Upload backend jar
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backend-jar
           path: backend/target/*.jar
@@ -57,7 +57,7 @@ jobs:
 
       - name: Upload backend coverage diagnostics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: backend-coverage
@@ -68,7 +68,7 @@ jobs:
 
       - name: Upload backend quality metrics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: backend-quality-metrics
@@ -123,7 +123,7 @@ jobs:
         run: npm run build
 
       - name: Upload frontend dist
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: frontend-dist
           path: frontend/dist
@@ -131,7 +131,7 @@ jobs:
 
       - name: Upload frontend coverage diagnostics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: frontend-coverage
@@ -142,7 +142,7 @@ jobs:
 
       - name: Upload frontend quality metrics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: frontend-quality-metrics
@@ -181,7 +181,7 @@ jobs:
 
       - name: Download quality metric parts
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: "*-quality-metrics"
           path: quality-report-parts
@@ -204,7 +204,7 @@ jobs:
 
       - name: Upload machine quality report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: error
           name: quality-report-json
