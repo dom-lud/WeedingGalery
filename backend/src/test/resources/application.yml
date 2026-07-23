@@ -16,6 +16,9 @@ spring:
   flyway:
     enabled: false
 app:
+  media:
+    processing:
+      worker-enabled: false
   storage:
     local:
       root: ./target/test-media

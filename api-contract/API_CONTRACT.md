@@ -504,7 +504,19 @@ Sukces `200` tworzy grant w HttpSession z TTL 30 minut i zwraca:
   "downloadEnabled": false,
   "moderationMode": "REQUIRED",
   "publishedAt": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "media": [
+    {
+      "id": "media-id",
+      "fileName": "photo.jpg",
+      "mediaType": "IMAGE",
+      "status": "PROCESSED",
+      "size": 12345,
+      "uploadedAt": "2026-07-21T12:00:00Z",
+      "thumbnailUrl": "/api/public/galleries/reception/media/media-id/thumbnail",
+      "contentUrl": "/api/public/galleries/reception/media/media-id/content"
+    }
+  ]
 }
 ```
 
@@ -518,7 +530,40 @@ nieopublikowana, wygasla, zarchiwizowana lub usunieta galeria zwracaja identyczn
 
 Wymaga waznego grantu dla tej galerii. Zwraca publiczny model albo generyczne
 `404`. Grant jest ponownie walidowany, wiec rotacja tokenu i zmiana ustawien
-dzialaja natychmiast.
+dzialaja natychmiast. Pole `media` zawiera bezpieczne metadane juz dodanych
+mediow o statusach `STORED`, `PROCESSING`, `PROCESSED` i `PROCESSING_FAILED`.
+Nie zwraca `storageKey`, checksumow ani fizycznych sciezek. `thumbnailUrl` i
+`contentUrl` sa kontrolowanymi endpointami API i wymagaja tego samego grantu
+sesyjnego co publiczny model galerii.
+
+### `GET /api/public/galleries/{slug}/media/{mediaId}/thumbnail`
+
+Wymaga waznego grantu dla galerii. Zwraca `200` z miniatura `image/jpeg`, jezeli
+miniatura istnieje; w przeciwnym razie moze zwrocic oryginal dla mediow z
+zapisanym obiektem storage. Brak grantu, zly slug, obce media albo media bez
+zapisanego obiektu zwracaja generyczne `404`.
+
+### `GET /api/public/galleries/{slug}/media/{mediaId}/content`
+
+Wymaga waznego grantu dla galerii. Zwraca `200` z oryginalnym plikiem jako
+`inline`. Brak grantu, zly slug, obce media albo media bez zapisanego obiektu
+zwracaja generyczne `404`.
+
+### `GET /api/events/{eventId}/galleries/{galleryId}/media`
+
+Wymaga zalogowanego ownera albo managera wydarzenia. Zwraca bezpieczne metadane
+mediow galerii z `thumbnailUrl` i `contentUrl` dla panelu ownera/managera.
+
+### `GET /api/events/{eventId}/galleries/{galleryId}/media/{mediaId}/content`
+
+Wymaga zalogowanego ownera albo managera wydarzenia. Zwraca oryginal jako
+`inline`. Obce media lub brak membership zwracaja `404`.
+
+### `GET /api/events/{eventId}/galleries/{galleryId}/download`
+
+Wymaga ownera wydarzenia. Zwraca ZIP z oryginalami zapisanych mediow galerii.
+Manager bez ownership dostaje `403`/biznesowy blad owner-only zgodnie z
+centralnym mapowaniem bledow. ZIP nie ujawnia storage key ani fizycznych sciezek.
 
 ## Kontrakt STORAGE-001, UPLOAD-001 i minimalny UPLOAD-002 - Etap 5
 
@@ -596,6 +641,90 @@ CSRF. Idempotentnie ustawia `CANCELLED`, zwalnia rezerwacje plikow bez statusu
 - storage jest poza web rootem i nie ma publicznego static mappingu,
 - zapis uzywa `.tmp`, `CREATE_NEW`, walidacji i atomowej publikacji przez hard link w jednym volume, bez nadpisywania istniejacego obiektu,
 - fizyczne sciezki, hashe tokenow i kody nie wystepuja w API ani logach,
-- media po zapisie maja status `STORED`, nie sa publicznie listowane ani pobierane,
+- media po zapisie sa publicznie listowane jako bezpieczne metadane dla posiadacza
+  grantu galerii i moga byc wyswietlane przez kontrolowane endpointy API,
+  ale nie sa serwowane jako publiczny static mapping lokalnego storage,
 - blad po zapisie uruchamia kompensacyjne usuniecie; nierozwiazany cleanup jest
   jawnie oznaczany stanem wymagajacym reconciliacji.
+
+## Kontrakt MEDIA-001 - Etap 6
+
+Status: `IMPLEMENTED`. Sekcja definiuje kontrakt pierwszej implementacji
+Etapu 6. Publiczne listowanie bezpiecznych metadanych mediow oraz kontrolowany
+streaming przez backend sa dostepne w modelu galerii publicznej i ownera.
+Signed links i moderacja pozostaja poza tym kontraktem.
+
+### Semantyka po uploadzie
+
+Po udanym zapisie oryginalu backend nadal zwraca wynik uploadu dla konkretnego
+pliku, ale dalsze przetwarzanie jest asynchroniczne:
+
+- oryginal nie jest modyfikowany ani usuwany przez processing,
+- backend tworzy trwaly job processingu w bazie,
+- plik przechodzi przez status processingu widoczny w odczycie sesji uploadu,
+- replay uploadu po sukcesie nie tworzy drugiego oryginalu ani drugiego joba
+  tego samego typu,
+- blad processingu nie uniewaznia samego uploadu.
+
+Pierwsza implementacja gwarantuje thumbnail dla obrazow, ktore runtime JDK
+potrafi odczytac przez `ImageIO` (w praktyce JPEG/PNG w bazowej konfiguracji).
+Upload WebP pozostaje dozwolony przez Etap 5, ale jesli dany runtime nie ma
+providera WebP dla `ImageIO`, processing konczy sie stabilnym kodem
+`MEDIA_PROCESSING_UNSUPPORTED_FORMAT`.
+
+### Status pliku w odpowiedziach upload session
+
+Etap 6 rozszerza wartosci `status` w plikach zwracanych przez:
+
+- `POST /api/public/galleries/{slug}/upload-sessions`,
+- `GET /api/public/galleries/{slug}/upload-sessions/{sessionId}`,
+- `PUT /api/public/galleries/{slug}/upload-sessions/{sessionId}/files/{clientFileId}`.
+
+Dozwolone wartosci po Etapie 6:
+
+- `PENDING`
+- `RECEIVING`
+- `STORED`
+- `PROCESSING`
+- `PROCESSED`
+- `PROCESSING_FAILED`
+- `FAILED`
+- `CANCELLED`
+- `CLEANUP_REQUIRED`
+
+`STORED` oznacza, ze oryginal jest zapisany. `PROCESSED` oznacza, ze job Etapu 6
+zakonczyl sie sukcesem. `PROCESSING_FAILED` oznacza, ze oryginal nadal istnieje,
+ale metadane lub warianty pochodne nie zostaly wygenerowane.
+
+### Model pliku w upload session
+
+Pole `failureCode` pozostaje opcjonalne. Dla `PROCESSING_FAILED` zawiera stabilny
+kod bledu processingu, np.:
+
+- `MEDIA_PROCESSING_UNSUPPORTED_FORMAT`
+- `MEDIA_PROCESSING_METADATA_FAILED`
+- `MEDIA_PROCESSING_THUMBNAIL_FAILED`
+- `MEDIA_PROCESSING_STORAGE_FAILED`
+- `MEDIA_PROCESSING_RETRY_EXHAUSTED`
+
+Etap 6 moze dodac pola tylko, jesli zostana najpierw zapisane tutaj. Minimalny
+kontrakt statusu nie wymaga zwracania URL-i, object key ani sciezek storage.
+
+### Background job status
+
+Pierwsza implementacja nie musi wystawiac publicznego endpointu statusu joba.
+Jesli endpoint diagnostyczny lub administracyjny zostanie dodany, musi miec
+osobna sekcje kontraktu i nie moze omijac ownership ani przyszlego admin API.
+
+### Audyt i logi
+
+Udany zapis oryginalu nadal wymaga fail-closed `MEDIA_STORED`. Terminalny wynik
+workera zapisuje best-effort systemowy audit event:
+
+- `MEDIA_PROCESSING_SUCCEEDED`
+- `MEDIA_PROCESSING_FAILED`
+
+Retry przejsciowy jest logowany operacyjnie, ale nie tworzy osobnego audit
+eventu. Szczegoly audytu moga zawierac `mediaId`, `jobId`, status joba, liczbe
+prob i stabilny kod bledu, ale nie moga ujawniac sciezek storage, tokenow, kodow
+dostepu ani prywatnych linkow.

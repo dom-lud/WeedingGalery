@@ -6,7 +6,7 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 ## Status dokumentu
 - Status: draft
 - Zakres: roadmapa wdrazania funkcji i procesow
-- Ostatnia aktualizacja: 2026-07-20
+- Ostatnia aktualizacja: 2026-07-21
 
 ## Stan obecny
 - Roadmapa opisuje planowany rozwoj.
@@ -14,9 +14,9 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 - Etap 1 jest zakonczony jako techniczny fundament repozytorium.
 - Etap 2 jest domkniety w zakresie podstawowej identity.
 - Etap 3 jest domkniety w minimalnym zakresie `EVENT-001` i `MEMBER-001`.
-- Etapy 4 i 4B sa domkniete, a Etap 5 jest domkniety w pierwszym zakresie upload/storage.
+- Etapy 4 i 4B sa domkniete, Etap 5 jest domkniety w pierwszym zakresie upload/storage, a Etap 6 jest domkniety w pierwszej iteracji media processingu.
 - Closure sprint 0-5 neutralizuje historyczny credential przez forward-only V5, dodaje jawny bootstrap pierwszego admina, wymusza sekrety prod oraz zabezpiecza cookies i konfiguracje CORS bez rozszerzania zakresu produktowego.
-- Najblizszym etapem produktowym jest Etap 6; trwa jego analiza architektoniczna.
+- Najblizszym etapem produktowym jest Etap 7: publiczne listowanie mediow, preview/lightbox oraz bezpieczny download albo signed links.
 - Etap 13 ma wdrozony baseline CI/health/Compose, ale nie jest produkcyjnie zakonczony.
 
 ## Status etapow
@@ -29,8 +29,8 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 | 3 - Wydarzenia i członkowie | `DONE` | `EVENT-001`, `MEMBER-001`; zaproszenia czekają na `AUTH-002`. |
 | 4/4B - Galerie i public access | `DONE` | `GALLERY-001`, `GALLERY-002`, `PUBLIC-001`; bez QR, listowania mediów i moderacji. |
 | 5 - Upload i storage | `DONE` | `UPLOAD-001`, minimalny `UPLOAD-002`, uploadowa część `STORAGE-001`. |
-| 6 - Przetwarzanie mediów | `ANALYSIS` | Zaakceptować ADR 0004/0007, zamrozić model joba, retry i statusów. |
-| 7 - Publiczna galeria | `DEFERRED` | Oczekuje na Etap 6; zaprojektować listowanie, lightbox, download i budżety wydajnościowe. |
+| 6 - Przetwarzanie mediów | `DONE` | Pierwsza iteracja `MEDIA-001`: joby DB, worker, retry, statusy i miniatura `SMALL`. |
+| 7 - Publiczna galeria | `DEFERRED` | Zaprojektować listowanie, lightbox, download/signed links i budżety wydajnościowe. |
 | 8 - Moderacja | `DEFERRED` | Oczekuje na media i widok publiczny. |
 | 9 - Personalizacja | `IDEA` | Oczekuje na stabilny publiczny widok galerii. |
 | 10 - Panel administratora | `IDEA` | Wymaga osobnego admin API, audytu i modelu jawnych akcji. |
@@ -126,11 +126,11 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 - Glowne ryzyka: upload security, limity miejsca, niespojnosc baza-storage.
 
 ## Etap 6 - Przetwarzanie mediow
-- Status: analiza; implementacja nie zostala rozpoczeta.
-- Najblizszy krok: zaakceptowac ADR 0004 i ADR 0007, wybrac mechanizm jobow oraz zapisac kontrakt statusow, retry i idempotencji.
+- Status: done dla pierwszej iteracji `MEDIA-001`.
+- Najblizszy krok: przed Etapem 7 zdecydowac, czy gwarantujemy WebP thumbnail przez dodatkowy provider `ImageIO`, oraz zaprojektowac publiczne listowanie/preview.
 - Cel: uruchomienie przetwarzania asynchronicznego po uploadzie.
 - Zaleznosci: etap 5, ADR dot. background jobs i media processing.
-- Rezultat: miniatury, metadane, statusy, retry i zadania asynchroniczne.
+- Rezultat: trwale joby, worker, metadane obrazow, miniatura `SMALL`, statusy, retry i przewidywalne bledy processingu.
 - Kryterium ukonczenia: media po uploadzie przechodza pelny pipeline przetwarzania z monitoringiem bledow.
 - Glowne ryzyka: przeciazenie serwera, brak idempotencji jobow, bledy retry.
 

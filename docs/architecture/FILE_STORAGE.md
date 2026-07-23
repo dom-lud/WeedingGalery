@@ -1,26 +1,27 @@
-# Storage Plików
+# Storage Plikow
 
 ## Cel dokumentu
-Opisuje docelową abstrakcję storage, model przechowywania plików i zasady dostępu.
+Opisuje docelowa abstrakcje storage, model przechowywania plikow i zasady dostepu.
 
 ## Status dokumentu
 - Status: draft
-- Zakres: storage lokalny i przyszłe storage obiektowe
-- Ostatnia aktualizacja: 2026-07-15
+- Zakres: storage lokalny i przyszle storage obiektowe
+- Ostatnia aktualizacja: 2026-07-23
 
 ## Stan obecny
-- `StorageService` i `LocalFilesystemStorage` obsługują zapis uploadów, usuwanie kompensacyjne, `exists` i metadane bez ujawniania ścieżek fizycznych.
-- Plik jest najpierw zapisywany do pliku tymczasowego, a następnie atomowo publikowany przez hard link pod losowy klucz ograniczony do skonfigurowanego katalogu root; istniejący obiekt nie jest nadpisywany.
-- Docker Compose utrzymuje `/data/media` w nazwanym volume `media_data`; backend działa jako użytkownik nie-root.
-- Publiczny odczyt, streaming i signed links nie są jeszcze zaimplementowane i należą do `DOWNLOAD-001`/Etapu 7.
+- `StorageService` i `LocalFilesystemStorage` obsluguja zapis uploadow, odczyt strumieniowy, usuwanie kompensacyjne, `exists` i metadane bez ujawniania sciezek fizycznych.
+- Plik jest najpierw zapisywany do pliku tymczasowego, a nastepnie atomowo publikowany przez hard link pod losowy klucz ograniczony do skonfigurowanego katalogu root; istniejacy obiekt nie jest nadpisywany.
+- Docker Compose utrzymuje `/data/media` w nazwanym volume `media_data`; backend dziala jako uzytkownik nie-root.
+- Publiczny i zarzadzany podglad mediow dziala przez kontrolowany streaming backendu, po sprawdzeniu grantu publicznego albo membership/ownership wydarzenia.
+- Owner moze pobrac ZIP galerii generowany strumieniowo przez backend. Signed links pozostaja odroczone do pelnego `DOWNLOAD-001`/kolejnego etapu.
 
 ## Stan docelowy
-- Storage ukryty za interfejsem domenowym, z pierwszą implementacją lokalną na VPS i możliwością przejścia na storage obiektowy bez zmiany logiki biznesowej.
+- Storage ukryty za interfejsem domenowym, z pierwsza implementacja lokalna na VPS i mozliwoscia przejscia na storage obiektowy bez zmiany logiki biznesowej.
 
-## Założenia
-- Pliki nie są przechowywane jako BLOB w relacyjnej bazie danych.
-- Klient nie otrzymuje fizycznych ścieżek systemowych.
-- Backend odpowiada za autoryzację i generowanie bezpiecznych linków lub streaming.
+## Zalozenia
+- Pliki nie sa przechowywane jako BLOB w relacyjnej bazie danych.
+- Klient nie otrzymuje fizycznych sciezek systemowych.
+- Backend odpowiada za autoryzacje i generowanie bezpiecznych linkow lub streaming.
 
 ## Implementacje docelowe
 - `LocalFilesystemStorage`
@@ -40,32 +41,33 @@ StorageService
 - generateTemporaryDownloadLink(objectKey, ttl)
 ```
 
-Aktualny interfejs realizuje operacje potrzebne do bezpiecznego uploadu. `open` i link tymczasowy są celowo odroczone do zaprojektowania kontraktu pobierania.
+Aktualny interfejs realizuje operacje potrzebne do bezpiecznego uploadu i kontrolowanego streamingu przez backend. Link tymczasowy jest celowo odroczony do pelnego kontraktu pobierania/signed links.
 
 ## Klucz storage
-- Klucz powinien być stabilny i niezgadnialny.
+- Klucz powinien byc stabilny i niezgadnialny.
 - Zalecany schemat: `tenant/{ownerId}/events/{eventId}/galleries/{galleryId}/media/{mediaId}/original`
-- Miniatury i ZIP używają osobnych wariantów klucza.
+- Miniatury i ZIP uzywaja osobnych wariantow klucza.
 
-## Zasady bezpieczeństwa
-- Walidacja typu pliku odbywa się przed finalnym zapisaniem jako materiał opublikowany.
-- Dostęp publiczny nie powinien oznaczać bezpośredniego publicznego bucketu bez kontroli.
-- Linki tymczasowe powinny wygasać i być podpisane.
+## Zasady bezpieczenstwa
+- Walidacja typu pliku odbywa sie przed finalnym zapisaniem jako material opublikowany.
+- Dostep publiczny nie powinien oznaczac bezposredniego publicznego bucketu bez kontroli.
+- `thumbnailUrl`, `contentUrl` i ZIP galerii sa endpointami API sprawdzajacymi grant/role; klient nie dostaje `storageKey`, checksumow ani sciezek fizycznych.
+- Linki tymczasowe powinny wygasac i byc podpisane.
 
 ## Operacje usuwania
 - Soft delete w bazie nie usuwa pliku natychmiast.
-- Hard delete wykonuje job sprzątający i zapisuje wynik.
-- Częściowy błąd usuwania wymaga retry oraz wpisu audytowego lub operacyjnego.
+- Hard delete wykonuje job sprzatajacy i zapisuje wynik.
+- Czesciowy blad usuwania wymaga retry oraz wpisu audytowego lub operacyjnego.
 
 ## Monitorowanie storage
-- Zajętość globalna, per użytkownik, per wydarzenie i per galeria.
-- Liczba osieroconych plików i niespójności baza-storage.
-- Alert przy zbliżaniu się do limitu dysku.
+- Zajetosc globalna, per uzytkownik, per wydarzenie i per galeria.
+- Liczba osieroconych plikow i niespojnosci baza-storage.
+- Alert przy zblizaniu sie do limitu dysku.
 
-## Powiązane dokumenty
+## Powiazane dokumenty
 - [BACKGROUND_JOBS.md](BACKGROUND_JOBS.md)
 - [../security/FILE_UPLOAD_SECURITY.md](../security/FILE_UPLOAD_SECURITY.md)
 - [../adr/0003-file-storage-abstraction.md](../adr/0003-file-storage-abstraction.md)
 
 ## Decyzje otwarte
-- Czy pierwsza implementacja pobierania plików będzie oparta głównie o streaming przez backend, czy o krótkie signed links.
+- Czy pelna implementacja pobierania plikow bedzie oparta glownie o streaming przez backend, czy o krotkie signed links.

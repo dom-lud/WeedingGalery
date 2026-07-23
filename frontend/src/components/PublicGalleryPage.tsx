@@ -5,10 +5,13 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   CircularProgress,
   Container,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Fade,
+  IconButton,
   LinearProgress,
   Paper,
   Stack,
@@ -17,25 +20,27 @@ import {
   useMediaQuery,
 } from '@mui/material'
 import { useParams } from 'react-router-dom'
-import { publicAccessApi, type PublicGallery } from '../publicAccessApi'
-import { uploadApi, type UploadManifestFile } from '../uploadApi'
+import { publicAccessApi, type PublicGallery, type PublicMedia } from '../publicAccessApi'
+import { uploadApi, type UploadFileStatus, type UploadManifestFile } from '../uploadApi'
 
 type AccessState = 'loading' | 'code-required' | 'ready' | 'not-found' | 'rate-limited' | 'error'
-type QueueStatus = 'PENDING' | 'UPLOADING' | 'STORED' | 'FAILED' | 'CANCELLED'
-
-const statusCopy: Record<QueueStatus, string> = {
-  PENDING: 'Ready',
-  UPLOADING: 'Uploading',
-  STORED: 'Uploaded',
-  FAILED: 'Needs attention',
-  CANCELLED: 'Cancelled',
-}
+type QueueStatus =
+  | 'PENDING'
+  | 'UPLOADING'
+  | 'STORED'
+  | 'PROCESSING'
+  | 'PROCESSED'
+  | 'PROCESSING_FAILED'
+  | 'FAILED'
+  | 'CANCELLED'
 
 interface QueueFile {
   id: string
   file: File
   status: QueueStatus
   progress: number
+  retryable: boolean
+  previewUrl: string
   error?: string
 }
 
@@ -93,6 +98,24 @@ function fileValidation(file: File) {
   if (file.size > limit)
     return file.type === 'video/mp4' ? 'Video exceeds 500 MiB.' : 'Image exceeds 25 MiB.'
   return null
+}
+
+function queueStatusFromApi(status: UploadFileStatus): QueueStatus {
+  if (status === 'RECEIVING') return 'UPLOADING'
+  if (status === 'CLEANUP_REQUIRED') return 'FAILED'
+  return status
+}
+
+function processingTerminal(status: QueueStatus) {
+  return status !== 'UPLOADING' && status !== 'PROCESSING'
+}
+
+function createPreviewUrl(file: File) {
+  return typeof URL !== 'undefined' && 'createObjectURL' in URL ? URL.createObjectURL(file) : ''
+}
+
+function revokePreviewUrl(url: string) {
+  if (url && typeof URL !== 'undefined' && 'revokeObjectURL' in URL) URL.revokeObjectURL(url)
 }
 
 function AccessPanel({
@@ -176,7 +199,6 @@ function AccessPanel({
     </Box>
   )
 }
-
 export default function PublicGalleryPage() {
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const { slug = '' } = useParams()
@@ -190,7 +212,10 @@ export default function PublicGalleryPage() {
   const [uploading, setUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const [online, setOnline] = useState(() => navigator.onLine)
+  const [activeMedia, setActiveMedia] = useState<PublicMedia | null>(null)
   const abortRef = useRef<AbortController | null>(null)
+  const queuePreviewUrlsRef = useRef<string[]>([])
+  const autoUploadTimerRef = useRef<number | null>(null)
   const validAccessCode = /^[\x20-\x7e]{6,64}$/.test(accessCode)
 
   const enterGallery = async (token: string, code?: string) => {
@@ -257,6 +282,18 @@ export default function PublicGalleryPage() {
     }
   }, [])
 
+  useEffect(() => {
+    queuePreviewUrlsRef.current = queue.map((item) => item.previewUrl).filter(Boolean)
+  }, [queue])
+
+  useEffect(
+    () => () => {
+      if (autoUploadTimerRef.current) window.clearTimeout(autoUploadTimerRef.current)
+      queuePreviewUrlsRef.current.forEach(revokePreviewUrl)
+    },
+    [],
+  )
+
   const selectFiles = (files: FileList | File[] | null) => {
     if (!files) return
     const selected = Array.from(files)
@@ -273,6 +310,8 @@ export default function PublicGalleryPage() {
         file,
         status: error ? 'FAILED' : 'PENDING',
         progress: 0,
+        retryable: false,
+        previewUrl: createPreviewUrl(file),
         error,
       } as QueueFile
     })
@@ -283,10 +322,21 @@ export default function PublicGalleryPage() {
   const updateQueue = (id: string, update: Partial<QueueFile>) =>
     setQueue((current) => current.map((item) => (item.id === id ? { ...item, ...update } : item)))
 
+  const removeQueuedFile = (id: string) => {
+    setQueue((current) => {
+      const removed = current.find((item) => item.id === id)
+      if (removed) revokePreviewUrl(removed.previewUrl)
+      const next = current.filter((item) => item.id !== id)
+      if (next.length === 0) setSessionId(null)
+      return next
+    })
+    setMessage('')
+  }
+
   const uploadOne = async (activeSessionId: string, item: QueueFile, signal: AbortSignal) => {
     updateQueue(item.id, { status: 'UPLOADING', progress: 0, error: undefined })
     try {
-      await uploadApi.uploadFile(
+      const response = await uploadApi.uploadFile(
         slug,
         activeSessionId,
         item.id,
@@ -296,16 +346,63 @@ export default function PublicGalleryPage() {
         },
         signal,
       )
-      updateQueue(item.id, { status: 'STORED', progress: 100 })
+      updateQueue(item.id, {
+        status: queueStatusFromApi(response.data.status),
+        progress: 100,
+        error: response.data.errorCode,
+      })
+      return true
     } catch (error) {
       if (signal.aborted) updateQueue(item.id, { status: 'CANCELLED', progress: 0 })
-      else updateQueue(item.id, { status: 'FAILED', error: apiError(error).message })
+      else
+        updateQueue(item.id, { status: 'FAILED', retryable: true, error: apiError(error).message })
+      return false
+    }
+  }
+
+  const refreshSessionState = async (
+    activeSessionId: string,
+    trackedIds: Set<string>,
+    signal: AbortSignal,
+  ) => {
+    try {
+      for (let attempt = 0; attempt < 8 && !signal.aborted; attempt += 1) {
+        const response = await uploadApi.getSession(slug, activeSessionId)
+        const serverFiles = response.data.files.filter((file) => trackedIds.has(file.clientFileId))
+        setQueue((current) =>
+          current.map((item) => {
+            const serverFile = serverFiles.find((file) => file.clientFileId === item.id)
+            if (!serverFile) return item
+            const nextStatus = queueStatusFromApi(serverFile.status)
+            return {
+              ...item,
+              status: nextStatus,
+              progress:
+                nextStatus === 'PROCESSED' ||
+                nextStatus === 'PROCESSING' ||
+                nextStatus === 'PROCESSING_FAILED' ||
+                nextStatus === 'STORED'
+                  ? 100
+                  : item.progress,
+              error: serverFile.errorCode ?? item.error,
+            }
+          }),
+        )
+        if (serverFiles.every((file) => processingTerminal(queueStatusFromApi(file.status)))) return
+        await new Promise((resolve) => setTimeout(resolve, 500))
+      }
+    } catch {
+      // Status polling is best-effort; the upload result remains visible and retryable.
     }
   }
 
   const startUpload = async () => {
     const pending = queue.filter((item) => item.status === 'PENDING')
     if (!pending.length || uploading) return
+    if (autoUploadTimerRef.current) {
+      window.clearTimeout(autoUploadTimerRef.current)
+      autoUploadTimerRef.current = null
+    }
     setUploading(true)
     setMessage('')
     const controller = new AbortController()
@@ -324,13 +421,32 @@ export default function PublicGalleryPage() {
         setSessionId(activeSessionId)
       }
       let nextFile = 0
+      const failedIds = new Set<string>()
       const worker = async () => {
         while (nextFile < pending.length) {
           const item = pending[nextFile++]
-          await uploadOne(activeSessionId!, item, controller.signal)
+          const uploaded = await uploadOne(activeSessionId!, item, controller.signal)
+          if (!uploaded) failedIds.add(item.id)
         }
       }
       await Promise.all(Array.from({ length: Math.min(3, pending.length) }, () => worker()))
+      if (controller.signal.aborted) return
+      await refreshSessionState(
+        activeSessionId,
+        new Set(pending.map((item) => item.id)),
+        controller.signal,
+      )
+      if (controller.signal.aborted) return
+      const latestGallery = await publicAccessApi.get(slug)
+      setGallery(latestGallery.data)
+      setQueue((current) => {
+        const next = current.filter((item) => failedIds.has(item.id))
+        current
+          .filter((item) => !failedIds.has(item.id))
+          .forEach((item) => revokePreviewUrl(item.previewUrl))
+        if (next.length === 0) setSessionId(null)
+        return next
+      })
     } catch (error) {
       setMessage(apiError(error).message)
     } finally {
@@ -339,8 +455,41 @@ export default function PublicGalleryPage() {
     }
   }
 
-  const retryFile = (id: string) =>
-    updateQueue(id, { status: 'PENDING', progress: 0, error: undefined })
+  const retryFile = (id: string) => {
+    const item = queue.find((candidate) => candidate.id === id)
+    if (!item?.retryable) return
+    const error = fileValidation(item.file)
+    updateQueue(id, {
+      status: error ? 'FAILED' : 'PENDING',
+      progress: 0,
+      retryable: !error,
+      error: error ?? undefined,
+    })
+  }
+
+  useEffect(() => {
+    if (autoUploadTimerRef.current) {
+      window.clearTimeout(autoUploadTimerRef.current)
+      autoUploadTimerRef.current = null
+    }
+    if (
+      !gallery?.uploadEnabled ||
+      uploading ||
+      !online ||
+      !queue.some((item) => item.status === 'PENDING')
+    ) {
+      return
+    }
+    autoUploadTimerRef.current = window.setTimeout(() => {
+      autoUploadTimerRef.current = null
+      void startUpload()
+    }, 450)
+    return () => {
+      if (autoUploadTimerRef.current) window.clearTimeout(autoUploadTimerRef.current)
+    }
+    // startUpload intentionally stays out of deps; this effect reacts to queue state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gallery?.uploadEnabled, online, queue, uploading])
 
   const cancelUpload = async () => {
     abortRef.current?.abort()
@@ -352,7 +501,11 @@ export default function PublicGalleryPage() {
       }
     }
     setQueue((current) =>
-      current.map((item) => (item.status === 'STORED' ? item : { ...item, status: 'CANCELLED' })),
+      current.map((item) =>
+        ['STORED', 'PROCESSING', 'PROCESSED', 'PROCESSING_FAILED'].includes(item.status)
+          ? item
+          : { ...item, status: 'CANCELLED' },
+      ),
     )
     setUploading(false)
   }
@@ -367,7 +520,7 @@ export default function PublicGalleryPage() {
         sx={{ minHeight: '100dvh', alignItems: 'center', justifyContent: 'center' }}
       >
         <CircularProgress aria-label="Opening gallery" />
-        <Typography color="text.secondary">Opening this private gallery…</Typography>
+        <Typography color="text.secondary">Opening this private galleryâ€¦</Typography>
       </Stack>
     )
   }
@@ -400,11 +553,17 @@ export default function PublicGalleryPage() {
     )
   }
 
-  const storedCount = queue.filter((item) => item.status === 'STORED').length
-  const failedCount = queue.filter((item) => item.status === 'FAILED').length
+  const uploadedCount = queue.filter((item) =>
+    ['STORED', 'PROCESSING', 'PROCESSED', 'PROCESSING_FAILED'].includes(item.status),
+  ).length
+  const processingCount = queue.filter((item) => item.status === 'PROCESSING').length
+  const failedCount = queue.filter((item) =>
+    ['FAILED', 'PROCESSING_FAILED'].includes(item.status),
+  ).length
   const totalProgress = queue.length
     ? Math.round(queue.reduce((total, item) => total + item.progress, 0) / queue.length)
     : 0
+  const publicMedia = gallery.media ?? []
 
   return (
     <Box component="main" sx={{ minHeight: '100dvh', pb: 6 }}>
@@ -509,7 +668,7 @@ export default function PublicGalleryPage() {
                         component="label"
                         variant="contained"
                         size="large"
-                        disabled={uploading || sessionId !== null || queue.length >= 50 || !online}
+                        disabled={uploading || queue.length >= 50 || !online}
                       >
                         Choose files
                         <input
@@ -550,83 +709,183 @@ export default function PublicGalleryPage() {
                           />
                         </Stack>
                       </Paper>
-                      <Stack
+                      <Box
                         component="ul"
-                        spacing={1.5}
                         aria-label="Upload queue"
-                        sx={{ p: 0, m: 0, listStyle: 'none' }}
+                        sx={{
+                          display: 'grid',
+                          gridTemplateColumns: {
+                            xs: 'repeat(2, minmax(0, 1fr))',
+                            sm: 'repeat(3, minmax(0, 1fr))',
+                          },
+                          gap: 1.5,
+                          p: 0,
+                          m: 0,
+                          listStyle: 'none',
+                        }}
                       >
                         {queue.map((item) => (
-                          <Paper
+                          <Box
                             component="li"
                             key={item.id}
-                            variant="outlined"
-                            sx={{ p: 2, minWidth: 0 }}
+                            sx={{
+                              position: 'relative',
+                              overflow: 'hidden',
+                              borderRadius: 1,
+                              aspectRatio: '1',
+                              bgcolor: 'action.hover',
+                              border: '1px solid',
+                              borderColor:
+                                item.status === 'FAILED' || item.status === 'PROCESSING_FAILED'
+                                  ? 'error.main'
+                                  : 'divider',
+                            }}
                           >
-                            <Stack spacing={1.25}>
-                              <Stack
-                                direction={{ xs: 'column', sm: 'row' }}
-                                spacing={1}
+                            {item.previewUrl && item.file.type.startsWith('image/') ? (
+                              <Box
+                                component="img"
+                                src={item.previewUrl}
+                                alt={item.file.name}
                                 sx={{
-                                  justifyContent: 'space-between',
-                                  alignItems: { sm: 'center' },
-                                  minWidth: 0,
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
+                                  filter:
+                                    item.status === 'PENDING' ||
+                                    item.status === 'UPLOADING' ||
+                                    item.status === 'PROCESSING'
+                                      ? 'blur(8px)'
+                                      : 'none',
+                                  transform:
+                                    item.status === 'PENDING' ||
+                                    item.status === 'UPLOADING' ||
+                                    item.status === 'PROCESSING'
+                                      ? 'scale(1.04)'
+                                      : 'none',
+                                  transition: 'filter 180ms ease, transform 180ms ease',
+                                }}
+                              />
+                            ) : item.previewUrl && item.file.type === 'video/mp4' ? (
+                              <Box
+                                component="video"
+                                src={item.previewUrl}
+                                muted
+                                playsInline
+                                sx={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
+                                  filter: item.status === 'PROCESSED' ? 'none' : 'blur(8px)',
+                                  transform: item.status === 'PROCESSED' ? 'none' : 'scale(1.04)',
+                                }}
+                              />
+                            ) : (
+                              <Box
+                                sx={{
+                                  width: '100%',
+                                  height: '100%',
+                                  display: 'grid',
+                                  placeItems: 'center',
+                                  color: 'text.secondary',
+                                  fontWeight: 800,
                                 }}
                               >
-                                <Box sx={{ minWidth: 0 }}>
-                                  <Typography
-                                    sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}
-                                    title={item.file.name}
-                                  >
-                                    {item.file.name}
-                                  </Typography>
-                                  <Typography variant="body2" color="text.secondary">
-                                    {(item.file.size / (1024 * 1024)).toFixed(1)} MiB
-                                  </Typography>
-                                </Box>
-                                <Chip
-                                  size="small"
-                                  label={statusCopy[item.status]}
-                                  color={
-                                    item.status === 'STORED'
-                                      ? 'success'
-                                      : item.status === 'FAILED'
-                                        ? 'error'
-                                        : item.status === 'UPLOADING'
-                                          ? 'primary'
-                                          : 'default'
-                                  }
+                                {item.file.type === 'video/mp4' ? 'MP4' : 'IMG'}
+                              </Box>
+                            )}
+                            {(item.status === 'PENDING' ||
+                              item.status === 'UPLOADING' ||
+                              item.status === 'PROCESSING') && (
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  inset: 0,
+                                  display: 'grid',
+                                  placeItems: 'center',
+                                  bgcolor: 'rgba(0,0,0,.25)',
+                                }}
+                              >
+                                <CircularProgress
+                                  size={34}
+                                  thickness={5}
+                                  aria-label={`Adding ${item.file.name}`}
+                                  sx={{ color: 'common.white' }}
                                 />
-                              </Stack>
-                              {(item.status === 'UPLOADING' || item.status === 'STORED') && (
-                                <LinearProgress
-                                  variant="determinate"
-                                  value={item.progress}
-                                  aria-label={`Upload progress for ${item.file.name}`}
-                                />
-                              )}
-                              {item.error && (
-                                <Alert
-                                  severity="error"
-                                  action={
-                                    <Button color="inherit" onClick={() => retryFile(item.id)}>
-                                      Retry
-                                    </Button>
-                                  }
-                                >
+                              </Box>
+                            )}
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                p: 1,
+                                color: 'common.white',
+                                background: 'linear-gradient(0deg, rgba(0,0,0,.72), rgba(0,0,0,0))',
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  display: 'block',
+                                  fontWeight: 800,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                                title={item.file.name}
+                              >
+                                {item.file.name}
+                              </Typography>
+                              {item.status === 'FAILED' && (
+                                <Typography variant="caption" role="alert">
                                   {item.error}
-                                </Alert>
+                                </Typography>
                               )}
-                            </Stack>
-                          </Paper>
+                            </Box>
+                            {!uploading &&
+                              ['PENDING', 'FAILED', 'CANCELLED'].includes(item.status) && (
+                                <IconButton
+                                  aria-label={`Remove ${item.file.name}`}
+                                  color="error"
+                                  size="small"
+                                  onClick={() => removeQueuedFile(item.id)}
+                                  sx={{
+                                    position: 'absolute',
+                                    top: 8,
+                                    right: 8,
+                                    width: 34,
+                                    height: 34,
+                                    bgcolor: 'rgba(255,255,255,.9)',
+                                    color: 'error.main',
+                                    fontWeight: 900,
+                                    '&:hover': { bgcolor: 'common.white' },
+                                  }}
+                                >
+                                  X
+                                </IconButton>
+                              )}
+                            {item.error && item.status === 'FAILED' && item.retryable && (
+                              <Button
+                                variant="contained"
+                                size="small"
+                                onClick={() => retryFile(item.id)}
+                                sx={{ position: 'absolute', top: 8, left: 8, minWidth: 0 }}
+                              >
+                                Try again
+                              </Button>
+                            )}
+                          </Box>
                         ))}
-                      </Stack>
+                      </Box>
                     </Stack>
                   )}
 
                   {queue.length > 0 && (
                     <Typography aria-live="polite" role="status">
-                      {storedCount} uploaded{failedCount ? `, ${failedCount} failed` : ''}.
+                      {uploadedCount} added
+                      {processingCount ? `, ${processingCount} getting ready` : ''}
+                      {failedCount ? `, ${failedCount} need attention` : ''}.
                     </Typography>
                   )}
 
@@ -655,7 +914,7 @@ export default function PublicGalleryPage() {
                           }
                           sx={{ flex: 1 }}
                         >
-                          {uploading ? 'Uploading…' : 'Upload pending files'}
+                          {uploading ? 'Adding...' : 'Add now'}
                         </Button>
                         {uploading && (
                           <Button
@@ -666,20 +925,6 @@ export default function PublicGalleryPage() {
                             Cancel upload
                           </Button>
                         )}
-                        {!uploading &&
-                          sessionId &&
-                          !queue.some((item) => item.status === 'PENDING') && (
-                            <Button
-                              variant="outlined"
-                              onClick={() => {
-                                setQueue([])
-                                setSessionId(null)
-                                setMessage('')
-                              }}
-                            >
-                              Start another batch
-                            </Button>
-                          )}
                       </Stack>
                     </Box>
                   )}
@@ -687,8 +932,130 @@ export default function PublicGalleryPage() {
               </CardContent>
             </Card>
           )}
+          <Card>
+            <CardContent sx={{ p: { xs: 2, sm: 4 }, '&:last-child': { pb: { xs: 2, sm: 4 } } }}>
+              <Stack spacing={2}>
+                <Box>
+                  <Typography component="h2" variant="h3">
+                    Gallery
+                  </Typography>
+                  <Typography color="text.secondary" sx={{ mt: 1 }}>
+                    Photos and videos added by guests appear here as the story grows.
+                  </Typography>
+                </Box>
+                {publicMedia.length === 0 ? (
+                  <Typography color="text.secondary">
+                    No photos or videos have been added yet.
+                  </Typography>
+                ) : (
+                  <Box
+                    component="ul"
+                    aria-label="Gallery media"
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: {
+                        xs: 'repeat(2, minmax(0, 1fr))',
+                        sm: 'repeat(3, minmax(0, 1fr))',
+                      },
+                      gap: 1.5,
+                      p: 0,
+                      m: 0,
+                      listStyle: 'none',
+                    }}
+                  >
+                    {publicMedia.map((item) => (
+                      <Box
+                        component="li"
+                        key={item.id}
+                        sx={{
+                          minWidth: 0,
+                          aspectRatio: '1',
+                          borderRadius: 1,
+                          overflow: 'hidden',
+                          bgcolor: 'action.hover',
+                        }}
+                      >
+                        <Button
+                          onClick={() => setActiveMedia(item)}
+                          aria-label={`Open ${item.fileName}`}
+                          sx={{
+                            width: '100%',
+                            height: '100%',
+                            p: 0,
+                            display: 'block',
+                            borderRadius: 0,
+                            textAlign: 'inherit',
+                          }}
+                        >
+                          {item.mediaType === 'VIDEO' ? (
+                            <Box
+                              component="video"
+                              src={item.contentUrl}
+                              muted
+                              playsInline
+                              preload="metadata"
+                              sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          ) : (
+                            <Box
+                              component="img"
+                              src={item.thumbnailUrl}
+                              alt={item.fileName}
+                              loading="lazy"
+                              sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          )}
+                        </Button>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </Stack>
+            </CardContent>
+          </Card>
         </Stack>
       </Container>
+      <Dialog
+        open={activeMedia !== null}
+        onClose={() => setActiveMedia(null)}
+        fullWidth
+        maxWidth="md"
+      >
+        {activeMedia && (
+          <>
+            <DialogTitle sx={{ pr: 2 }}>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+              >
+                <Typography component="span" sx={{ overflowWrap: 'anywhere' }}>
+                  {activeMedia.fileName}
+                </Typography>
+                <Button onClick={() => setActiveMedia(null)}>Close</Button>
+              </Stack>
+            </DialogTitle>
+            <DialogContent sx={{ p: { xs: 1, sm: 2 } }}>
+              {activeMedia.mediaType === 'VIDEO' ? (
+                <Box
+                  component="video"
+                  src={activeMedia.contentUrl}
+                  controls
+                  autoPlay
+                  sx={{ width: '100%', maxHeight: '78dvh', bgcolor: 'common.black' }}
+                />
+              ) : (
+                <Box
+                  component="img"
+                  src={activeMedia.contentUrl}
+                  alt={activeMedia.fileName}
+                  sx={{ width: '100%', maxHeight: '78dvh', objectFit: 'contain', display: 'block' }}
+                />
+              )}
+            </DialogContent>
+          </>
+        )}
+      </Dialog>
     </Box>
   )
 }

@@ -69,9 +69,12 @@ describe('domain API contracts', () => {
     galleriesApi.rotateAccessToken('event-1', 'gallery-1')
     galleriesApi.setAccessCode('event-1', 'gallery-1', 'secret-code')
     galleriesApi.removeAccessCode('event-1', 'gallery-1')
+    galleriesApi.media('event-1', 'gallery-1')
+    const downloadUrl = galleriesApi.downloadUrl('event-1', 'gallery-1')
 
     const base = 'events/event-1/galleries/gallery-1'
     expect(api.get).toHaveBeenCalledWith('events/event-1/galleries')
+    expect(api.get).toHaveBeenCalledWith(`${base}/media`)
     expect(api.post).toHaveBeenCalledWith('events/event-1/galleries', write)
     expect(api.put).toHaveBeenCalledWith(base, write)
     expect(api.post).toHaveBeenCalledWith(`${base}/archive`)
@@ -81,6 +84,7 @@ describe('domain API contracts', () => {
     expect(api.post).toHaveBeenCalledWith(`${base}/access-token/rotate`)
     expect(api.put).toHaveBeenCalledWith(`${base}/access-code`, { accessCode: 'secret-code' })
     expect(api.delete).toHaveBeenCalledWith(`${base}/access-code`)
+    expect(downloadUrl).toBe('/api/events/event-1/galleries/gallery-1/download')
   })
 
   it('encodes public slugs and sends the access grant only in the request body', () => {

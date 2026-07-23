@@ -1,7 +1,15 @@
 import api from './api'
 
 export type UploadFileStatus =
-  'PENDING' | 'RECEIVING' | 'STORED' | 'FAILED' | 'CANCELLED' | 'CLEANUP_REQUIRED'
+  | 'PENDING'
+  | 'RECEIVING'
+  | 'STORED'
+  | 'PROCESSING'
+  | 'PROCESSED'
+  | 'PROCESSING_FAILED'
+  | 'FAILED'
+  | 'CANCELLED'
+  | 'CLEANUP_REQUIRED'
 
 export interface UploadManifestFile {
   clientFileId: string
@@ -27,7 +35,7 @@ export interface UploadSession {
 
 export interface UploadResult {
   clientFileId: string
-  status: 'STORED'
+  status: UploadFileStatus
   detectedContentType?: string
   size?: number
   checksumSha256?: string

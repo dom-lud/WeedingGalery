@@ -38,7 +38,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 | Public access | `PUBLIC-001` | `DONE` | Slug, rotowany token, kod i grant sesyjny; QR pozostaje w `QR-001`. |
 | Upload | `UPLOAD-001`, `UPLOAD-002` | `DONE` | Wieloplikowy upload, manifest, retry, cancel, status, limity i idempotency; chunks są przyszłym rozszerzeniem. |
 | Storage | `STORAGE-001` | `DONE` | Abstrakcja i bezpieczny zapis lokalny; publiczny odczyt/signed links należą do `DOWNLOAD-001`. |
-| Media processing | `MEDIA-001` | `ANALYSIS` | Najbliższy etap; wymaga zaakceptowania ADR 0004 i ADR 0007 oraz wyboru mechanizmu jobów. |
+| Media processing | `MEDIA-001` | `DONE` | Pierwsza iteracja: trwale joby DB, in-process worker, statusy processingu, retry oraz miniatura `SMALL` dla obrazow obslugiwanych przez runtime. |
 | Moderacja | `MOD-001` | `DEFERRED` | Oczekuje na `MEDIA-001` i publiczne listowanie mediów. |
 | Download | `DOWNLOAD-001` | `ANALYSIS` | Trzeba rozstrzygnąć streaming vs signed links i zaakceptować ADR 0009. |
 | Personalizacja | `CUSTOM-001` | `IDEA` | Oczekuje na publiczny widok galerii z Etapu 7. |
@@ -277,6 +277,8 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Dokumenty powiązane: [../backend/MEDIA_PROCESSING.md](../backend/MEDIA_PROCESSING.md), [../architecture/BACKGROUND_JOBS.md](../architecture/BACKGROUND_JOBS.md).
 - Status początkowy: `IDEA`.
 - ADR wymagany: tak.
+
+- Status aktualny: `DONE` dla pierwszej iteracji Etapu 6 (`MEDIA-001`): trwale joby DB, worker, retry, statusy processingu i miniatura `SMALL`; rozszerzenia typu pelne preview wideo i admin retry pozostaja poza zakresem.
 
 ## MODERATION
 ### MOD-001 - Moderacja materiałów i statusy publikacji

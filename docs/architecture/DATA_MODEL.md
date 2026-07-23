@@ -85,6 +85,7 @@ Opisuje docelowy model danych, główne encje, relacje, indeksy i zasady ownersh
 - Indeksy: `(upload_session_id, status)`, `(gallery_id, status, stored_at)`, unikalny `storage_key` oraz unikalny `(upload_session_id, client_file_id)`.
 
 ### MediaProcessingJob
+- Uwaga Etapu 6: startowy model joba powinien dodac `max_attempts`, `locked_at`, `locked_by`, `updated_at` i `version`; unikalnosc `(media_file_id, job_type)` broni idempotencji, a indeksy `(status, scheduled_at)` i `(status, locked_at)` wspieraja claim workera oraz odzyskiwanie porzuconych lockow.
 - Przeznaczenie: zadanie przetwarzania mediów.
 - Pola: `id`, `media_file_id`, `job_type`, `status`, `attempt_count`, `last_error_code`, `last_error_message`, `scheduled_at`, `started_at`, `finished_at`, `created_at`.
 - Indeksy: `(status, scheduled_at)`, `(media_file_id, job_type)`.

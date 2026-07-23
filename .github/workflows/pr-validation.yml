@@ -365,6 +365,7 @@ jobs:
               return artifact ? `${runUrl}/artifacts/${artifact.id}` : null;
             };
             const reportLinks = [
+              ['GitHub Pages: quality dashboard', report.links?.qualityDashboardUrl],
               ['Backend: JaCoCo + Surefire', artifactUrl('backend-coverage')],
               ['Frontend: coverage + Vitest JSON', artifactUrl('frontend-coverage')],
               ['Playwright: HTML report + traces', artifactUrl('playwright-report')],

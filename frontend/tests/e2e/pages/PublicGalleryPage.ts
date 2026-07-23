@@ -18,6 +18,12 @@ export class PublicGalleryPage {
   }
 
   async uploadPng(name: string) {
+    const uploadResponse = this.page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes('/upload-sessions/') &&
+        response.url().includes('/files/'),
+    )
     await this.page.locator('input[type="file"]').setInputFiles({
       name,
       mimeType: 'image/png',
@@ -26,7 +32,10 @@ export class PublicGalleryPage {
         'base64',
       ),
     })
-    await this.page.getByRole('button', { name: 'Upload pending files' }).click()
-    await expect(this.page.getByText('1 uploaded.')).toBeVisible()
+    expect((await uploadResponse).status()).toBe(200)
+    await expect(this.page.getByRole('button', { name: `Open ${name}` })).toBeVisible({
+      timeout: 15_000,
+    })
+    await expect(this.page.getByText('Your upload queue is empty.')).toBeVisible()
   }
 }

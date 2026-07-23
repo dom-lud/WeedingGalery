@@ -33,6 +33,7 @@ import pl.backend.weddinggallery.event.repository.EventRepository;
 import pl.backend.weddinggallery.gallery.model.*;
 import pl.backend.weddinggallery.gallery.repository.GalleryRepository;
 import pl.backend.weddinggallery.media.repository.MediaFileRepository;
+import pl.backend.weddinggallery.media.repository.MediaProcessingJobRepository;
 import pl.backend.weddinggallery.membership.repository.EventMembershipRepository;
 import pl.backend.weddinggallery.publicaccess.repository.GalleryAccessRepository;
 import pl.backend.weddinggallery.storage.StorageService;
@@ -62,6 +63,8 @@ class PublicGalleryUploadFlowIntegrationTest {
 	@Autowired
 	private MediaFileRepository media;
 	@Autowired
+	private MediaProcessingJobRepository processingJobs;
+	@Autowired
 	private AuditEventRepository audit;
 	@Autowired
 	private PasswordEncoder passwords;
@@ -79,6 +82,7 @@ class PublicGalleryUploadFlowIntegrationTest {
 			if (storage.exists(file.getStorageKey()))
 				storage.delete(file.getStorageKey());
 		});
+		processingJobs.deleteAll();
 		media.deleteAll();
 		sessions.deleteAll();
 		accesses.deleteAll();
@@ -197,13 +201,35 @@ class PublicGalleryUploadFlowIntegrationTest {
 
 		assertThat(guest.multipart(sessionsPath + "/" + sessionId + "/files/good", "good.jpg", "image/jpeg", jpeg, true)
 				.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(processingJobs.count()).isEqualTo(1);
+		var uploadedMedia = media.findByUploadSessionIdAndClientFileId(sessionId, "good").orElseThrow();
+		assertThat(uploadedMedia.getStatus().name()).isEqualTo("PROCESSING");
+		ResponseEntity<String> publicGalleryAfterUpload = guest.json(HttpMethod.GET, "/api/public/galleries/" + slug,
+				null, false, Map.of());
+		assertThat(publicGalleryAfterUpload.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(publicGalleryAfterUpload.getBody()).contains("\"media\"", "good.jpg", "thumbnailUrl", "contentUrl")
+				.doesNotContain("storageKey", "checksumSha256");
+		ResponseEntity<String> publicContent = guest.json(HttpMethod.GET,
+				"/api/public/galleries/" + slug + "/media/" + uploadedMedia.getId() + "/content", null, false,
+				Map.of());
+		assertThat(publicContent.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(publicContent.getHeaders().getContentType()).isEqualTo(MediaType.IMAGE_JPEG);
+		ResponseEntity<String> ownerMedia = owner.json(HttpMethod.GET, management + "/media", null, false, Map.of());
+		assertThat(ownerMedia.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(ownerMedia.getBody()).contains("good.jpg", "thumbnailUrl", "contentUrl").doesNotContain("storageKey",
+				"checksumSha256");
+		ResponseEntity<String> ownerDownload = owner.json(HttpMethod.GET, management + "/download", null, false,
+				Map.of());
+		assertThat(ownerDownload.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(ownerDownload.getHeaders().getContentType()).isEqualTo(MediaType.parseMediaType("application/zip"));
+		assertThat(ownerDownload.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION)).contains(".zip");
 		ResponseEntity<String> spoofed = guest.multipart(sessionsPath + "/" + sessionId + "/files/spoofed",
 				"spoofed.jpg", "image/jpeg", "text".getBytes(), true);
 		assertThat(spoofed.getStatusCode().value()).isEqualTo(422);
 		assertThat(string(spoofed, "code")).isEqualTo("UPLOAD_CONTENT_MISMATCH");
 		ResponseEntity<String> state = guest.json(HttpMethod.GET, sessionsPath + "/" + sessionId, null, false,
 				Map.of());
-		assertThat(state.getBody()).contains("STORED", "FAILED").doesNotContain("storageKey");
+		assertThat(state.getBody()).contains("PROCESSING", "FAILED").doesNotContain("storageKey");
 		assertThat(guest.json(HttpMethod.POST, sessionsPath + "/" + sessionId + "/cancel", null, true, Map.of())
 				.getStatusCode()).isEqualTo(HttpStatus.OK);
 

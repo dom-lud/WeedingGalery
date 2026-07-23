@@ -23,6 +23,7 @@ import pl.backend.weddinggallery.gallery.model.Gallery;
 import pl.backend.weddinggallery.gallery.repository.GalleryRepository;
 import pl.backend.weddinggallery.media.model.*;
 import pl.backend.weddinggallery.media.repository.MediaFileRepository;
+import pl.backend.weddinggallery.media.service.MediaProcessingJobService;
 import pl.backend.weddinggallery.publicaccess.model.GalleryAccess;
 import pl.backend.weddinggallery.publicaccess.repository.GalleryAccessRepository;
 import pl.backend.weddinggallery.publicaccess.service.*;
@@ -50,6 +51,8 @@ class UploadServiceTest {
 	@Mock
 	StorageService storage;
 	@Mock
+	MediaProcessingJobService processingJobs;
+	@Mock
 	TokenService tokens;
 	@Mock
 	AuditService audit;
@@ -65,8 +68,8 @@ class UploadServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		service = new UploadService(sessions, media, galleries, accesses, grants, validator, storage, tokens, audit,
-				transactions);
+		service = new UploadService(sessions, media, galleries, accesses, grants, validator, storage, processingJobs,
+				tokens, audit, transactions);
 		ReflectionTestUtils.setField(service, "maxSessionBytes", 100L);
 		ReflectionTestUtils.setField(service, "maxActiveSessions", 3);
 		ReflectionTestUtils.setField(service, "galleryQuotaBytes", 200L);
@@ -193,6 +196,13 @@ class UploadServiceTest {
 		assertThat(service.upload("slug", "session", "file", mock(MultipartFile.class), httpSession).size())
 				.isEqualTo(9);
 
+		file.setStatus(MediaStatus.PROCESSED);
+		assertThat(service.upload("slug", "session", "file", mock(MultipartFile.class), httpSession).status())
+				.isEqualTo(MediaStatus.PROCESSED);
+		file.setStatus(MediaStatus.PROCESSING_FAILED);
+		assertThat(service.upload("slug", "session", "file", mock(MultipartFile.class), httpSession).status())
+				.isEqualTo(MediaStatus.PROCESSING_FAILED);
+
 		file.setStatus(MediaStatus.RECEIVING);
 		assertCode(() -> service.upload("slug", "session", "file", mock(MultipartFile.class), httpSession),
 				UploadErrorCode.UPLOAD_IN_PROGRESS);
@@ -221,8 +231,9 @@ class UploadServiceTest {
 		when(storage.save(eq("object-key"), any(), eq(100L))).thenReturn(new StoredObject(10, "checksum"));
 
 		assertThat(service.upload("slug", "session", "file", multipart, httpSession).status())
-				.isEqualTo(MediaStatus.STORED);
+				.isEqualTo(MediaStatus.PROCESSING);
 		assertThat(session.getStatus()).isEqualTo(UploadSessionStatus.COMPLETED);
+		verify(processingJobs).enqueue(file);
 
 		file.setStatus(MediaStatus.PENDING);
 		session.setStatus(UploadSessionStatus.OPEN);

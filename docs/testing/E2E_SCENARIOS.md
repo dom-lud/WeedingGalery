@@ -161,3 +161,24 @@ Ten dokument gromadzi i opisuje zaplanowane scenariusze testow End-to-End (E2E) 
 - `backend`: integracyjny public access + upload z realna sesja, CSRF, MySQL-compatible Flyway, grant isolation, expiry cleanup i negatywne formaty.
 - `frontend`: testy komponentu publicznego entrypointu, kodu, kolejki, retry i uploadu.
 - `frontend/tests/e2e/public-gallery-upload.spec.ts`: owner publikuje galerie, a guest w nowym kontekscie wgrywa poprawny PNG przez Nginx.
+
+## Modul: Przetwarzanie mediow (Etap 6)
+
+### 1. Upload obrazu i status processingu
+**Krytycznosc:** Krytyczna
+- Owner publikuje galerie z uploadem, a guest uzyskuje grant publiczny.
+- Guest uploaduje poprawny PNG przez standardowy flow public upload.
+- Backend zapisuje oryginal i tworzy job processingu poza watkiem requestu.
+- UI pokazuje status `PROCESSING`, a nastepnie `PROCESSED` albo kontrolowany stan oczekiwania, bez ujawniania sciezek storage.
+- Replay uploadu po sukcesie nie tworzy drugiego pliku ani drugiego joba.
+
+### 2. Blad processingu bez utraty oryginalu
+**Krytycznosc:** Wysoka
+- Symulowany blad generowania miniatury konczy plik statusem `PROCESSING_FAILED`.
+- Oryginal pozostaje zapisany, `MEDIA_STORED` pozostaje prawdziwe, a komunikat bledu nie zawiera sciezki storage.
+- Pozostale pliki w tej samej sesji nie sa blokowane przez blad jednego pliku.
+
+### Stan automatyzacji
+- Stan obecny: statusy processingu sa pokryte testem komponentu frontendu, a upload -> job jest pokryty integracyjnie w backendzie.
+- Do dodania przed Etapem 7: rozszerzenie `frontend/tests/e2e/public-gallery-upload.spec.ts` albo osobny spec processingu uruchamiany na Docker Compose po przebudowaniu backendu.
+- Wymagane jest oddzielne pokrycie integracyjne workerow i migracji; E2E nie zastapi testow retry, lockow i idempotencji jobow.

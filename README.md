@@ -6,7 +6,7 @@ Glowny punkt wejscia do repozytorium i dokumentacji projektowej planowanej platf
 ## Status dokumentu
 - Status: draft
 - Zakres: opis repozytorium, wizji produktu i mapy dokumentacji
-- Ostatnia aktualizacja: 2026-07-20
+- Ostatnia aktualizacja: 2026-07-21
 
 ## Stan obecny
 - Repozytorium zawiera backend Spring Boot, frontend React/Vite oraz podstawowe pliki uruchomieniowe dla Dockera i Nginx.
@@ -16,7 +16,7 @@ Glowny punkt wejscia do repozytorium i dokumentacji projektowej planowanej platf
 - Etap 4 jest domkniety w zakresie `GALLERY-001`: wiele galerii na wydarzenie ma bezpieczne management API, stabilne slugi, kolejnosc, lifecycle, soft delete, audyt oraz flow UI/E2E dla ownera i managera.
 - Etap 4B jest domkniety w zakresie `GALLERY-002` i `PUBLIC-001`: owner i manager konfiguruja publikacje, token i opcjonalny kod, a gosc uzyskuje ograniczony grant sesyjny do jednej galerii.
 - Etap 5 jest domkniety w zakresie `UPLOAD-001`, minimalnego `UPLOAD-002` i uploadowej czesci `STORAGE-001`: dziala bezpieczny upload wieloplikowy do trwalego lokalnego storage przez abstrakcje domenowa.
-- Etap 6 jest nastepnym etapem produktowym i pozostaje w analizie; wymaga domkniecia decyzji o media processingu i background jobs.
+- Etap 6 jest zaimplementowany w pierwszej iteracji `MEDIA-001`: po uploadzie powstaje trwaly job processingu, worker asynchronicznie generuje metadane/miniature dla obrazow obslugiwanych przez runtime, MP4 przechodzi bez preview, a UI pokazuje status `PROCESSING`/`PROCESSED`/`PROCESSING_FAILED`.
 - Produkcyjny baseline CI/Compose/health jest wdrozony, ale backup/restore, alerty, HTTPS rollout i testy obciazeniowe pozostaja do Etapu 13.
 - Nie wszystkie elementy docelowego systemu sa jeszcze zaimplementowane end-to-end.
 
@@ -34,7 +34,7 @@ System sluzy do zbierania, organizowania i bezpiecznego udostepniania zdjec oraz
 - Backend obecnie: Java 25, Spring Boot 4, Spring Security, Spring Data JPA i MySQL.
 - Frontend obecnie: React, TypeScript, Vite i Material UI jako glowny system UI.
 - Identity obecnie: sesje serwerowe, CSRF dla SPA, admin-only tworzenie kont, logout, blokada po blednych logowaniach i podstawowy audyt auth.
-- Domena obecnie: prywatne wydarzenia, role `OWNER`/`MANAGER`, zarzadzanie galeriami, publiczny grant token/kod oraz upload JPEG/PNG/WebP/MP4 z sesjami, idempotencja, limitami i audytem.
+- Domena obecnie: prywatne wydarzenia, role `OWNER`/`MANAGER`, zarzadzanie galeriami, publiczny grant token/kod oraz upload JPEG/PNG/WebP/MP4 z sesjami, idempotencja, limitami, audytem i asynchronicznym processingiem po zapisie.
 - Infrastruktura docelowo: Docker Compose, Nginx, Linux VPS, lokalny storage z mozliwoscia przejscia na storage obiektowy.
 
 ## Mapa dokumentacji
@@ -79,7 +79,7 @@ Aktualna struktura i plan dalszego rozwoju znajduja sie w [docs/architecture/REP
 
 ## Decyzje otwarte
 - Sposob publicznego dostarczania mediow w Etapie 7: streaming backendu albo wygasajace signed links.
-- Konkretny mechanizm background jobs w pierwszej wersji implementacyjnej.
+- Konkretna strategia atomowego claimu jobow na MySQL w pierwszej wersji implementacyjnej.
 - Zakres pierwszego wydania produkcyjnego wzgledem funkcji rozszerzonych.
 
 ## Powiazane dokumenty

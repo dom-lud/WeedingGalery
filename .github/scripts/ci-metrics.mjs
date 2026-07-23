@@ -302,6 +302,8 @@ function markdownReport(report) {
   const duration = (value) => `${(toInt(value) / 1000).toFixed(1)}s`;
   const percent = (value) =>
     pct(value) == null ? "n/a" : `${pct(value).toFixed(2)}%`;
+  const threshold = (value) =>
+    pct(value) == null ? "n/a" : `${pct(value).toFixed(0)}%`;
   const testRow = (name, component) =>
     `| ${name} | ${result(component.result)} | ${toInt(component.tests.passed)} | ${toInt(component.tests.failed) + toInt(component.tests.timedOut)} | ${toInt(component.tests.skipped)} | ${toInt(component.tests.total)} | ${duration(component.tests.durationMs)} |`;
 
@@ -317,7 +319,7 @@ function markdownReport(report) {
     "| --- | ---: | ---: | --- |",
     ...report.gates.items.map(
       (item) =>
-        `| ${item.name} | ${percent(item.actualPct)} | ${item.thresholdPct}% | ${icon(item.passed)} |`,
+        `| ${item.name} | ${percent(item.actualPct)} | ${threshold(item.thresholdPct)} | ${icon(item.passed)} |`,
     ),
     "",
     "### Test results",
@@ -345,6 +347,7 @@ function markdownReport(report) {
     "- Playwright: `playwright-report` artifact",
     "- Allure: `allure-report` artifact with Quality Dashboard link in environment metadata",
     "- Machine report: `quality-report-json` artifact",
+    `- GitHub Pages dashboard: ${report.links?.qualityDashboardUrl ?? "not configured"}`,
   ];
 
   if ((report.e2e.failedTests ?? []).length > 0) {
@@ -423,8 +426,12 @@ function aggregateReport() {
     ),
   ];
   const repository = process.env.GITHUB_REPOSITORY ?? "";
+  const [owner = "", repo = ""] = repository.split("/");
   const runId = process.env.GITHUB_RUN_ID ?? "local";
   const serverUrl = process.env.GITHUB_SERVER_URL ?? "https://github.com";
+  const qualityDashboardUrl =
+    process.env.QUALITY_DASHBOARD_URL ||
+    (owner && repo ? `https://${owner}.github.io/${repo}/` : null);
   const report = {
     schemaVersion: 1,
     run: {
@@ -444,6 +451,9 @@ function aggregateReport() {
     frontend,
     e2e,
     docker: { result: dockerResult },
+    links: {
+      qualityDashboardUrl,
+    },
     gates: {
       passed: gates.every((item) => item.passed),
       items: gates,

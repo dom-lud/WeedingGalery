@@ -177,6 +177,52 @@ describe('Dashboard', () => {
     expect(screen.queryByRole('button', { name: 'Delete event' })).not.toBeInTheDocument()
   })
 
+  it('uses the compact mobile flow to open details and return focus to the event list', async () => {
+    const originalMatchMedia = window.matchMedia
+    const originalRequestAnimationFrame = window.requestAnimationFrame
+    const originalScrollTo = window.scrollTo
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: query.includes('max-width'),
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }))
+    window.requestAnimationFrame = ((callback: FrameRequestCallback) => {
+      callback(0)
+      return 1
+    }) as typeof window.requestAnimationFrame
+    window.scrollTo = vi.fn()
+    const birthday = {
+      ...ownerEvent,
+      id: 'event-2',
+      name: 'Birthday',
+      type: 'BIRTHDAY' as const,
+      eventDate: null,
+      description: null,
+    }
+    vi.mocked(eventsApi.list).mockResolvedValue({ data: [ownerEvent, birthday] } as never)
+
+    try {
+      renderDashboard()
+
+      expect(await screen.findAllByRole('button', { name: 'Manage' })).toHaveLength(2)
+      expect(screen.queryByText('Galleries for Summer Wedding')).not.toBeInTheDocument()
+      fireEvent.click(screen.getAllByRole('button', { name: 'Manage' })[0])
+      expect(await screen.findByText('Galleries for Summer Wedding')).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: 'Back to events' }))
+      expect(screen.queryByText('Galleries for Summer Wedding')).not.toBeInTheDocument()
+      expect(window.scrollTo).toHaveBeenCalled()
+    } finally {
+      window.matchMedia = originalMatchMedia
+      window.requestAnimationFrame = originalRequestAnimationFrame
+      window.scrollTo = originalScrollTo
+    }
+  })
+
   it('delegates logout from the authenticated shell', async () => {
     vi.mocked(eventsApi.list).mockResolvedValue({ data: [] } as never)
     renderDashboard()
