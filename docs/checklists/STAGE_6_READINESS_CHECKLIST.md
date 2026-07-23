@@ -1,9 +1,9 @@
 # Checklista gotowosci i wykonania Etapu 6
 
 ## Status dokumentu
-- Status: implemented-first-iteration
+- Status: completed-first-iteration
 - Zakres: wejscie i wykonanie pierwszej implementacji `MEDIA-001`
-- Ostatnia aktualizacja: 2026-07-21
+- Ostatnia aktualizacja: 2026-07-23
 
 ## Decyzja o subagentach
 - [x] Decyzja podjeta zgodnie z `../development/SUBAGENT_ORCHESTRATION.md`.
@@ -36,8 +36,8 @@
 - [x] Test design brief pozostaje aktualny przed pisaniem testow.
 - [x] Testy unit dla retry/statusow/klasyfikacji bledow.
 - [x] Testy integracyjne upload -> job w dzialajacym backendzie testowym.
-- [ ] Test integracyjny worker -> DB -> storage w pelnym runtime.
-- [ ] Testy MySQL dla migracji i atomowego claimu joba.
+- [x] Test integracyjny worker -> DB -> storage w pelnym runtime.
+- [x] Testy MySQL dla migracji oraz krytycznych ograniczen jobow/thumbnaili.
 - [x] Testy storage failure/kompensacji/braku orphanow na poziomie service.
 - [x] Testy frontendowe statusow processingu.
 - [x] Playwright E2E smoke na Docker Compose dla public upload po zmianie statusow.
@@ -50,3 +50,9 @@
 - Moderacja: Etap 8.
 - Pelne preview/transkodowanie wideo: osobna decyzja po pomiarach.
 - Admin retry endpoint: admin API albo osobny zakres operacyjny.
+
+## Zamkniecie pierwszej iteracji
+- [x] Roadmapa oznacza Etap 6 jako `DONE` dla pierwszej iteracji `MEDIA-001`.
+- [x] Backlog oznacza `MEDIA-001` jako `DONE` dla pierwszej iteracji Etapu 6.
+- [x] Test brief Etapu 6 ma status `completed-first-iteration`.
+- [x] Ostatnia lokalna weryfikacja backendu: `./mvnw.cmd verify`, 115 testow, 0 failures/errors, 1 skip, JaCoCo branch coverage 90.06%.

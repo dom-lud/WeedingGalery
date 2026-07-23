@@ -278,7 +278,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 - Status początkowy: `IDEA`.
 - ADR wymagany: tak.
 
-- Status aktualny: `READY` dla pierwszej iteracji Etapu 6.
+- Status aktualny: `DONE` dla pierwszej iteracji Etapu 6 (`MEDIA-001`): trwale joby DB, worker, retry, statusy processingu i miniatura `SMALL`; rozszerzenia typu pelne preview wideo i admin retry pozostaja poza zakresem.
 
 ## MODERATION
 ### MOD-001 - Moderacja materiałów i statusy publikacji

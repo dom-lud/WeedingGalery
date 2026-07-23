@@ -1,9 +1,9 @@
 # Etap 6 - Test Design Brief
 
 ## Status dokumentu
-- Status: draft
+- Status: completed-first-iteration
 - Zakres: `MEDIA-001`, background jobs i processing mediow
-- Ostatnia aktualizacja: 2026-07-21
+- Ostatnia aktualizacja: 2026-07-23
 
 ## Zakres
 - Trwaly `MediaProcessingJob` tworzony po udanym uploadzie.
@@ -53,9 +53,16 @@
 - Docker Compose rebuild i Playwright E2E dla public upload + processing.
 - Accessibility WCAG A/AA i keyboard/focus dla zmienionych statusow UI.
 
+## Wynik pierwszej iteracji
+- Etap 6 jest zamkniety dla pierwszej iteracji `MEDIA-001`.
+- Backend ma testy workerow processingu, upload -> job, statusow, retry, audytu terminalnego wyniku, storage failure i public/owner preview/download.
+- Migracje i krytyczne ograniczenia jobow/thumbnaili sa weryfikowane na MySQL przez `MySqlFlywayMigrationContractTest`.
+- Ostatnia lokalna weryfikacja backendu: `./mvnw.cmd verify`, 115 testow, 0 failures/errors, 1 skip, JaCoCo branch coverage 90.06%.
+- Powiazane regresje publicznego preview/download i UX uploadu sa opisane w `MEDIA_GALLERY_PREVIEW_DOWNLOAD_TEST_BRIEF.md` oraz `PUBLIC_GALLERY_UPLOAD_REGRESSION_TEST_BRIEF.md`.
+
 ## Nieweryfikowane obszary do jawnego opisania przy implementacji
 - Pelne transkodowanie/preview wideo.
 - Gwarantowany WebP thumbnail bez dodatkowego providera `ImageIO`.
-- Publiczne pobieranie i signed links.
+- Signed links i rozbudowane pobieranie publiczne.
 - Manualny retry przez admin API.
 - Testy obciazeniowe dlugich kolejek processingu poza pierwszym budzetem.
