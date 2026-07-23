@@ -308,6 +308,16 @@ describe('GalleryManager', () => {
           thumbnailUrl: '/api/events/event-1/galleries/gallery-1/media/media-1/thumbnail',
           contentUrl: '/api/events/event-1/galleries/gallery-1/media/media-1/content',
         },
+        {
+          id: 'media-2',
+          fileName: 'first-dance.mp4',
+          mediaType: 'VIDEO',
+          status: 'PROCESSED',
+          size: 1024,
+          uploadedAt: '2026-07-21T12:05:00Z',
+          thumbnailUrl: '/api/events/event-1/galleries/gallery-1/media/media-2/thumbnail',
+          contentUrl: '/api/events/event-1/galleries/gallery-1/media/media-2/content',
+        },
       ],
     } as never)
     renderManager()
@@ -327,6 +337,16 @@ describe('GalleryManager', () => {
     expect(screen.getAllByRole('img', { name: 'ceremony.jpg' }).at(-1)).toHaveAttribute(
       'src',
       '/api/events/event-1/galleries/gallery-1/media/media-1/content',
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    await waitFor(() => expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(1))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open first-dance.mp4' }))
+    const videos = document.querySelectorAll('video')
+    expect(videos).toHaveLength(2)
+    expect(videos[1]).toHaveAttribute(
+      'src',
+      '/api/events/event-1/galleries/gallery-1/media/media-2/content',
     )
   })
 
@@ -383,6 +403,14 @@ describe('GalleryManager', () => {
     fireEvent.change(screen.getByLabelText('Expire at'), {
       target: { value: '2026-09-10T12:01' },
     })
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Moderation' }))
+    fireEvent.click(screen.getByRole('option', { name: 'No review' }))
+    fireEvent.change(screen.getByLabelText('Publish from'), {
+      target: { value: '' },
+    })
+    fireEvent.change(screen.getByLabelText('Expire at'), {
+      target: { value: '' },
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Save access settings' }))
     await waitFor(() =>
       expect(galleriesApi.updateSettings).toHaveBeenCalledWith(
@@ -392,6 +420,9 @@ describe('GalleryManager', () => {
           publicViewEnabled: false,
           uploadEnabled: false,
           downloadEnabled: true,
+          moderationMode: 'NONE',
+          publishedAt: null,
+          expiresAt: null,
           version: 3,
         }),
       ),

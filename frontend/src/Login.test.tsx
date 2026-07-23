@@ -90,6 +90,29 @@ describe('Login form', () => {
     })
   })
 
+  it('keeps login failures readable for string and network errors', async () => {
+    postMock
+      .mockRejectedValueOnce({
+        response: {
+          status: 503,
+          data: 'Service unavailable',
+        },
+      })
+      .mockRejectedValueOnce(new Error('Network down'))
+
+    renderLogin()
+
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'admin@example.com' } })
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
+      target: { value: 'password123' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
+    expect(await screen.findByText('Service unavailable')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
+    expect(await screen.findByText('Login failed')).toBeInTheDocument()
+  })
+
   it('toggles password visibility without losing the current input value', () => {
     renderLogin()
 

@@ -383,6 +383,40 @@ describe('PublicGalleryPage', () => {
     )
   })
 
+  it('opens video media in a lightbox and closes it without leaving stale preview state', async () => {
+    vi.mocked(publicAccessApi.access).mockResolvedValue({
+      data: {
+        ...gallery,
+        media: [
+          {
+            id: 'media-video',
+            fileName: 'first-dance.mp4',
+            mediaType: 'VIDEO',
+            status: 'PROCESSED',
+            size: 2048,
+            uploadedAt: '2026-07-21T12:05:00Z',
+            thumbnailUrl: '/api/public/galleries/reception/media/media-video/thumbnail',
+            contentUrl: '/api/public/galleries/reception/media/media-video/content',
+          },
+        ],
+      },
+    } as never)
+
+    renderPage()
+
+    expect(await screen.findByRole('heading', { name: 'Reception gallery' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Open first-dance.mp4' }))
+    const videos = document.querySelectorAll('video')
+    expect(videos).toHaveLength(2)
+    expect(videos[1]).toHaveAttribute(
+      'src',
+      '/api/public/galleries/reception/media/media-video/content',
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    await waitFor(() => expect(screen.queryByText('first-dance.mp4')).not.toBeInTheDocument())
+    expect(document.querySelectorAll('video')).toHaveLength(1)
+  })
+
   it('caps a batch at fifty files and explains the limit', async () => {
     vi.mocked(publicAccessApi.access).mockResolvedValue({ data: gallery } as never)
     const view = renderPage()

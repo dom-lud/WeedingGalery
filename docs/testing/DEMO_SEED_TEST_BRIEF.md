@@ -24,7 +24,9 @@
 | Admin nie jest gotowy do recznego klikania | Migracja pomija konto admina albo nie ustawia roli `ADMIN` | pelna migracja, konto admina | test kontraktu Flyway |
 | Docker zostawia dwa demo slugi po starszym seedzie | Znany token dziala na innym slugu niz adres uzywany do recznego klikania | migracja V8 kanonizuje slug do `guest-uploads-demo-2945795a` i przepina legacy media/access | test kontraktu Flyway, weryfikacja Docker/MySQL |
 | Manualna rotacja uniewaznia demo smoke | Istniejacy wolumen ma znany token z `revoked_at`, a publiczny access zwraca 404 | migracja V9 podlacza token do kanonicznej galerii i ustawia `revoked_at = NULL` | test kontraktu Flyway, weryfikacja Docker/MySQL |
+| Kontrakt legacy admina jest kruchy na nowe migracje | Test V5 liczy dokladna liczbe migracji po V4 i pada po dodaniu kolejnych seedow, mimo ze credential jest bezpiecznie zablokowany | upgrade z V4 do aktualnej wersji, co najmniej V5 wykonana, legacy admin nadal `BOOTSTRAP_DISABLED` i zablokowany do 2038 | test kontraktu Flyway |
 
 ## Weryfikacja
 - Kontrakt Flyway H2: pelna migracja V1-V9, konta, role, galeria publiczna, access token hash.
+- Kontrakt legacy admina: upgrade bazy z V4 do aktualnej wersji nie zalezy od dokladnej liczby pozniejszych migracji, ale nadal broni zablokowania znanego credentiala.
 - Kontrakt Flyway MySQL: pelna migracja V1-V9 na produkcyjnym silniku, tabele, constraints i seed demo.

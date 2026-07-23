@@ -26,7 +26,7 @@ class LegacyAdminMigrationContractTest {
 		}
 
 		Flyway flyway = Flyway.configure().dataSource(url, "sa", "").locations("classpath:db/migration").load();
-		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(2);
+		assertThat(flyway.migrate().migrationsExecuted).isGreaterThanOrEqualTo(2);
 
 		try (var connection = DriverManager.getConnection(url, "sa", "");
 				var statement = connection.prepareStatement("SELECT password_hash, locked_until FROM users WHERE id = "
