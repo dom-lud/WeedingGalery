@@ -70,3 +70,18 @@ nieoczekiwana kolejnosc akcji.
 - E2E: 15/15 Playwright na zdrowym stacku, w tym auth, ownership, galerie,
   public upload, WCAG A/AA, klawiatura/focus i responsywnosc.
 - Nie dodano wykluczen coverage ani zmian w kodzie produkcyjnym/API.
+
+## Regresja 2026-07-23 - backend branch coverage po etapie public preview/download
+
+CI po 106 zielonych testach zatrzymal backend na bramce JaCoCo branch coverage
+0.86/0.90. Nie obnizamy progu i nie dodajemy testow bez asercji. Raport wskazal
+przede wszystkim `MediaGalleryService`, gdzie nowa logika publicznego i
+zarzadzanego podgladu oraz pobierania galerii nie miala wlasnego testu
+serwisowego.
+
+| Ryzyko | Bledna implementacja do wykrycia | Scenariusze | Warstwa |
+| --- | --- | --- | --- |
+| Publiczny podglad mediow | lista pokazuje pliki bez obiektu w storage albo techniczne/pending wpisy | grant publiczny, widoczny zapisany plik, brak obiektu, status pending, fallback thumbnail->content | JUnit service |
+| Zarzadzany podglad owner/manager | FE dostaje zle URL-e albo thumbnail bez miniatury | dostepna galeria, miniatura SMALL, fallback do oryginalu | JUnit service |
+| Pobieranie galerii przez ownera | manager pobiera ZIP albo nazwy wpisow pozwalaja na slash/control chars | manager denied, owner allowed, nazwa galerii i plikow sanityzowana, plik bez rozszerzenia | JUnit service |
+| Stream zasobow | endpoint zwraca niewlasciwy content type lub zly obiekt | obraz z miniatura, missing thumbnail fallback, video original, missing/hidden/not stored media | JUnit service |
