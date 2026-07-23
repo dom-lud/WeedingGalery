@@ -13,6 +13,7 @@ import pl.backend.weddinggallery.audit.model.EventType;
 import pl.backend.weddinggallery.audit.service.AuditService;
 import pl.backend.weddinggallery.auth.controller.AuthController;
 import pl.backend.weddinggallery.auth.service.AuthService;
+import pl.backend.weddinggallery.media.service.MediaGalleryService;
 import pl.backend.weddinggallery.publicaccess.controller.PublicGalleryController;
 import pl.backend.weddinggallery.publicaccess.dto.*;
 import pl.backend.weddinggallery.publicaccess.service.*;
@@ -26,8 +27,9 @@ class ControllerBoundaryTest {
 	@Test
 	void publicGalleryUsesProxyOnlyWhenPresentAndNonBlank() {
 		GalleryAccessService service = mock(GalleryAccessService.class);
+		MediaGalleryService mediaService = mock(MediaGalleryService.class);
 		PublicRateLimiter limiter = mock(PublicRateLimiter.class);
-		PublicGalleryController controller = new PublicGalleryController(service, limiter);
+		PublicGalleryController controller = new PublicGalleryController(service, mediaService, limiter);
 		PublicAccessRequest body = new PublicAccessRequest("12345678", null);
 		MockHttpSession session = new MockHttpSession();
 		PublicGalleryResponse expected = mock(PublicGalleryResponse.class);

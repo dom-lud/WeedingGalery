@@ -21,6 +21,7 @@ Opisuje aktualny i docelowy model tozsamosci uzytkownika, sesji oraz reguly auto
 - Logowanie zlicza nieudane proby dla istniejacego konta i czasowo blokuje konto po przekroczeniu limitu.
 - Aktualnie zaimplementowane eventy audytowe identity to `ADMIN_BOOTSTRAPPED`, `USER_REGISTERED`, `USER_LOGGED_IN`, `USER_LOGIN_FAILED`, `USER_LOGIN_BLOCKED` oraz `USER_LOGGED_OUT`.
 - Audyt domenowy obejmuje takze `EVENT_CREATED`, `EVENT_UPDATED`, `EVENT_ARCHIVED`, `EVENT_DELETED`, `EVENT_MANAGER_ADDED`, `EVENT_MANAGER_REMOVED` i `EVENT_OWNERSHIP_TRANSFERRED`.
+- Konta demo do recznego klikania sa tworzone przez migracje Flyway V7-V9: `admin@example.com`, `owner@example.com`, `manager@example.com` i `guest-tester@example.com` maja wspolne haslo demo opisane w [../operations/CONFIGURATION.md](../operations/CONFIGURATION.md).
 
 ## Stan docelowy
 - Bezpieczny system uwierzytelniania uzytkownikow oraz oddzielny model dostepu gosci do galerii.

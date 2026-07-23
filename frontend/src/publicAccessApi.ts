@@ -1,5 +1,17 @@
 import api from './api'
 import type { ModerationMode } from './galleriesApi'
+import type { UploadFileStatus } from './uploadApi'
+
+export interface PublicMedia {
+  id: string
+  fileName: string
+  mediaType: 'IMAGE' | 'VIDEO'
+  status: UploadFileStatus
+  size: number | null
+  uploadedAt: string | null
+  thumbnailUrl: string
+  contentUrl: string
+}
 
 export interface PublicGallery {
   slug: string
@@ -10,6 +22,7 @@ export interface PublicGallery {
   moderationMode: ModerationMode
   publishedAt: string | null
   expiresAt: string | null
+  media?: PublicMedia[]
 }
 
 export interface PublicAccessPayload {

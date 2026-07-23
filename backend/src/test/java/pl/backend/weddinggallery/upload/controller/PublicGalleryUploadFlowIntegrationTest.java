@@ -202,8 +202,27 @@ class PublicGalleryUploadFlowIntegrationTest {
 		assertThat(guest.multipart(sessionsPath + "/" + sessionId + "/files/good", "good.jpg", "image/jpeg", jpeg, true)
 				.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(processingJobs.count()).isEqualTo(1);
-		assertThat(media.findByUploadSessionIdAndClientFileId(sessionId, "good").orElseThrow().getStatus().name())
-				.isEqualTo("PROCESSING");
+		var uploadedMedia = media.findByUploadSessionIdAndClientFileId(sessionId, "good").orElseThrow();
+		assertThat(uploadedMedia.getStatus().name()).isEqualTo("PROCESSING");
+		ResponseEntity<String> publicGalleryAfterUpload = guest.json(HttpMethod.GET, "/api/public/galleries/" + slug,
+				null, false, Map.of());
+		assertThat(publicGalleryAfterUpload.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(publicGalleryAfterUpload.getBody()).contains("\"media\"", "good.jpg", "thumbnailUrl", "contentUrl")
+				.doesNotContain("storageKey", "checksumSha256");
+		ResponseEntity<String> publicContent = guest.json(HttpMethod.GET,
+				"/api/public/galleries/" + slug + "/media/" + uploadedMedia.getId() + "/content", null, false,
+				Map.of());
+		assertThat(publicContent.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(publicContent.getHeaders().getContentType()).isEqualTo(MediaType.IMAGE_JPEG);
+		ResponseEntity<String> ownerMedia = owner.json(HttpMethod.GET, management + "/media", null, false, Map.of());
+		assertThat(ownerMedia.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(ownerMedia.getBody()).contains("good.jpg", "thumbnailUrl", "contentUrl").doesNotContain("storageKey",
+				"checksumSha256");
+		ResponseEntity<String> ownerDownload = owner.json(HttpMethod.GET, management + "/download", null, false,
+				Map.of());
+		assertThat(ownerDownload.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(ownerDownload.getHeaders().getContentType()).isEqualTo(MediaType.parseMediaType("application/zip"));
+		assertThat(ownerDownload.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION)).contains(".zip");
 		ResponseEntity<String> spoofed = guest.multipart(sessionsPath + "/" + sessionId + "/files/spoofed",
 				"spoofed.jpg", "image/jpeg", "text".getBytes(), true);
 		assertThat(spoofed.getStatusCode().value()).isEqualTo(422);

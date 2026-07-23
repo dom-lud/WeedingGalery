@@ -20,10 +20,15 @@ import pl.backend.weddinggallery.gallery.exception.GalleryErrorCode;
 import pl.backend.weddinggallery.gallery.model.Gallery;
 import pl.backend.weddinggallery.gallery.model.GalleryStatus;
 import pl.backend.weddinggallery.gallery.repository.GalleryRepository;
+import pl.backend.weddinggallery.media.dto.MediaItemResponse;
+import pl.backend.weddinggallery.media.model.MediaFile;
+import pl.backend.weddinggallery.media.model.MediaStatus;
+import pl.backend.weddinggallery.media.repository.MediaFileRepository;
 import pl.backend.weddinggallery.membership.model.EventRole;
 import pl.backend.weddinggallery.publicaccess.dto.*;
 import pl.backend.weddinggallery.publicaccess.model.GalleryAccess;
 import pl.backend.weddinggallery.publicaccess.repository.GalleryAccessRepository;
+import pl.backend.weddinggallery.storage.StorageService;
 import pl.backend.weddinggallery.user.model.User;
 
 @Service
@@ -33,9 +38,11 @@ public class GalleryAccessService {
 	private final GalleryRepository galleryRepository;
 	private final GalleryAccessRepository accessRepository;
 	private final EventService eventService;
+	private final MediaFileRepository mediaRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final TokenService tokenService;
 	private final AuditService auditService;
+	private final StorageService storage;
 
 	@Transactional(readOnly = true)
 	public GallerySettingsResponse getSettings(String eventId, String galleryId, String email) {
@@ -203,7 +210,26 @@ public class GalleryAccessService {
 	private PublicGalleryResponse publicResponse(Gallery gallery) {
 		return new PublicGalleryResponse(gallery.getSlug(), gallery.getName(), gallery.getDescription(),
 				gallery.isUploadEnabled(), gallery.isDownloadEnabled(), gallery.getModerationMode(),
-				instant(gallery.getPublishedAt()), instant(gallery.getExpiresAt()));
+				instant(gallery.getPublishedAt()), instant(gallery.getExpiresAt()), publicMedia(gallery));
+	}
+
+	private List<MediaItemResponse> publicMedia(Gallery gallery) {
+		return mediaRepository
+				.findByGalleryIdAndStatusInOrderByStoredAtDescCreatedAtDescIdAsc(gallery.getId(),
+						List.of(MediaStatus.STORED, MediaStatus.PROCESSING, MediaStatus.PROCESSED,
+								MediaStatus.PROCESSING_FAILED))
+				.stream().filter(this::hasStoredObject).map(this::publicMedia).toList();
+	}
+
+	private boolean hasStoredObject(MediaFile media) {
+		return media.getStoredAt() != null && media.getStorageKey() != null && storage.exists(media.getStorageKey());
+	}
+
+	private MediaItemResponse publicMedia(MediaFile media) {
+		String base = "/api/public/galleries/" + media.getGallery().getSlug() + "/media/" + media.getId();
+		return new MediaItemResponse(media.getId(), media.getOriginalFilename(), media.getMediaType(),
+				media.getStatus(), media.getSizeBytes() == null ? media.getExpectedSizeBytes() : media.getSizeBytes(),
+				instant(media.getStoredAt()), base + "/thumbnail", base + "/content");
 	}
 
 	private LocalDateTime utc(Instant instant) {

@@ -24,11 +24,16 @@ import pl.backend.weddinggallery.gallery.model.Gallery;
 import pl.backend.weddinggallery.gallery.model.GalleryStatus;
 import pl.backend.weddinggallery.gallery.model.ModerationMode;
 import pl.backend.weddinggallery.gallery.repository.GalleryRepository;
+import pl.backend.weddinggallery.media.model.MediaFile;
+import pl.backend.weddinggallery.media.model.MediaStatus;
+import pl.backend.weddinggallery.media.model.MediaType;
+import pl.backend.weddinggallery.media.repository.MediaFileRepository;
 import pl.backend.weddinggallery.membership.model.EventRole;
 import pl.backend.weddinggallery.publicaccess.dto.GallerySettingsRequest;
 import pl.backend.weddinggallery.publicaccess.dto.PublicAccessRequest;
 import pl.backend.weddinggallery.publicaccess.model.GalleryAccess;
 import pl.backend.weddinggallery.publicaccess.repository.GalleryAccessRepository;
+import pl.backend.weddinggallery.storage.StorageService;
 import pl.backend.weddinggallery.user.model.User;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,11 +45,15 @@ class GalleryAccessServiceTest {
 	@Mock
 	private EventService events;
 	@Mock
+	private MediaFileRepository media;
+	@Mock
 	private PasswordEncoder passwords;
 	@Mock
 	private TokenService tokens;
 	@Mock
 	private AuditService audit;
+	@Mock
+	private StorageService storage;
 	private GalleryAccessService service;
 	private User actor;
 	private Event event;
@@ -52,12 +61,15 @@ class GalleryAccessServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		service = new GalleryAccessService(galleries, accesses, events, passwords, tokens, audit);
+		service = new GalleryAccessService(galleries, accesses, events, media, passwords, tokens, audit, storage);
 		actor = User.builder().id("user-1").email("manager@example.com").build();
 		event = Event.builder().id("event-1").status(EventStatus.DRAFT).owner(actor).build();
 		gallery = Gallery.builder().id("gallery-1").event(event).slug("reception").name("Reception")
 				.status(GalleryStatus.ACTIVE).moderationMode(ModerationMode.REQUIRED).publicViewEnabled(true)
 				.uploadEnabled(true).version(7).build();
+		lenient().when(media.findByGalleryIdAndStatusInOrderByStoredAtDescCreatedAtDescIdAsc(gallery.getId(), List
+				.of(MediaStatus.STORED, MediaStatus.PROCESSING, MediaStatus.PROCESSED, MediaStatus.PROCESSING_FAILED)))
+				.thenReturn(List.of());
 	}
 
 	@Test
@@ -212,6 +224,40 @@ class GalleryAccessServiceTest {
 
 		access.setRevokedAt(LocalDateTime.now());
 		assertCode(() -> service.getPublic(gallery.getSlug(), session), GalleryErrorCode.PUBLIC_GALLERY_NOT_FOUND);
+	}
+
+	@Test
+	void publicGalleryResponseIncludesOnlySafeStoredMediaMetadata() {
+		GalleryAccess access = activeAccess();
+		stubAvailableAccess(access);
+		MockHttpSession session = new MockHttpSession();
+		when(accesses.findById(access.getId())).thenReturn(Optional.of(access));
+		when(media.findByGalleryIdAndStatusInOrderByStoredAtDescCreatedAtDescIdAsc(gallery.getId(),
+				List.of(MediaStatus.STORED, MediaStatus.PROCESSING, MediaStatus.PROCESSED,
+						MediaStatus.PROCESSING_FAILED)))
+				.thenReturn(List.of(MediaFile.builder().id("media-1").gallery(gallery).originalFilename("first.jpg")
+						.mediaType(MediaType.IMAGE).status(MediaStatus.PROCESSED).expectedSizeBytes(10).sizeBytes(8L)
+						.storageKey("objects/media-1").storedAt(LocalDateTime.parse("2026-07-21T12:00:00")).build(),
+						MediaFile.builder().id("media-2").gallery(gallery).originalFilename("missing.jpg")
+								.mediaType(MediaType.IMAGE).status(MediaStatus.PROCESSED).expectedSizeBytes(10)
+								.sizeBytes(8L).storageKey("objects/missing")
+								.storedAt(LocalDateTime.parse("2026-07-21T12:00:00")).build()));
+		when(storage.exists("objects/media-1")).thenReturn(true);
+		when(storage.exists("objects/missing")).thenReturn(false);
+
+		service.exchange(gallery.getSlug(), new PublicAccessRequest("token", null), session);
+		var response = service.getPublic(gallery.getSlug(), session);
+
+		assertThat(response.media()).singleElement().satisfies(item -> {
+			assertThat(item.id()).isEqualTo("media-1");
+			assertThat(item.fileName()).isEqualTo("first.jpg");
+			assertThat(item.mediaType()).isEqualTo(MediaType.IMAGE);
+			assertThat(item.status()).isEqualTo(MediaStatus.PROCESSED);
+			assertThat(item.size()).isEqualTo(8);
+			assertThat(item.uploadedAt()).isEqualTo(Instant.parse("2026-07-21T12:00:00Z"));
+			assertThat(item.thumbnailUrl()).isEqualTo("/api/public/galleries/reception/media/media-1/thumbnail");
+			assertThat(item.contentUrl()).isEqualTo("/api/public/galleries/reception/media/media-1/content");
+		});
 	}
 
 	@Test

@@ -70,14 +70,20 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 - `POST /api/events/{eventId}/galleries/{galleryId}/access-token/rotate` - zaimplementowany Etap 4B, owner-only
 - `PUT /api/events/{eventId}/galleries/{galleryId}/access-code` - zaimplementowany Etap 4B, owner-only
 - `DELETE /api/events/{eventId}/galleries/{galleryId}/access-code` - zaimplementowany Etap 4B, owner-only
+- `GET /api/events/{eventId}/galleries/{galleryId}/media` - zaimplementowany Etap 6, owner/manager, zwraca bezpieczne URL-e podgladu mediow
+- `GET /api/events/{eventId}/galleries/{galleryId}/media/{mediaId}/thumbnail` - zaimplementowany Etap 6, owner/manager, kontrolowany streaming miniatury albo oryginalu jako fallback
+- `GET /api/events/{eventId}/galleries/{galleryId}/media/{mediaId}/content` - zaimplementowany Etap 6, owner/manager, kontrolowany streaming oryginalu
+- `GET /api/events/{eventId}/galleries/{galleryId}/download` - zaimplementowany Etap 6, owner-only ZIP galerii
 - `POST /api/galleries/{galleryId}/publish`
 - `POST /api/galleries/{galleryId}/disable-upload`
 - `POST /api/galleries/{galleryId}/enable-upload`
 - `POST /api/galleries/{galleryId}/qr`
 
 ## Public galleries
-- `GET /api/public/galleries/{slug}` - zaimplementowany Etap 4B, wymaga grantu sesyjnego
+- `GET /api/public/galleries/{slug}` - zaimplementowany Etap 4B/6, wymaga grantu sesyjnego i zwraca bezpieczne metadane dodanych mediow
 - `POST /api/public/galleries/{slug}/access` - zaimplementowany Etap 4B, token + opcjonalny kod
+- `GET /api/public/galleries/{slug}/media/{mediaId}/thumbnail` - zaimplementowany Etap 6, wymaga grantu sesyjnego, kontrolowany streaming miniatury albo oryginalu jako fallback
+- `GET /api/public/galleries/{slug}/media/{mediaId}/content` - zaimplementowany Etap 6, wymaga grantu sesyjnego, kontrolowany streaming oryginalu
 - `GET /api/public/galleries/{slug}/media`
 - `GET /api/public/media/{mediaId}`
 - `POST /api/public/galleries/{slug}/favorite`

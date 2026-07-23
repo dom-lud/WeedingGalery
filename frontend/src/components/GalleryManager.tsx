@@ -32,6 +32,7 @@ import type { EventData } from '../eventsApi'
 import {
   galleriesApi,
   type GalleryData,
+  type GalleryMedia,
   type GallerySettings,
   type GallerySettingsPayload,
   type GalleryWritePayload,
@@ -63,6 +64,10 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
   const [editing, setEditing] = useState<GalleryData | null>(null)
   const [form, setForm] = useState<GalleryWritePayload>(emptyPayload)
   const [settingsGallery, setSettingsGallery] = useState<GalleryData | null>(null)
+  const [previewGallery, setPreviewGallery] = useState<GalleryData | null>(null)
+  const [previewMedia, setPreviewMedia] = useState<GalleryMedia[]>([])
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [activeMedia, setActiveMedia] = useState<GalleryMedia | null>(null)
   const [settings, setSettings] = useState<GallerySettings | null>(null)
   const [settingsLoading, setSettingsLoading] = useState(false)
   const [rotatedSharePath, setRotatedSharePath] = useState('')
@@ -217,6 +222,21 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
       setSettingsGallery(null)
     } finally {
       setSettingsLoading(false)
+    }
+  }
+
+  const openPreview = async (gallery: GalleryData) => {
+    setPreviewGallery(gallery)
+    setPreviewMedia([])
+    setPreviewLoading(true)
+    try {
+      const response = await galleriesApi.media(event.id, gallery.id)
+      setPreviewMedia(response.data)
+    } catch (requestError) {
+      setError(errorMessage(requestError))
+      setPreviewGallery(null)
+    } finally {
+      setPreviewLoading(false)
     }
   }
 
@@ -424,6 +444,13 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
                 >
                   {event.currentUserRole === 'OWNER' ? 'Access settings' : 'View access settings'}
                 </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => void openPreview(gallery)}
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
+                >
+                  View gallery
+                </Button>
                 {(gallery.status !== 'ARCHIVED' || event.currentUserRole === 'OWNER') && (
                   <Button
                     ref={(node) => {
@@ -504,6 +531,137 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
           </MenuItem>
         )}
       </Menu>
+
+      <Dialog
+        open={previewGallery !== null}
+        onClose={() => {
+          setPreviewGallery(null)
+          setActiveMedia(null)
+        }}
+        fullScreen={fullScreenDialog}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1}
+            sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' } }}
+          >
+            <Typography component="span">{previewGallery?.name ?? 'Gallery preview'}</Typography>
+            {previewGallery && event.currentUserRole === 'OWNER' && (
+              <Button
+                component="a"
+                href={galleriesApi.downloadUrl(event.id, previewGallery.id)}
+                variant="contained"
+              >
+                Download gallery
+              </Button>
+            )}
+          </Stack>
+        </DialogTitle>
+        <DialogContent>
+          {previewLoading ? (
+            <CircularProgress aria-label="Loading gallery media" sx={{ my: 3 }} />
+          ) : previewMedia.length === 0 ? (
+            <Typography color="text.secondary" sx={{ py: 2 }}>
+              No photos or videos have been added yet.
+            </Typography>
+          ) : (
+            <Box
+              component="ul"
+              aria-label="Gallery preview media"
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: 'repeat(2, minmax(0, 1fr))',
+                  sm: 'repeat(3, minmax(0, 1fr))',
+                },
+                gap: 1.5,
+                p: 0,
+                m: 0,
+                listStyle: 'none',
+              }}
+            >
+              {previewMedia.map((item) => (
+                <Box
+                  component="li"
+                  key={item.id}
+                  sx={{
+                    aspectRatio: '1',
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    bgcolor: 'action.hover',
+                  }}
+                >
+                  <Button
+                    onClick={() => setActiveMedia(item)}
+                    aria-label={`Open ${item.fileName}`}
+                    sx={{ width: '100%', height: '100%', p: 0, display: 'block', borderRadius: 0 }}
+                  >
+                    {item.mediaType === 'VIDEO' ? (
+                      <Box
+                        component="video"
+                        src={item.contentUrl}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <Box
+                        component="img"
+                        src={item.thumbnailUrl}
+                        alt={item.fileName}
+                        loading="lazy"
+                        sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    )}
+                  </Button>
+                </Box>
+              ))}
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={activeMedia !== null}
+        onClose={() => setActiveMedia(null)}
+        fullWidth
+        maxWidth="md"
+      >
+        {activeMedia && (
+          <>
+            <DialogTitle>
+              <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between' }}>
+                <Typography component="span" sx={{ overflowWrap: 'anywhere' }}>
+                  {activeMedia.fileName}
+                </Typography>
+                <Button onClick={() => setActiveMedia(null)}>Close</Button>
+              </Stack>
+            </DialogTitle>
+            <DialogContent sx={{ p: { xs: 1, sm: 2 } }}>
+              {activeMedia.mediaType === 'VIDEO' ? (
+                <Box
+                  component="video"
+                  src={activeMedia.contentUrl}
+                  controls
+                  autoPlay
+                  sx={{ width: '100%', maxHeight: '78dvh', bgcolor: 'common.black' }}
+                />
+              ) : (
+                <Box
+                  component="img"
+                  src={activeMedia.contentUrl}
+                  alt={activeMedia.fileName}
+                  sx={{ width: '100%', maxHeight: '78dvh', objectFit: 'contain', display: 'block' }}
+                />
+              )}
+            </DialogContent>
+          </>
+        )}
+      </Dialog>
 
       <Dialog
         open={dialogOpen}

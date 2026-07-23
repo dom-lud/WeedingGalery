@@ -504,7 +504,19 @@ Sukces `200` tworzy grant w HttpSession z TTL 30 minut i zwraca:
   "downloadEnabled": false,
   "moderationMode": "REQUIRED",
   "publishedAt": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "media": [
+    {
+      "id": "media-id",
+      "fileName": "photo.jpg",
+      "mediaType": "IMAGE",
+      "status": "PROCESSED",
+      "size": 12345,
+      "uploadedAt": "2026-07-21T12:00:00Z",
+      "thumbnailUrl": "/api/public/galleries/reception/media/media-id/thumbnail",
+      "contentUrl": "/api/public/galleries/reception/media/media-id/content"
+    }
+  ]
 }
 ```
 
@@ -518,7 +530,40 @@ nieopublikowana, wygasla, zarchiwizowana lub usunieta galeria zwracaja identyczn
 
 Wymaga waznego grantu dla tej galerii. Zwraca publiczny model albo generyczne
 `404`. Grant jest ponownie walidowany, wiec rotacja tokenu i zmiana ustawien
-dzialaja natychmiast.
+dzialaja natychmiast. Pole `media` zawiera bezpieczne metadane juz dodanych
+mediow o statusach `STORED`, `PROCESSING`, `PROCESSED` i `PROCESSING_FAILED`.
+Nie zwraca `storageKey`, checksumow ani fizycznych sciezek. `thumbnailUrl` i
+`contentUrl` sa kontrolowanymi endpointami API i wymagaja tego samego grantu
+sesyjnego co publiczny model galerii.
+
+### `GET /api/public/galleries/{slug}/media/{mediaId}/thumbnail`
+
+Wymaga waznego grantu dla galerii. Zwraca `200` z miniatura `image/jpeg`, jezeli
+miniatura istnieje; w przeciwnym razie moze zwrocic oryginal dla mediow z
+zapisanym obiektem storage. Brak grantu, zly slug, obce media albo media bez
+zapisanego obiektu zwracaja generyczne `404`.
+
+### `GET /api/public/galleries/{slug}/media/{mediaId}/content`
+
+Wymaga waznego grantu dla galerii. Zwraca `200` z oryginalnym plikiem jako
+`inline`. Brak grantu, zly slug, obce media albo media bez zapisanego obiektu
+zwracaja generyczne `404`.
+
+### `GET /api/events/{eventId}/galleries/{galleryId}/media`
+
+Wymaga zalogowanego ownera albo managera wydarzenia. Zwraca bezpieczne metadane
+mediow galerii z `thumbnailUrl` i `contentUrl` dla panelu ownera/managera.
+
+### `GET /api/events/{eventId}/galleries/{galleryId}/media/{mediaId}/content`
+
+Wymaga zalogowanego ownera albo managera wydarzenia. Zwraca oryginal jako
+`inline`. Obce media lub brak membership zwracaja `404`.
+
+### `GET /api/events/{eventId}/galleries/{galleryId}/download`
+
+Wymaga ownera wydarzenia. Zwraca ZIP z oryginalami zapisanych mediow galerii.
+Manager bez ownership dostaje `403`/biznesowy blad owner-only zgodnie z
+centralnym mapowaniem bledow. ZIP nie ujawnia storage key ani fizycznych sciezek.
 
 ## Kontrakt STORAGE-001, UPLOAD-001 i minimalny UPLOAD-002 - Etap 5
 
@@ -596,15 +641,18 @@ CSRF. Idempotentnie ustawia `CANCELLED`, zwalnia rezerwacje plikow bez statusu
 - storage jest poza web rootem i nie ma publicznego static mappingu,
 - zapis uzywa `.tmp`, `CREATE_NEW`, walidacji i atomowej publikacji przez hard link w jednym volume, bez nadpisywania istniejacego obiektu,
 - fizyczne sciezki, hashe tokenow i kody nie wystepuja w API ani logach,
-- media po zapisie maja status `STORED`, nie sa publicznie listowane ani pobierane,
+- media po zapisie sa publicznie listowane jako bezpieczne metadane dla posiadacza
+  grantu galerii i moga byc wyswietlane przez kontrolowane endpointy API,
+  ale nie sa serwowane jako publiczny static mapping lokalnego storage,
 - blad po zapisie uruchamia kompensacyjne usuniecie; nierozwiazany cleanup jest
   jawnie oznaczany stanem wymagajacym reconciliacji.
 
 ## Kontrakt MEDIA-001 - Etap 6
 
 Status: `IMPLEMENTED`. Sekcja definiuje kontrakt pierwszej implementacji
-Etapu 6. Publiczne listowanie mediow, download, streaming, signed links,
-lightbox i moderacja pozostaja poza tym kontraktem.
+Etapu 6. Publiczne listowanie bezpiecznych metadanych mediow oraz kontrolowany
+streaming przez backend sa dostepne w modelu galerii publicznej i ownera.
+Signed links i moderacja pozostaja poza tym kontraktem.
 
 ### Semantyka po uploadzie
 

@@ -15,6 +15,7 @@ Opisuje zasady konfiguracji aplikacji, sekrety i zmienne środowiskowe.
 - Produkcja domyslnie ustawia bezpieczne cookies sesji i CSRF. `SESSION_COOKIE_SECURE=false` jest dopuszczalne wylacznie dla lokalnego HTTP.
 - CORS jest konfigurowany przez `CORS_ALLOWED_ORIGIN_PATTERNS`; pusta wartosc oznacza same-origin only.
 - Pelny zestaw migracji V1-V5 nie pozostawia aktywnego konta testowego. Forward-only V5 usuwa historyczny seed z czystej bazy albo blokuje jego znany credential, jezeli konto ma zalezne dane. Pierwszy administrator wymaga jednorazowego `BOOTSTRAP_ADMIN_ENABLED=true`, poprawnego e-maila i hasla o co najmniej 12 znakach. Po utworzeniu lub aktywacji konta flage trzeba wylaczyc i usunac haslo ze srodowiska runtime.
+- Seed demo do recznego klikania jest migracjami Flyway V7-V9, a nie mechanizmem runtime. Tworzy lub aktualizuje konta `admin@example.com`, `owner@example.com`, `manager@example.com`, `guest-tester@example.com`, wydarzenie demo, galerie `guest-uploads-demo-2945795a` oraz publiczny access code/token. Haslo wszystkich kont demo i access code galerii to `password123!`; publiczny token URL to `demo-public-token-password123`. V9 przywraca znany token demo na istniejacych wolumenach, jezeli zostal odwolany podczas recznego klikania.
 
 ## Stan docelowy
 - Konfiguracja przez środowisko, bez sekretów w repozytorium.

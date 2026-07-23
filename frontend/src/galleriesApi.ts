@@ -14,6 +14,17 @@ export interface GalleryData {
   updatedAt: string
 }
 
+export interface GalleryMedia {
+  id: string
+  fileName: string
+  mediaType: 'IMAGE' | 'VIDEO'
+  status: 'STORED' | 'PROCESSING' | 'PROCESSED' | 'PROCESSING_FAILED'
+  size: number | null
+  uploadedAt: string | null
+  thumbnailUrl: string
+  contentUrl: string
+}
+
 export interface GalleryWritePayload {
   name: string
   description: string | null
@@ -70,4 +81,8 @@ export const galleriesApi = {
     api.put(`${path(eventId)}/${galleryId}/access-code`, { accessCode }),
   removeAccessCode: (eventId: string, galleryId: string) =>
     api.delete(`${path(eventId)}/${galleryId}/access-code`),
+  media: (eventId: string, galleryId: string) =>
+    api.get<GalleryMedia[]>(`${path(eventId)}/${galleryId}/media`),
+  downloadUrl: (eventId: string, galleryId: string) =>
+    `/api/${path(eventId)}/${galleryId}/download`,
 }

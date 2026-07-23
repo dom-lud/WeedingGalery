@@ -18,6 +18,11 @@ vi.mock('../galleriesApi', () => ({
     rotateAccessToken: vi.fn(),
     setAccessCode: vi.fn(),
     removeAccessCode: vi.fn(),
+    media: vi.fn(),
+    downloadUrl: vi.fn(
+      (eventId: string, galleryId: string) =>
+        `/api/events/${eventId}/galleries/${galleryId}/download`,
+    ),
   },
 }))
 
@@ -275,6 +280,54 @@ describe('GalleryManager', () => {
     expect(await screen.findByText('Guest view on')).toBeInTheDocument()
     expect(screen.getByText(/Only the event owner/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Save access settings' })).not.toBeInTheDocument()
+  })
+
+  it('lets an owner preview gallery media and download the gallery archive', async () => {
+    const activeGallery = {
+      id: 'gallery-1',
+      eventId: 'event-1',
+      name: 'Reception',
+      slug: 'reception',
+      description: null,
+      sortOrder: 0,
+      status: 'ACTIVE' as const,
+      currentUserRole: 'OWNER' as const,
+      createdAt: '',
+      updatedAt: '',
+    }
+    vi.mocked(galleriesApi.list).mockResolvedValue({ data: [activeGallery] } as never)
+    vi.mocked(galleriesApi.media).mockResolvedValue({
+      data: [
+        {
+          id: 'media-1',
+          fileName: 'ceremony.jpg',
+          mediaType: 'IMAGE',
+          status: 'PROCESSING',
+          size: 512,
+          uploadedAt: '2026-07-21T12:00:00Z',
+          thumbnailUrl: '/api/events/event-1/galleries/gallery-1/media/media-1/thumbnail',
+          contentUrl: '/api/events/event-1/galleries/gallery-1/media/media-1/content',
+        },
+      ],
+    } as never)
+    renderManager()
+
+    await screen.findByText('Reception')
+    fireEvent.click(screen.getByRole('button', { name: 'View gallery' }))
+    await waitFor(() => expect(galleriesApi.media).toHaveBeenCalledWith('event-1', 'gallery-1'))
+
+    const download = await screen.findByRole('link', { name: 'Download gallery' })
+    expect(download).toHaveAttribute('href', '/api/events/event-1/galleries/gallery-1/download')
+    expect(screen.getByRole('img', { name: 'ceremony.jpg' })).toHaveAttribute(
+      'src',
+      '/api/events/event-1/galleries/gallery-1/media/media-1/thumbnail',
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open ceremony.jpg' }))
+    expect(screen.getAllByRole('img', { name: 'ceremony.jpg' }).at(-1)).toHaveAttribute(
+      'src',
+      '/api/events/event-1/galleries/gallery-1/media/media-1/content',
+    )
   })
 
   it('updates publication, guest permissions and access-code lifecycle at their boundaries', async () => {
