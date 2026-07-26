@@ -97,7 +97,12 @@ public class UploadService {
 						.storageKey("events/" + gallery.getEvent().getId() + "/galleries/" + gallery.getId() + "/media/"
 								+ mediaId + "/original")
 						.expectedSizeBytes(item.size()).declaredContentType(item.declaredContentType())
-						.mediaType(detected.mediaType()).status(MediaStatus.PENDING).build();
+						.mediaType(detected.mediaType()).status(MediaStatus.PENDING)
+						.publicationStatus(gallery
+								.getModerationMode() == pl.backend.weddinggallery.gallery.model.ModerationMode.NONE
+										? PublicationStatus.APPROVED
+										: PublicationStatus.PENDING)
+						.build();
 				upload.getFiles().add(media);
 			}
 			gallery.setStorageReservedBytes(gallery.getStorageReservedBytes() + total);

@@ -45,6 +45,9 @@ public class MediaFile {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private MediaStatus status;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "publication_status", nullable = false)
+	private PublicationStatus publicationStatus;
 	@Column(name = "checksum_sha256", length = 64)
 	private String checksumSha256;
 	@Column(name = "failure_code", length = 100)
@@ -71,6 +74,11 @@ public class MediaFile {
 		updatedAt = createdAt;
 		if (status == null)
 			status = MediaStatus.PENDING;
+		if (publicationStatus == null)
+			publicationStatus = gallery != null
+					&& gallery.getModerationMode() == pl.backend.weddinggallery.gallery.model.ModerationMode.NONE
+							? PublicationStatus.APPROVED
+							: PublicationStatus.PENDING;
 	}
 	@PreUpdate
 	void update() {

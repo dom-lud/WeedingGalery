@@ -23,6 +23,7 @@ import pl.backend.weddinggallery.gallery.repository.GalleryRepository;
 import pl.backend.weddinggallery.media.dto.MediaItemResponse;
 import pl.backend.weddinggallery.media.model.MediaFile;
 import pl.backend.weddinggallery.media.model.MediaStatus;
+import pl.backend.weddinggallery.media.model.PublicationStatus;
 import pl.backend.weddinggallery.media.repository.MediaFileRepository;
 import pl.backend.weddinggallery.membership.model.EventRole;
 import pl.backend.weddinggallery.publicaccess.dto.*;
@@ -35,6 +36,9 @@ import pl.backend.weddinggallery.user.model.User;
 @RequiredArgsConstructor
 public class GalleryAccessService {
 	private static final String GRANT_PREFIX = "PUBLIC_GALLERY_GRANT:";
+	private static final int MAX_PUBLIC_MEDIA = 500;
+	private static final List<MediaStatus> PUBLIC_VISIBLE_STATUSES = List.of(MediaStatus.STORED, MediaStatus.PROCESSING,
+			MediaStatus.PROCESSED);
 	private final GalleryRepository galleryRepository;
 	private final GalleryAccessRepository accessRepository;
 	private final EventService eventService;
@@ -216,9 +220,11 @@ public class GalleryAccessService {
 	private List<MediaItemResponse> publicMedia(Gallery gallery) {
 		return mediaRepository
 				.findByGalleryIdAndStatusInOrderByStoredAtDescCreatedAtDescIdAsc(gallery.getId(),
-						List.of(MediaStatus.STORED, MediaStatus.PROCESSING, MediaStatus.PROCESSED,
-								MediaStatus.PROCESSING_FAILED))
-				.stream().filter(this::hasStoredObject).map(this::publicMedia).toList();
+						PUBLIC_VISIBLE_STATUSES)
+				.stream().filter(media -> PUBLIC_VISIBLE_STATUSES.contains(media.getStatus()))
+				.filter(media -> media.getPublicationStatus() == null
+						|| media.getPublicationStatus() == PublicationStatus.APPROVED)
+				.limit(MAX_PUBLIC_MEDIA).filter(this::hasStoredObject).map(this::publicMedia).toList();
 	}
 
 	private boolean hasStoredObject(MediaFile media) {
@@ -229,7 +235,7 @@ public class GalleryAccessService {
 		String base = "/api/public/galleries/" + media.getGallery().getSlug() + "/media/" + media.getId();
 		return new MediaItemResponse(media.getId(), media.getOriginalFilename(), media.getMediaType(),
 				media.getStatus(), media.getSizeBytes() == null ? media.getExpectedSizeBytes() : media.getSizeBytes(),
-				instant(media.getStoredAt()), base + "/thumbnail", base + "/content");
+				instant(media.getStoredAt()), base + "/thumbnail", base + "/content", media.getPublicationStatus());
 	}
 
 	private LocalDateTime utc(Instant instant) {

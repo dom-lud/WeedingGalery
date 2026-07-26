@@ -67,8 +67,9 @@ class GalleryAccessServiceTest {
 		gallery = Gallery.builder().id("gallery-1").event(event).slug("reception").name("Reception")
 				.status(GalleryStatus.ACTIVE).moderationMode(ModerationMode.REQUIRED).publicViewEnabled(true)
 				.uploadEnabled(true).version(7).build();
-		lenient().when(media.findByGalleryIdAndStatusInOrderByStoredAtDescCreatedAtDescIdAsc(gallery.getId(), List
-				.of(MediaStatus.STORED, MediaStatus.PROCESSING, MediaStatus.PROCESSED, MediaStatus.PROCESSING_FAILED)))
+		lenient()
+				.when(media.findByGalleryIdAndStatusInOrderByStoredAtDescCreatedAtDescIdAsc(gallery.getId(),
+						List.of(MediaStatus.STORED, MediaStatus.PROCESSING, MediaStatus.PROCESSED)))
 				.thenReturn(List.of());
 	}
 
@@ -233,8 +234,7 @@ class GalleryAccessServiceTest {
 		MockHttpSession session = new MockHttpSession();
 		when(accesses.findById(access.getId())).thenReturn(Optional.of(access));
 		when(media.findByGalleryIdAndStatusInOrderByStoredAtDescCreatedAtDescIdAsc(gallery.getId(),
-				List.of(MediaStatus.STORED, MediaStatus.PROCESSING, MediaStatus.PROCESSED,
-						MediaStatus.PROCESSING_FAILED)))
+				List.of(MediaStatus.STORED, MediaStatus.PROCESSING, MediaStatus.PROCESSED)))
 				.thenReturn(List.of(MediaFile.builder().id("media-1").gallery(gallery).originalFilename("first.jpg")
 						.mediaType(MediaType.IMAGE).status(MediaStatus.PROCESSED).expectedSizeBytes(10).sizeBytes(8L)
 						.storageKey("objects/media-1").storedAt(LocalDateTime.parse("2026-07-21T12:00:00")).build(),
@@ -258,6 +258,23 @@ class GalleryAccessServiceTest {
 			assertThat(item.thumbnailUrl()).isEqualTo("/api/public/galleries/reception/media/media-1/thumbnail");
 			assertThat(item.contentUrl()).isEqualTo("/api/public/galleries/reception/media/media-1/content");
 		});
+	}
+
+	@Test
+	void publicGalleryResponseDoesNotExposeProcessingFailures() {
+		GalleryAccess access = activeAccess();
+		stubAvailableAccess(access);
+		MockHttpSession session = new MockHttpSession();
+		MediaFile failed = MediaFile.builder().id("media-failed").gallery(gallery).originalFilename("failed.jpg")
+				.mediaType(MediaType.IMAGE).status(MediaStatus.PROCESSING_FAILED).expectedSizeBytes(10).sizeBytes(8L)
+				.storageKey("objects/failed").storedAt(LocalDateTime.parse("2026-07-21T12:00:00")).build();
+		when(media.findByGalleryIdAndStatusInOrderByStoredAtDescCreatedAtDescIdAsc(gallery.getId(),
+				List.of(MediaStatus.STORED, MediaStatus.PROCESSING, MediaStatus.PROCESSED)))
+				.thenReturn(List.of(failed));
+
+		var response = service.exchange(gallery.getSlug(), new PublicAccessRequest("token", null), session);
+
+		assertThat(response.media()).isEmpty();
 	}
 
 	@Test

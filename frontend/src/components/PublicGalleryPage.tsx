@@ -16,6 +16,8 @@ import {
   Paper,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
   useMediaQuery,
 } from '@mui/material'
@@ -24,6 +26,8 @@ import { publicAccessApi, type PublicGallery, type PublicMedia } from '../public
 import { uploadApi, type UploadFileStatus, type UploadManifestFile } from '../uploadApi'
 
 type AccessState = 'loading' | 'code-required' | 'ready' | 'not-found' | 'rate-limited' | 'error'
+type MediaFilter = 'ALL' | 'IMAGE' | 'VIDEO'
+type MediaState = 'loading' | 'ready' | 'error'
 type QueueStatus =
   | 'PENDING'
   | 'UPLOADING'
@@ -207,12 +211,15 @@ export default function PublicGalleryPage() {
   const [accessToken, setAccessToken] = useState('')
   const [accessCode, setAccessCode] = useState('')
   const [message, setMessage] = useState('')
+  const [mediaState, setMediaState] = useState<MediaState>('loading')
+  const [mediaFilter, setMediaFilter] = useState<MediaFilter>('ALL')
   const [queue, setQueue] = useState<QueueFile[]>([])
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const [online, setOnline] = useState(() => navigator.onLine)
   const [activeMedia, setActiveMedia] = useState<PublicMedia | null>(null)
+  const activeMediaTriggerRef = useRef<HTMLButtonElement | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const queuePreviewUrlsRef = useRef<string[]>([])
   const autoUploadTimerRef = useRef<number | null>(null)
@@ -227,6 +234,7 @@ export default function PublicGalleryPage() {
         ...(code ? { accessCode: code } : {}),
       })
       setGallery(response.data)
+      setMediaState('ready')
       setState('ready')
     } catch (error) {
       const details = apiError(error)
@@ -255,6 +263,7 @@ export default function PublicGalleryPage() {
     try {
       const response = await publicAccessApi.get(slug)
       setGallery(response.data)
+      setMediaState('ready')
       setState('ready')
     } catch (error) {
       const details = apiError(error)
@@ -281,6 +290,10 @@ export default function PublicGalleryPage() {
       window.removeEventListener('offline', updateOnlineState)
     }
   }, [])
+
+  useEffect(() => {
+    if (activeMedia === null) activeMediaTriggerRef.current?.focus()
+  }, [activeMedia])
 
   useEffect(() => {
     queuePreviewUrlsRef.current = queue.map((item) => item.previewUrl).filter(Boolean)
@@ -510,6 +523,18 @@ export default function PublicGalleryPage() {
     setUploading(false)
   }
 
+  const retryMedia = async () => {
+    setMediaState('loading')
+    try {
+      const response = await publicAccessApi.get(slug)
+      setGallery(response.data)
+      setMediaState('ready')
+    } catch (error) {
+      setMediaState('error')
+      setMessage(apiError(error).message)
+    }
+  }
+
   if (state === 'loading') {
     return (
       <Stack
@@ -564,6 +589,10 @@ export default function PublicGalleryPage() {
     ? Math.round(queue.reduce((total, item) => total + item.progress, 0) / queue.length)
     : 0
   const publicMedia = gallery.media ?? []
+  const filteredMedia =
+    mediaFilter === 'ALL'
+      ? publicMedia
+      : publicMedia.filter((item) => item.mediaType === mediaFilter)
 
   return (
     <Box component="main" sx={{ minHeight: '100dvh', pb: 6 }}>
@@ -943,9 +972,48 @@ export default function PublicGalleryPage() {
                     Photos and videos added by guests appear here as the story grows.
                   </Typography>
                 </Box>
-                {publicMedia.length === 0 ? (
-                  <Typography color="text.secondary">
-                    No photos or videos have been added yet.
+                <ToggleButtonGroup
+                  value={mediaFilter}
+                  exclusive
+                  aria-label="Filter gallery media"
+                  onChange={(_event, value: MediaFilter | null) => {
+                    if (value) setMediaFilter(value)
+                  }}
+                  size="small"
+                  sx={{ alignSelf: 'flex-start', maxWidth: '100%', flexWrap: 'wrap' }}
+                >
+                  <ToggleButton value="ALL" aria-label="Show all media">
+                    All
+                  </ToggleButton>
+                  <ToggleButton value="IMAGE" aria-label="Show images only">
+                    Images
+                  </ToggleButton>
+                  <ToggleButton value="VIDEO" aria-label="Show videos only">
+                    Videos
+                  </ToggleButton>
+                </ToggleButtonGroup>
+                {mediaState === 'loading' ? (
+                  <Stack
+                    role="status"
+                    aria-live="polite"
+                    spacing={1}
+                    sx={{ alignItems: 'center', py: 4 }}
+                  >
+                    <CircularProgress size={32} aria-label="Loading gallery media" />
+                    <Typography color="text.secondary">Loading gallery media...</Typography>
+                  </Stack>
+                ) : mediaState === 'error' ? (
+                  <Stack spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+                    <Alert severity="error">We could not load the gallery media.</Alert>
+                    <Button variant="outlined" onClick={() => void retryMedia()}>
+                      Try again
+                    </Button>
+                  </Stack>
+                ) : filteredMedia.length === 0 ? (
+                  <Typography color="text.secondary" role="status" aria-live="polite">
+                    {publicMedia.length === 0
+                      ? 'No photos or videos have been added yet.'
+                      : `No ${mediaFilter === 'IMAGE' ? 'images' : 'videos'} match this filter.`}
                   </Typography>
                 ) : (
                   <Box
@@ -963,7 +1031,7 @@ export default function PublicGalleryPage() {
                       listStyle: 'none',
                     }}
                   >
-                    {publicMedia.map((item) => (
+                    {filteredMedia.map((item) => (
                       <Box
                         component="li"
                         key={item.id}
@@ -976,34 +1044,52 @@ export default function PublicGalleryPage() {
                         }}
                       >
                         <Button
-                          onClick={() => setActiveMedia(item)}
+                          onClick={(event) => {
+                            activeMediaTriggerRef.current = event.currentTarget
+                            setActiveMedia(item)
+                          }}
                           aria-label={`Open ${item.fileName}`}
                           sx={{
                             width: '100%',
                             height: '100%',
                             p: 0,
                             display: 'block',
+                            position: 'relative',
                             borderRadius: 0,
                             textAlign: 'inherit',
                           }}
                         >
-                          {item.mediaType === 'VIDEO' ? (
+                          <Box
+                            component="img"
+                            src={item.thumbnailUrl}
+                            alt={item.fileName}
+                            loading="lazy"
+                            onError={() => setMediaState('error')}
+                            sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                          {item.mediaType === 'VIDEO' && (
                             <Box
-                              component="video"
-                              src={item.contentUrl}
-                              muted
-                              playsInline
-                              preload="metadata"
-                              sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            />
-                          ) : (
-                            <Box
-                              component="img"
-                              src={item.thumbnailUrl}
-                              alt={item.fileName}
-                              loading="lazy"
-                              sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            />
+                              aria-hidden="true"
+                              component="span"
+                              sx={{
+                                position: 'absolute',
+                                display: 'grid',
+                                placeItems: 'center',
+                                width: 42,
+                                height: 42,
+                                left: '50%',
+                                top: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                color: 'common.white',
+                                bgcolor: 'rgba(0,0,0,.58)',
+                                borderRadius: '50%',
+                                fontSize: 24,
+                                fontWeight: 800,
+                                lineHeight: 1,
+                              }}
+                            >
+                              &gt;
+                            </Box>
                           )}
                         </Button>
                       </Box>
@@ -1020,10 +1106,11 @@ export default function PublicGalleryPage() {
         onClose={() => setActiveMedia(null)}
         fullWidth
         maxWidth="md"
+        aria-labelledby="public-media-preview-title"
       >
         {activeMedia && (
           <>
-            <DialogTitle sx={{ pr: 2 }}>
+            <DialogTitle id="public-media-preview-title" sx={{ pr: 2 }}>
               <Stack
                 direction="row"
                 spacing={1}

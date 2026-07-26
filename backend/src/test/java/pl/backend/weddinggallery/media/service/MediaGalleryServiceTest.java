@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -91,6 +92,52 @@ class MediaGalleryServiceTest {
 			assertThat(item.size()).isEqualTo(visible.getExpectedSizeBytes());
 			assertThat(item.uploadedAt()).isEqualTo("2026-07-23T18:00:00Z");
 		});
+	}
+
+	@Test
+	void publicMediaCapsResultsAt500() {
+		HttpSession session = new MockHttpSession();
+		when(galleryAccess.requireGrant("wedding", session, false))
+				.thenReturn(new GalleryAccessService.GrantedGallery(gallery, "access-1", session.getId()));
+		List<MediaFile> files = IntStream.range(0, 501).mapToObj(
+				index -> image(String.format("%08d-photo", index), "photo.jpg", MediaStatus.PROCESSED, "image/jpeg"))
+				.toList();
+		when(mediaFiles.findByGalleryIdAndStatusInOrderByStoredAtDescCreatedAtDescIdAsc(eq(gallery.getId()), any()))
+				.thenReturn(files);
+		when(storage.exists(anyString())).thenReturn(true);
+		when(thumbnails.findByMediaFileIdInAndVariant(anyList(), eq(MediaThumbnailVariant.SMALL)))
+				.thenReturn(List.of());
+
+		assertThat(service.publicMedia("wedding", session)).hasSize(500);
+	}
+
+	@Test
+	void publicMediaExcludesProcessingFailuresAndAppliesAProviderIndependentLimit() {
+		HttpSession session = new MockHttpSession();
+		when(galleryAccess.requireGrant("wedding", session, false))
+				.thenReturn(new GalleryAccessService.GrantedGallery(gallery, "access-1", session.getId()));
+		MediaFile failed = image("12345678-failed", "failed.jpg", MediaStatus.PROCESSING_FAILED, "image/jpeg");
+		MediaFile first = image("12345678-first", "first.jpg", MediaStatus.PROCESSED, "image/jpeg");
+		when(mediaFiles.findByGalleryIdAndStatusInOrderByStoredAtDescCreatedAtDescIdAsc(eq(gallery.getId()),
+				argThat(statuses -> statuses.equals(
+						List.of(MediaStatus.STORED, MediaStatus.PROCESSING, MediaStatus.PROCESSED)))))
+				.thenReturn(
+						java.util.stream.Stream
+								.concat(java.util.stream.Stream.of(failed),
+										java.util.stream.IntStream.range(0, 501)
+												.mapToObj(
+														i -> i == 0
+																? first
+																: image("12345678-" + i, "photo-" + i + ".jpg",
+																		MediaStatus.PROCESSED, "image/jpeg")))
+								.toList());
+		when(storage.exists(anyString())).thenReturn(true);
+		when(thumbnails.findByMediaFileIdInAndVariant(anyList(), eq(MediaThumbnailVariant.SMALL)))
+				.thenReturn(List.of());
+
+		var response = service.publicMedia("wedding", session);
+
+		assertThat(response).hasSize(500).noneMatch(item -> item.status() == MediaStatus.PROCESSING_FAILED);
 	}
 
 	@Test
@@ -189,6 +236,7 @@ class MediaGalleryServiceTest {
 	@Test
 	void ownerDownloadRequiresOwnerRoleAndSanitizesArchiveAndEntryNames() {
 		stubAccessibleGallery();
+		gallery.setDownloadEnabled(true);
 		MediaFile dotted = image("12345678-dotted", "first photo.JPG", MediaStatus.PROCESSED, " ");
 		MediaFile extensionless = image("87654321plain", "folder/second", MediaStatus.STORED, null);
 		extensionless.setDeclaredContentType(null);
@@ -213,8 +261,31 @@ class MediaGalleryServiceTest {
 	}
 
 	@Test
+	void ownerDownloadRejectsDisabledGalleryAfterCheckingOwnership() {
+		stubAccessibleGallery();
+		when(eventService.roleFor(event, owner)).thenReturn(EventRole.OWNER);
+
+		assertThatThrownBy(() -> service.ownerDownload(event.getId(), gallery.getId(), owner.getEmail()))
+				.isInstanceOfSatisfying(AppException.class,
+						ex -> assertThat(ex.getErrorCode()).isEqualTo(GalleryErrorCode.GALLERY_NOT_FOUND));
+		verifyNoInteractions(mediaFiles);
+	}
+
+	@Test
+	void publicResourceRejectsProcessingFailureWithGenericNotFound() {
+		HttpSession session = new MockHttpSession();
+		when(galleryAccess.requireGrant("wedding", session, false))
+				.thenReturn(new GalleryAccessService.GrantedGallery(gallery, "access-1", session.getId()));
+		MediaFile failed = image("12345678-failed", "failed.jpg", MediaStatus.PROCESSING_FAILED, "image/jpeg");
+		when(mediaFiles.findByIdAndGalleryId(failed.getId(), gallery.getId())).thenReturn(Optional.of(failed));
+
+		assertGalleryNotFound(() -> service.publicResource("wedding", failed.getId(), false, session));
+	}
+
+	@Test
 	void ownerDownloadUsesSafeFallbackArchiveNameForNullOrDotGalleryNames() {
 		stubAccessibleGallery();
+		gallery.setDownloadEnabled(true);
 		when(eventService.roleFor(event, owner)).thenReturn(EventRole.OWNER);
 		when(mediaFiles.findByGalleryIdAndStatusInOrderByStoredAtDescCreatedAtDescIdAsc(eq(gallery.getId()), any()))
 				.thenReturn(List.of());
@@ -247,6 +318,7 @@ class MediaGalleryServiceTest {
 		return MediaFile.builder().id(id).gallery(gallery).originalFilename(fileName).storageKey("objects/" + id)
 				.expectedSizeBytes(100).sizeBytes(80L).declaredContentType("image/jpeg")
 				.detectedContentType(detectedContentType).mediaType(MediaType.IMAGE).status(status)
+				.publicationStatus(pl.backend.weddinggallery.media.model.PublicationStatus.APPROVED)
 				.storedAt(LocalDateTime.parse("2026-07-23T18:00:00")).build();
 	}
 

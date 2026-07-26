@@ -38,6 +38,8 @@ import {
   type GalleryWritePayload,
 } from '../galleriesApi'
 import ConfirmDialog from './ui/ConfirmDialog'
+import ModerationPanel from './ModerationPanel'
+import AppearancePanel from './AppearancePanel'
 
 const emptyPayload: GalleryWritePayload = { name: '', description: null, sortOrder: 0 }
 
@@ -84,9 +86,12 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
     anchor: HTMLElement
     gallery: GalleryData
   } | null>(null)
+  const [moderationGallery, setModerationGallery] = useState<GalleryData | null>(null)
+  const [appearanceGallery, setAppearanceGallery] = useState<GalleryData | null>(null)
   const actionTriggerRef = useRef<HTMLElement | null>(null)
   const actionTriggerGalleryIdRef = useRef<string | null>(null)
   const actionTriggerNodesRef = useRef<Record<string, HTMLButtonElement | null>>({})
+  const moderationTriggerNodesRef = useRef<Record<string, HTMLButtonElement | null>>({})
   const createGalleryButtonRef = useRef<HTMLButtonElement | null>(null)
   const confirmationRestoreToCreateRef = useRef(false)
   const restoreActionFocus = (restoreToCreate = false) => {
@@ -446,10 +451,28 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
                 </Button>
                 <Button
                   variant="outlined"
+                  onClick={() => setAppearanceGallery(gallery)}
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
+                >
+                  {event.currentUserRole === 'OWNER' ? 'Customize appearance' : 'View appearance'}
+                </Button>
+                <Button
+                  ref={(node) => {
+                    moderationTriggerNodesRef.current[gallery.id] = node
+                  }}
+                  variant="outlined"
                   onClick={() => void openPreview(gallery)}
                   sx={{ width: { xs: '100%', sm: 'auto' } }}
                 >
                   View gallery
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => setModerationGallery(gallery)}
+                  disabled={event.status === 'ARCHIVED' || gallery.status === 'ARCHIVED'}
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
+                >
+                  Moderate media
                 </Button>
                 {(gallery.status !== 'ARCHIVED' || event.currentUserRole === 'OWNER') && (
                   <Button
@@ -624,6 +647,27 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
           )}
         </DialogContent>
       </Dialog>
+      {moderationGallery && (
+        <ModerationPanel
+          eventId={event.id}
+          galleryId={moderationGallery.id}
+          galleryName={moderationGallery.name}
+          open
+          onClose={() => {
+            const trigger = moderationTriggerNodesRef.current[moderationGallery.id]
+            setModerationGallery(null)
+            requestAnimationFrame(() => trigger?.focus())
+          }}
+        />
+      )}
+
+      <AppearancePanel
+        gallery={appearanceGallery}
+        open={appearanceGallery !== null}
+        initialReadOnly={false}
+        onClose={() => setAppearanceGallery(null)}
+        onSaved={() => setMessage('Gallery appearance updated.')}
+      />
 
       <Dialog
         open={activeMedia !== null}
