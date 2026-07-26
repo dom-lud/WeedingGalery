@@ -169,4 +169,34 @@ describe('ModerationPanel', () => {
     expect(await screen.findByText('Denied.')).toBeInTheDocument()
     expect(screen.getByRole('dialog', { name: 'Approve selected media?' })).toBeInTheDocument()
   })
+
+  it('closes the panel and cancels a pending confirmation', async () => {
+    const onClose = vi.fn()
+    vi.mocked(moderationApi.list).mockResolvedValue({ data: media } as never)
+    render(
+      <ModerationPanel
+        eventId="event-1"
+        galleryId="gallery-1"
+        galleryName="Reception"
+        open
+        onClose={onClose}
+      />,
+    )
+    await screen.findByText('pending.jpg')
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select pending.jpg' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Approve' }))
+    const dialog = screen.getByRole('dialog', { name: 'Approve selected media?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+    expect(
+      screen.queryByRole('dialog', { name: 'Approve selected media?' }),
+    ).not.toBeInTheDocument()
+    const mainDialog = screen
+      .getAllByRole('dialog', { hidden: true })
+      .find((element) => element.textContent?.includes('Moderate Reception'))
+    expect(mainDialog).toBeDefined()
+    fireEvent.click(
+      within(mainDialog as HTMLElement).getByRole('button', { name: 'Close', hidden: true }),
+    )
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
 })

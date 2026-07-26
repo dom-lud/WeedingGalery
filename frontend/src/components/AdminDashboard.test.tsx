@@ -7,7 +7,7 @@
  * - Accessibility: named regions, status/error announcements, keyboard-reachable controls, and dialog focus.
  * - Boundary risks: missing summary fields normalize to zero; both array and paged list payloads render.
  */
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { ThemeProvider } from '@mui/material/styles'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { adminApi } from '../adminApi'
@@ -172,5 +172,18 @@ describe('AdminDashboard', () => {
     await waitFor(() =>
       expect(adminApi.users).toHaveBeenLastCalledWith({ query: 'new query', page: 0, size: 25 }),
     )
+  })
+
+  it('supports refresh, cancellation and logout controls', async () => {
+    resolveData()
+    renderDashboard()
+    await screen.findByText('person@example.com')
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }))
+    await waitFor(() => expect(adminApi.dashboard).toHaveBeenCalledTimes(2))
+    fireEvent.click(screen.getByRole('button', { name: 'Block' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Log out' })).toBeVisible())
+    fireEvent.click(screen.getByRole('button', { name: 'Log out' }))
+    expect(auth.logout).toHaveBeenCalled()
   })
 })

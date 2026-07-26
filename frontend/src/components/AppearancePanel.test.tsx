@@ -161,4 +161,31 @@ describe('AppearancePanel', () => {
     expect(screen.getByRole('switch', { name: 'Show upload' })).toBeChecked()
     expect(screen.getByRole('switch', { name: 'Show download' })).not.toBeChecked()
   })
+
+  it('updates every editable appearance control and closes the dialog', async () => {
+    const onClose = vi.fn()
+    vi.mocked(customizationApi.get).mockResolvedValue({ data: customization } as never)
+    render(
+      <ThemeProvider theme={appTheme}>
+        <AppearancePanel gallery={gallery} open onClose={onClose} />
+      </ThemeProvider>,
+    )
+    await screen.findByRole('textbox', { name: 'Welcome text' })
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Theme' }))
+    fireEvent.click(screen.getByRole('option', { name: 'Minimal' }))
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Layout' }))
+    fireEvent.click(screen.getByRole('option', { name: 'Timeline' }))
+    fireEvent.change(screen.getByLabelText('primaryColor'), { target: { value: '#112233' } })
+    fireEvent.change(screen.getByLabelText('accentColor'), { target: { value: '#223344' } })
+    fireEvent.change(screen.getByLabelText('backgroundColor'), { target: { value: '#334455' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Welcome text' }), {
+      target: { value: 'Updated welcome' },
+    })
+    fireEvent.click(screen.getByRole('switch', { name: 'Show title' }))
+    fireEvent.click(screen.getByRole('switch', { name: 'Show upload' }))
+    fireEvent.click(screen.getByRole('switch', { name: 'Show download' }))
+    expect(screen.getByText('Preview: timeline')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
 })

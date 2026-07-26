@@ -1,8 +1,6 @@
 package pl.backend.weddinggallery.gallery.dto;
 
-import pl.backend.weddinggallery.gallery.model.LayoutMode;
-import pl.backend.weddinggallery.gallery.model.ThemeKey;
-
-public record GalleryCustomizationResponse(ThemeKey themeKey, LayoutMode layoutMode, String primaryColor,
-		String accentColor, String welcomeText, String coverMediaId, long version) {
+public record GalleryCustomizationResponse(String theme, String layout, String primaryColor, String accentColor,
+		String backgroundColor, String welcomeText, boolean showTitle, boolean showUpload, boolean showDownload,
+		String coverMediaId, long version) {
 }

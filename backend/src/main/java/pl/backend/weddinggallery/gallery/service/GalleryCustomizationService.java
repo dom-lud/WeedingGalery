@@ -37,6 +37,7 @@ public class GalleryCustomizationService {
 		g.setShowTitle(r.showTitle());
 		g.setShowUpload(r.showUpload());
 		g.setShowDownload(r.showDownload());
+		g.setUpdatedAt(java.time.LocalDateTime.now());
 		galleries.save(g);
 		return out(g);
 	}
@@ -52,7 +53,7 @@ public class GalleryCustomizationService {
 	}
 	private GalleryCustomizationResponse out(Gallery g) {
 		return new GalleryCustomizationResponse(g.getTheme(), g.getLayout(), g.getPrimaryColor(), g.getAccentColor(),
-				g.getBackgroundColor(), g.getWelcomeText(), g.isShowTitle(), g.isShowUpload(), g.isShowDownload(),
+				g.getBackgroundColor(), g.getWelcomeText(), g.isShowTitle(), g.isShowUpload(), g.isShowDownload(), null,
 				g.getVersion());
 	}
 }
