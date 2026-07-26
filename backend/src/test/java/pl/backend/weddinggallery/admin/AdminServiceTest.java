@@ -10,12 +10,15 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import pl.backend.weddinggallery.admin.service.AdminService;
 import pl.backend.weddinggallery.audit.model.EventType;
+import pl.backend.weddinggallery.audit.model.AuditEvent;
 import pl.backend.weddinggallery.audit.repository.AuditEventRepository;
 import pl.backend.weddinggallery.audit.service.AuditService;
 import pl.backend.weddinggallery.event.model.Event;
@@ -151,5 +154,32 @@ class AdminServiceTest {
 		when(mediaFileRepository.findById("hidden")).thenReturn(Optional.of(hidden));
 		service.hideMedia("admin@example.com", "hidden");
 		verify(mediaFileRepository, never()).save(hidden);
+	}
+
+	@Test
+	void auditPageMapsGalleryEventEventAndUserResources() {
+		AuditEvent galleryEvent = new AuditEvent(EventType.GALLERY_UPDATED, "owner@example.com", "details");
+		galleryEvent.setId(1L);
+		galleryEvent.setGalleryId("gallery");
+		galleryEvent.setCreatedAt(LocalDateTime.now());
+		AuditEvent eventAudit = new AuditEvent(EventType.EVENT_UPDATED, "owner@example.com", "event-details");
+		eventAudit.setId(2L);
+		eventAudit.setEventId("event");
+		AuditEvent userAudit = new AuditEvent(EventType.USER_REGISTERED, "admin@example.com", "user-details");
+		userAudit.setId(3L);
+		userAudit.setTargetUserId("target");
+		AuditEvent systemAudit = new AuditEvent(EventType.ADMIN_BOOTSTRAPPED, null, "system-details");
+		systemAudit.setId(4L);
+		when(auditEventRepository.findAll(any(org.springframework.data.domain.Pageable.class)))
+				.thenReturn(new PageImpl<>(java.util.List.of(galleryEvent, eventAudit, userAudit, systemAudit)));
+
+		var response = service.audit(PageRequest.of(0, 10));
+
+		assertThat(response.content()).hasSize(4);
+		assertThat(response.content().get(0).resourceType()).isEqualTo("GALLERY");
+		assertThat(response.content().get(1).resourceType()).isEqualTo("EVENT");
+		assertThat(response.content().get(2).resourceType()).isEqualTo("USER");
+		assertThat(response.content().get(3).resourceType()).isNull();
+		assertThat(response.content().get(0).result()).isEqualTo("details");
 	}
 }

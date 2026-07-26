@@ -48,7 +48,7 @@ describe('PublicGalleryPage', () => {
   afterEach(() => cleanup())
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.resetAllMocks()
     sessionStorage.clear()
     window.history.replaceState(null, '', '/g/reception#token=private-token')
     vi.mocked(publicAccessApi.get).mockResolvedValue({ data: gallery } as never)
