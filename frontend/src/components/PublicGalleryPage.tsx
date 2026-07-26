@@ -111,7 +111,7 @@ function queueStatusFromApi(status: UploadFileStatus): QueueStatus {
 }
 
 function processingTerminal(status: QueueStatus) {
-  return status !== 'UPLOADING' && status !== 'PROCESSING'
+  return status !== 'UPLOADING' && status !== 'STORED' && status !== 'PROCESSING'
 }
 
 function createPreviewUrl(file: File) {
@@ -581,7 +581,9 @@ export default function PublicGalleryPage() {
   const uploadedCount = queue.filter((item) =>
     ['STORED', 'PROCESSING', 'PROCESSED', 'PROCESSING_FAILED'].includes(item.status),
   ).length
-  const processingCount = queue.filter((item) => item.status === 'PROCESSING').length
+  const processingCount = queue.filter((item) =>
+    ['STORED', 'PROCESSING'].includes(item.status),
+  ).length
   const failedCount = queue.filter((item) =>
     ['FAILED', 'PROCESSING_FAILED'].includes(item.status),
   ).length

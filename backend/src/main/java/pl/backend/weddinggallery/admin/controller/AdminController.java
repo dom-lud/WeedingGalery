@@ -55,6 +55,14 @@ public class AdminController {
 		return ResponseEntity.ok(adminService.media(pageRequest(page, size)));
 	}
 
+	@GetMapping("/audit")
+	public ResponseEntity<?> audit(Authentication authentication, @RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "50") int size) {
+		if (!adminService.isAdmin(authentication))
+			return forbidden();
+		return ResponseEntity.ok(adminService.audit(pageRequest(page, size)));
+	}
+
 	@PostMapping("/users/{userId}/lock")
 	public ResponseEntity<?> lock(Authentication authentication, @PathVariable String userId) {
 		if (!adminService.isAdmin(authentication))

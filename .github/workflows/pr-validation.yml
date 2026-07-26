@@ -236,6 +236,7 @@ jobs:
           BOOTSTRAP_ADMIN_ENABLED: "true"
           BOOTSTRAP_ADMIN_EMAIL: admin@example.com
           BOOTSTRAP_ADMIN_PASSWORD: password123!
+          APP_SECURITY_CSRF_ENABLED: "true"
         run: |
           chmod +x mvnw
           ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev &

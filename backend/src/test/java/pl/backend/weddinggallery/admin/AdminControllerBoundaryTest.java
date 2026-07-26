@@ -23,11 +23,12 @@ class AdminControllerBoundaryTest {
 		assertThat(controller.events(user, 0, 50).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 		assertThat(controller.galleries(user, 0, 50).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 		assertThat(controller.media(user, 0, 50).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+		assertThat(controller.audit(user, 0, 50).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 		assertThat(controller.lock(user, "id").getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 		assertThat(controller.unlock(user, "id").getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 		assertThat(controller.archive(user, "id").getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 		assertThat(controller.hide(user, "id").getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-		verify(service, times(9)).isAdmin(user);
+		verify(service, times(10)).isAdmin(user);
 	}
 
 	@Test
@@ -56,6 +57,7 @@ class AdminControllerBoundaryTest {
 		controller.events(admin, 0, 1);
 		controller.galleries(admin, 0, 1);
 		controller.media(admin, 0, 1);
+		controller.audit(admin, 0, 1);
 		controller.lock(admin, "user");
 		controller.unlock(admin, "user");
 		controller.archive(admin, "event");
@@ -66,6 +68,7 @@ class AdminControllerBoundaryTest {
 		verify(service).events(any());
 		verify(service).galleries(any());
 		verify(service).media(any());
+		verify(service).audit(any());
 		verify(service).lockUser("admin@example.com", "user");
 		verify(service).unlockUser("admin@example.com", "user");
 		verify(service).archiveEvent("admin@example.com", "event");

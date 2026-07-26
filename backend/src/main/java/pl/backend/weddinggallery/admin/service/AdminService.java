@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.backend.weddinggallery.admin.dto.*;
 import pl.backend.weddinggallery.audit.model.EventType;
+import pl.backend.weddinggallery.audit.model.AuditEvent;
 import pl.backend.weddinggallery.audit.repository.AuditEventRepository;
 import pl.backend.weddinggallery.audit.service.AuditService;
 import pl.backend.weddinggallery.event.model.Event;
@@ -72,6 +73,11 @@ public class AdminService {
 	@Transactional(readOnly = true)
 	public AdminPageResponse<AdminMediaResponse> media(Pageable pageable) {
 		return page(mediaFileRepository.findAll(pageable).map(this::toMedia));
+	}
+
+	@Transactional(readOnly = true)
+	public AdminPageResponse<AdminAuditResponse> audit(Pageable pageable) {
+		return page(auditEventRepository.findAll(pageable).map(this::toAudit));
 	}
 
 	@Transactional
@@ -156,6 +162,17 @@ public class AdminService {
 		return new AdminMediaResponse(media.getId(), media.getGallery().getId(), media.getGallery().getEvent().getId(),
 				media.getOriginalFilename(), media.getMediaType(), media.getStatus(), media.getPublicationStatus(),
 				media.getSizeBytes(), media.getStoredAt());
+	}
+
+	private AdminAuditResponse toAudit(AuditEvent event) {
+		String resourceType = event.getGalleryId() != null
+				? "GALLERY"
+				: event.getEventId() != null ? "EVENT" : event.getTargetUserId() != null ? "USER" : null;
+		String resourceId = event.getGalleryId() != null
+				? event.getGalleryId()
+				: event.getEventId() != null ? event.getEventId() : event.getTargetUserId();
+		return new AdminAuditResponse(event.getId(), event.getEventType(), event.getUserEmail(), resourceType,
+				resourceId, event.getCreatedAt(), event.getDetails());
 	}
 
 	private <T> AdminPageResponse<T> page(Page<T> page) {
