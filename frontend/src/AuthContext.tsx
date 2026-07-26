@@ -3,6 +3,7 @@ import api from './api'
 
 interface UserInfo {
   email: string
+  systemRole?: 'ADMIN' | 'USER'
 }
 
 interface AuthContextType {

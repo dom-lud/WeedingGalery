@@ -6,7 +6,7 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 ## Status dokumentu
 - Status: draft
 - Zakres: roadmapa wdrazania funkcji i procesow
-- Ostatnia aktualizacja: 2026-07-21
+- Ostatnia aktualizacja: 2026-07-26
 
 ## Stan obecny
 - Roadmapa opisuje planowany rozwoj.
@@ -16,7 +16,7 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 - Etap 3 jest domkniety w minimalnym zakresie `EVENT-001` i `MEMBER-001`.
 - Etapy 4 i 4B sa domkniete, Etap 5 jest domkniety w pierwszym zakresie upload/storage, a Etap 6 jest domkniety w pierwszej iteracji media processingu.
 - Closure sprint 0-5 neutralizuje historyczny credential przez forward-only V5, dodaje jawny bootstrap pierwszego admina, wymusza sekrety prod oraz zabezpiecza cookies i konfiguracje CORS bez rozszerzania zakresu produktowego.
-- Najblizszym etapem produktowym jest Etap 7: publiczne listowanie mediow, preview/lightbox oraz bezpieczny download albo signed links.
+- Etapy 7-10 sa zakonczone w pierwszej iteracji; produkcyjny audyt jest sledzony w [STAGES_7_10_PRODUCTION_CHECKLIST.md](../checklists/STAGES_7_10_PRODUCTION_CHECKLIST.md).
 - Etap 13 ma wdrozony baseline CI/health/Compose, ale nie jest produkcyjnie zakonczony.
 
 ## Status etapow
@@ -30,10 +30,10 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 | 4/4B - Galerie i public access | `DONE` | `GALLERY-001`, `GALLERY-002`, `PUBLIC-001`; bez QR, listowania mediów i moderacji. |
 | 5 - Upload i storage | `DONE` | `UPLOAD-001`, minimalny `UPLOAD-002`, uploadowa część `STORAGE-001`. |
 | 6 - Przetwarzanie mediów | `DONE` | Pierwsza iteracja `MEDIA-001`: joby DB, worker, retry, statusy i miniatura `SMALL`. |
-| 7 - Publiczna galeria | `DEFERRED` | Zaprojektować listowanie, lightbox, download/signed links i budżety wydajnościowe. |
-| 8 - Moderacja | `DEFERRED` | Oczekuje na media i widok publiczny. |
-| 9 - Personalizacja | `IDEA` | Oczekuje na stabilny publiczny widok galerii. |
-| 10 - Panel administratora | `IDEA` | Wymaga osobnego admin API, audytu i modelu jawnych akcji. |
+| 7 - Publiczna galeria | `DONE_FIRST_ITERATION` | Publiczne listowanie, filtrowanie, lightbox, processing states i kontrolowany download; produkcyjny gate to MySQL/Compose HTTP E2E oraz test wydajnościowy. |
+| 8 - Moderacja | `DONE_FIRST_ITERATION` | Statusy publikacji, bulk actions, ownership i audyt; produkcyjny gate to pełne E2E na MySQL/Compose. |
+| 9 - Personalizacja | `DONE_FIRST_ITERATION` | Whitelistowana personalizacja, wersjonowanie, cover media, owner-only i accessibility; produkcyjny gate to MySQL E2E. |
+| 10 - Panel administratora | `DONE_FIRST_ITERATION` | Izolowane admin API, dashboard, listy, jawne akcje i audyt; produkcyjny gate to pełne E2E RBAC na MySQL/Compose. |
 | 11 - Statystyki i powiadomienia | `IDEA` | Wymaga media/download oraz rozszerzonej identity. |
 | 12 - Plany i komercjalizacja | `IDEA` | Wymaga profilu, statystyk i decyzji produktowej o planach. |
 | 13 - Stabilizacja produkcyjna | `IN_PROGRESS` | Baseline CI/Compose/health istnieje; brak backup/restore, alertów, HTTPS rollout i testów obciążeniowych. |
@@ -135,8 +135,8 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 - Glowne ryzyka: przeciazenie serwera, brak idempotencji jobow, bledy retry.
 
 ## Etap 7 - Publiczna galeria
-- Status: odroczony do zakonczenia Etapu 6.
-- Najblizszy krok: po stabilizacji modelu mediow zaprojektowac API listowania, streaming/signed links, lightbox i lazy loading.
+- Status: `DONE_FIRST_ITERATION`; produkcyjny gate wymaga MySQL/Compose E2E i testu wydajnosciowego.
+- Najblizszy krok: uruchomic te gate'y na Docker-capable runnerze.
 - Cel: udostepnienie galerii do przegladania na urzadzeniach mobilnych i desktopach.
 - Zaleznosci: etap 6.
 - Rezultat: widok galerii, lightbox, filmy, lazy loading, filtrowanie i pobieranie.
@@ -144,8 +144,8 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 - Glowne ryzyka: wydajnosc mobilna, ochrona prywatnosci, duzy transfer danych.
 
 ## Etap 8 - Moderacja
-- Status: odroczony; zalezy od Etapow 6 i 7.
-- Najblizszy krok: zdefiniowac statusy publikacji, operacje bulk, ownership i katalog audytu.
+- Status: `DONE_FIRST_ITERATION`; produkcyjny gate wymaga MySQL/Compose E2E statusow, bulk, ownership i audytu.
+- Najblizszy krok: uruchomic te gate'y na Docker-capable runnerze.
 - Cel: wdrozenie publikacji sterowanej przez organizatora.
 - Zaleznosci: etap 7.
 - Rezultat: zatwierdzanie, ukrywanie, usuwanie i operacje zbiorcze.
@@ -153,8 +153,8 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 - Glowne ryzyka: niespojne statusy mediow, brak audytu decyzji moderacyjnych.
 
 ## Etap 9 - Personalizacja
-- Status: idea; implementacja nie zostala rozpoczeta.
-- Najblizszy krok: po Etapie 7 zamrozic bezpieczny schemat motywow bez dowolnego HTML/CSS/JS.
+- Status: `DONE_FIRST_ITERATION`; produkcyjny gate wymaga MySQL/Compose E2E konfliktu wersji, covera i accessibility.
+- Najblizszy krok: uruchomic te gate'y na Docker-capable runnerze.
 - Cel: wprowadzenie bezpiecznej konfiguracji wygladu galerii.
 - Zaleznosci: etap 7.
 - Rezultat: motywy, kolory, zdjecie okladkowe, teksty i uklad galerii.
@@ -162,8 +162,8 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 - Glowne ryzyka: XSS, nadmierna zlozonosc UI, niespojnosc motywow.
 
 ## Etap 10 - Panel administratora
-- Status: idea; implementacja nie zostala rozpoczeta.
-- Najblizszy krok: zaprojektowac osobny admin API i jawne, audytowane akcje bez omijania ownership w API biznesowym.
+- Status: `DONE_FIRST_ITERATION`; produkcyjny gate wymaga MySQL/Compose E2E RBAC, akcji i audytu.
+- Najblizszy krok: uruchomic te gate'y na Docker-capable runnerze.
 - Cel: wdrozenie operacyjnego panelu zarzadzania platforma.
 - Zaleznosci: etapy 2-9.
 - Rezultat: uzytkownicy, wydarzenia, galerie, storage, limity, audyt i konfiguracja.
@@ -211,3 +211,29 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 
 ## Decyzje otwarte
 - Po ktorym etapie powinna nastapic pierwsza wersja publicznie dostepna dla uzytkownikow zewnetrznych.
+
+## Aktualizacja statusu Etapow 7-10 (2026-07-26)
+
+Po implementacji pierwszej iteracji statusy operacyjne sa nastepujace:
+
+- Etap 7: `DONE_FIRST_ITERATION` - publiczne listowanie, filtrowanie, lightbox,
+  streaming i download ownera.
+- Etap 8: `DONE_FIRST_ITERATION` - moderacja publikacji, bulk, ownership i audyt.
+- Etap 9: `DONE_FIRST_ITERATION` - whitelistowana personalizacja z wersjonowaniem,
+  walidacja cover media i ochrona owner-only.
+- Etap 10: `DONE_FIRST_ITERATION` - izolowane admin API, dashboard, listy i jawne
+  akcje audytowane.
+
+Dowody zamkniecia pierwszej iteracji:
+
+- CI: backend `./mvnw -B verify` - 179 testow, 0 bledow i 0 pominietych,
+  JaCoCo branches `90.22%` przy progu `90%`.
+- CI: frontend Vitest z coverage gates, lint i build - wszystkie kroki zielone.
+- CI: Playwright - 21 scenariuszy E2E, w tym CSRF, ownership, moderacja,
+  personalizacja, panel administratora, accessibility, klawiatura i responsive.
+- Kontrakty API i readiness check dokumentacji przeszly, a poprawki obsluzyly
+  status `STORED`, CSRF w publicznym exchange oraz selektor moderacji MUI.
+
+Pelne zamkniecie produkcyjne nadal wymaga osobnego dowodu HTTP E2E na
+MySQL/Compose, testow obciazeniowych dla duzych galerii oraz operacyjnych
+dowodow Etapu 13 (backup/restore, monitoring i rollback).

@@ -126,8 +126,8 @@ class PublicGalleryUploadFlowIntegrationTest {
 		Map<String, Object> settingsBody = new LinkedHashMap<>();
 		settingsBody.put("publicViewEnabled", true);
 		settingsBody.put("uploadEnabled", true);
-		settingsBody.put("downloadEnabled", false);
-		settingsBody.put("moderationMode", "REQUIRED");
+		settingsBody.put("downloadEnabled", true);
+		settingsBody.put("moderationMode", "NONE");
 		settingsBody.put("publishedAt", null);
 		settingsBody.put("expiresAt", null);
 		settingsBody.put("version", version);

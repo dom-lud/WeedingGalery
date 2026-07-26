@@ -8,11 +8,28 @@ Opisuje docelowa strategie testowania platformy na poziomie backendu, frontendu 
 
 - Status: draft
 - Zakres: test strategy dla stanu docelowego
-- Ostatnia aktualizacja: 2026-07-13
+- Ostatnia aktualizacja: 2026-07-26
 
 ## Stan obecny
 
-- Istniejacy szkielet projektu nie zapewnia jeszcze pelnego pokrycia testowego.
+- Etapy 7-10 maja test design brief, testy backendowe/frontendowe oraz
+  Playwright + axe w repozytorium.
+- Workflow PR i nightly uruchamiaja E2E na profilu developerskim z H2. Osobny
+  test migracji Flyway sprawdza MySQL w runnerze z Dockerem; nie jest to
+  substytut pelnego HTTP E2E na MySQL/Compose.
+- Produkcyjne braki sa jawnie sledzone w [STAGES_7_10_PRODUCTION_CHECKLIST.md](../checklists/STAGES_7_10_PRODUCTION_CHECKLIST.md).
+
+### Wynik ostatniej walidacji etapow 7-10
+
+- Backend: `./mvnw -B verify` zakonczyl sie zielono; 179 testow przeszlo bez
+  failures/errors/skipped, a coverage branches wyniosl `90.22%` przy progu 90%.
+- Frontend: Vitest/V8, lint i build przeszly w CI przy zachowaniu progow coverage.
+- E2E: Playwright uruchomil 21 scenariuszy, obejmujac public gallery upload,
+  CSRF, ownership, moderacje, personalizacje, admin API/UI oraz axe,
+  klawiature i responsive behavior.
+- Regresje usuniete przed zamknieciem: status `STORED` nie konczy zbyt wczesnie
+  pollingu, publiczny exchange wysyla CSRF, a wybor moderacji korzysta z
+  semantycznego combobox/option Material UI.
 
 ## Stan docelowy
 

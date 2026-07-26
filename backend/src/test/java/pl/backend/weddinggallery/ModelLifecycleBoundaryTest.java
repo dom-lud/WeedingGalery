@@ -40,6 +40,11 @@ class ModelLifecycleBoundaryTest {
 		invoke(media, "create");
 		assertThat(media.getId()).isNotBlank();
 		assertThat(media.getStatus()).isEqualTo(MediaStatus.PENDING);
+		assertThat(media.getPublicationStatus()).isEqualTo(PublicationStatus.PENDING);
+		Gallery noneGallery = Gallery.builder().moderationMode(ModerationMode.NONE).build();
+		MediaFile autoApproved = MediaFile.builder().gallery(noneGallery).status(MediaStatus.PENDING).build();
+		invoke(autoApproved, "create");
+		assertThat(autoApproved.getPublicationStatus()).isEqualTo(PublicationStatus.APPROVED);
 
 		UploadSession upload = new UploadSession();
 		invoke(upload, "create");
@@ -98,6 +103,7 @@ class ModelLifecycleBoundaryTest {
 		invoke(media, "create");
 		assertThat(media.getId()).isEqualTo("media");
 		assertThat(media.getStatus()).isEqualTo(MediaStatus.STORED);
+		assertThat(media.getPublicationStatus()).isEqualTo(PublicationStatus.PENDING);
 		invoke(media, "update");
 
 		UploadSession upload = UploadSession.builder().id("upload").status(UploadSessionStatus.CANCELLED).build();

@@ -4,6 +4,7 @@ import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import PublicGalleryPage from './components/PublicGalleryPage'
+import AdminDashboard from './components/AdminDashboard'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
 
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             {/* Redirect logged in users from root to dashboard */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Route>

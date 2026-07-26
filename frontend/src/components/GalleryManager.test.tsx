@@ -3,8 +3,14 @@ import { ThemeProvider } from '@mui/material/styles'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { EventData } from '../eventsApi'
 import { galleriesApi } from '../galleriesApi'
+import { customizationApi } from '../customizationApi'
 import { appTheme } from '../theme'
 import GalleryManager from './GalleryManager'
+
+vi.mock('../customizationApi', () => ({
+  customizationApi: { get: vi.fn(), update: vi.fn() },
+  APPEARANCE_TEXT_LIMIT: 500,
+}))
 
 vi.mock('../galleriesApi', () => ({
   galleriesApi: {
@@ -78,6 +84,46 @@ describe('GalleryManager', () => {
     )
     expect(await screen.findByText('Gallery created.')).toBeInTheDocument()
     await waitFor(() => expect(galleriesApi.list).toHaveBeenCalledTimes(2))
+  })
+
+  it('opens appearance customization from a gallery card for the owner', async () => {
+    vi.mocked(galleriesApi.list).mockResolvedValue({
+      data: [
+        {
+          id: 'gallery-1',
+          eventId: 'event-1',
+          name: 'Reception',
+          slug: 'reception',
+          description: null,
+          sortOrder: 0,
+          status: 'ACTIVE',
+          currentUserRole: 'OWNER',
+          createdAt: '',
+          updatedAt: '',
+        },
+      ],
+    } as never)
+    vi.mocked(customizationApi.get).mockResolvedValue({
+      data: {
+        theme: 'EDITORIAL',
+        layout: 'GRID',
+        primaryColor: '#74465A',
+        accentColor: '#B47B4C',
+        backgroundColor: '#F7F4F2',
+        welcomeText: '',
+        showTitle: true,
+        showUpload: true,
+        showDownload: false,
+        version: 0,
+      },
+    } as never)
+    renderManager()
+
+    await screen.findByText('Reception')
+    fireEvent.click(screen.getByRole('button', { name: 'Customize appearance' }))
+
+    expect(await screen.findByRole('dialog')).toHaveTextContent('Customize gallery appearance')
+    expect(customizationApi.get).toHaveBeenCalledWith('gallery-1')
   })
 
   it('does not expose lifecycle actions to a manager', async () => {

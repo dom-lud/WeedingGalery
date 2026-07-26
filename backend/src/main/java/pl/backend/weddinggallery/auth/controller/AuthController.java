@@ -2,8 +2,8 @@ package pl.backend.weddinggallery.auth.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,14 +15,25 @@ import pl.backend.weddinggallery.auth.dto.LoginRequest;
 import pl.backend.weddinggallery.auth.dto.RegisterRequest;
 import pl.backend.weddinggallery.auth.dto.UserInfoResponse;
 import pl.backend.weddinggallery.auth.service.AuthService;
+import pl.backend.weddinggallery.user.repository.UserRepository;
 
 @Slf4j
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 public class AuthController {
 
 	private final AuthService authService;
+	private final UserRepository userRepository;
+
+	public AuthController(AuthService authService) {
+		this(authService, null);
+	}
+
+	@Autowired
+	public AuthController(AuthService authService, UserRepository userRepository) {
+		this.authService = authService;
+		this.userRepository = userRepository;
+	}
 
 	@PostMapping("/register")
 	public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
@@ -34,7 +45,7 @@ public class AuthController {
 	public ResponseEntity<UserInfoResponse> login(@Valid @RequestBody LoginRequest request,
 			HttpServletRequest httpRequest) {
 		String username = authService.loginUser(request, httpRequest);
-		return ResponseEntity.ok(new UserInfoResponse(username));
+		return ResponseEntity.ok(userInfo(username));
 	}
 
 	@GetMapping("/me")
@@ -43,7 +54,15 @@ public class AuthController {
 				|| "anonymousUser".equals(authentication.getPrincipal())) {
 			return ResponseEntity.status(401).build();
 		}
-		return ResponseEntity.ok(new UserInfoResponse(authentication.getName()));
+		return ResponseEntity.ok(userInfo(authentication.getName()));
+	}
+
+	private UserInfoResponse userInfo(String email) {
+		return userRepository == null
+				? new UserInfoResponse(email)
+				: userRepository.findByEmail(email)
+						.map(user -> new UserInfoResponse(user.getEmail(), user.getSystemRole()))
+						.orElseGet(() -> new UserInfoResponse(email));
 	}
 
 	@GetMapping("/csrf")

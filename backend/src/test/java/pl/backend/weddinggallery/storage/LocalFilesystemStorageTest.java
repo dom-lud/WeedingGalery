@@ -7,6 +7,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.io.TempDir;
 import pl.backend.weddinggallery.common.exception.AppException;
 import pl.backend.weddinggallery.upload.exception.UploadErrorCode;
@@ -84,6 +85,14 @@ class LocalFilesystemStorageTest {
 		Path stale = Files.write(directory.resolve("stale.tmp"), new byte[]{1});
 		Path fresh = Files.write(directory.resolve("fresh.tmp"), new byte[]{1});
 		Path permanent = Files.write(directory.resolve("keep.jpg"), new byte[]{1});
+		Path symlink = directory.resolve("link.tmp");
+		boolean symlinkSupported = true;
+		try {
+			Files.createSymbolicLink(symlink, permanent);
+		} catch (UnsupportedOperationException | IOException | SecurityException ex) {
+			symlinkSupported = false;
+		}
+		Assumptions.assumeTrue(symlinkSupported, "Symbolic links are not supported by this filesystem");
 		Files.setLastModifiedTime(stale, FileTime.from(Instant.now().minusSeconds(7200)));
 
 		storage.cleanupStaleTemporaryFiles();
@@ -91,6 +100,8 @@ class LocalFilesystemStorageTest {
 		assertThat(stale).doesNotExist();
 		assertThat(fresh).exists();
 		assertThat(permanent).exists();
+		assertThat(symlink).exists();
+		assertThat(Files.isSymbolicLink(symlink)).isTrue();
 	}
 
 	@Test
@@ -107,8 +118,8 @@ class LocalFilesystemStorageTest {
 		Path link = root.resolve("events");
 		try {
 			Files.createSymbolicLink(link, outside);
-		} catch (UnsupportedOperationException | FileSystemException ex) {
-			return;
+		} catch (UnsupportedOperationException | FileSystemException | SecurityException ex) {
+			Assumptions.assumeTrue(false, "Symbolic links are not supported by this filesystem");
 		}
 		LocalFilesystemStorage storage = storage();
 		assertThatThrownBy(() -> storage.save("events/e/file", new ByteArrayInputStream(new byte[]{1}), 1))

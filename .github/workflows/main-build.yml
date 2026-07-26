@@ -14,6 +14,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  documentation:
+    name: Documentation and readiness consistency
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate Stage 7-10 readiness documentation
+        run: node .github/scripts/validate-stage-readiness.mjs
+
   backend-artifact:
     name: Backend artifact
     runs-on: ubuntu-latest
@@ -234,6 +245,7 @@ jobs:
           BOOTSTRAP_ADMIN_ENABLED: "true"
           BOOTSTRAP_ADMIN_EMAIL: admin@example.com
           BOOTSTRAP_ADMIN_PASSWORD: password123!
+          APP_SECURITY_CSRF_ENABLED: "true"
         run: |
           chmod +x mvnw
           ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev &
@@ -312,12 +324,24 @@ jobs:
   quality-report:
     name: Main quality report
     runs-on: ubuntu-latest
-    needs: [backend-artifact, frontend-artifact, docker-validation, e2e]
+    needs:
+      [
+        documentation,
+        backend-artifact,
+        frontend-artifact,
+        docker-validation,
+        e2e,
+      ]
     if: always()
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Enforce documentation readiness gate
+        env:
+          DOCUMENTATION_RESULT: ${{ needs.documentation.result }}
+        run: test "$DOCUMENTATION_RESULT" = success
 
       - name: Download quality metric parts
         continue-on-error: true

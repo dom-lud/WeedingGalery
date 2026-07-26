@@ -728,3 +728,57 @@ Retry przejsciowy jest logowany operacyjnie, ale nie tworzy osobnego audit
 eventu. Szczegoly audytu moga zawierac `mediaId`, `jobId`, status joba, liczbe
 prob i stabilny kod bledu, ale nie moga ujawniac sciezek storage, tokenow, kodow
 dostepu ani prywatnych linkow.
+
+## Kontrakt MEDIA-002 - Etap 8 moderacji publikacji
+
+Status: `IMPLEMENTED_FIRST_ITERATION`.
+
+`MediaStatus` opisuje zapis i przetwarzanie pliku. Widocznosc publiczna jest
+niezalezna i uzywa pola `publicationStatus` z wartosciami `PENDING`,
+`APPROVED`, `HIDDEN` i `REJECTED`. Dla galerii `REQUIRED` nowe media zaczynaja
+od `PENDING`, a dla `NONE` od `APPROVED`.
+
+Publiczne listowanie, thumbnail i content zwracaja wylacznie media ze statusem
+`APPROVED` oraz prawidlowym statusem technicznym. `PROCESSING_FAILED` nie jest
+publicznie dostepny. Panel ownera/managera moze odczytac media niezaleznie od
+statusu publikacji, o ile maja prawidlowy obiekt storage.
+
+Przejscia publikacji:
+
+- `PENDING -> APPROVED` przez `approve`;
+- `PENDING -> REJECTED` przez `reject`;
+- `APPROVED -> HIDDEN` przez `hide`;
+- `HIDDEN -> APPROVED` oraz `REJECTED -> APPROVED` przez `restore`.
+
+Akcje sa scoped po `eventId`, `galleryId` i `mediaId`. Owner oraz aktywny
+manager wydarzenia moga moderowac. Zwykly endpoint nie daje administratorowi
+bypassu ownership.
+
+Endpointy:
+
+- `POST /api/events/{eventId}/galleries/{galleryId}/media/{mediaId}/approve`
+- `POST /api/events/{eventId}/galleries/{galleryId}/media/{mediaId}/reject`
+- `POST /api/events/{eventId}/galleries/{galleryId}/media/{mediaId}/hide`
+- `POST /api/events/{eventId}/galleries/{galleryId}/media/{mediaId}/restore`
+- `POST /api/events/{eventId}/galleries/{galleryId}/media/bulk-actions`
+
+Mutacje wymagaja sesji i CSRF. Body pojedynczej decyzji moze zawierac
+`reason` do 500 znakow; `reject` i `hide` wymagaja powodu. Bulk przyjmuje
+maksymalnie 100 identyfikatorow i zwraca wynik per media. Udana decyzja
+zapisuje fail-closed audyt z aktorem, eventem, galeria, media, nowym statusem
+i wynikiem. Audyt nie zawiera tokenow, access code ani storage key.
+
+## Kontrakt Etap 9/10
+
+Status: `IMPLEMENTED_FIRST_ITERATION`. Produkcyjne E2E na MySQL/Compose oraz
+testy wydajnosciowe pozostaja osobnym gate'em opisanym w checklistcie Stages
+7-10.
+
+Personalizacja uzywa whitelistowanych theme/layout, kolorow `#RRGGBB`, tekstu do
+500 znakow i flag widoku przez `GET/PUT /api/galleries/{galleryId}/customization`.
+Zapis wymaga ownera i zgodnej wersji; konflikt zwraca `409`. Dowolny HTML/CSS/JS
+nie jest akceptowany.
+
+Panel administratora jest odseparowany pod `/api/admin/**`, wymaga roli `ADMIN`
+i obsluguje dashboard, paginowane listy, audit oraz jawne akcje lock/unlock,
+archive event i hide media. Mutacje sa audytowane.

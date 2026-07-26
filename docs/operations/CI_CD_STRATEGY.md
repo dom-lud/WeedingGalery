@@ -8,7 +8,7 @@ Opisuje docelowa strategie CI/CD dla GitHub Actions oraz aktualne repo truth dla
 
 - Status: draft
 - Zakres: pull request flow, quality gates, pipeline build/test/deploy, artefakty i rollback
-- Ostatnia aktualizacja: 2026-07-20
+- Ostatnia aktualizacja: 2026-07-26
 
 ## Stan obecny
 
@@ -38,6 +38,23 @@ Opisuje docelowa strategie CI/CD dla GitHub Actions oraz aktualne repo truth dla
   najnowszy raport Allure pod `allure/latest/` i linkuje go z dashboardu.
 - Cache przegladarki Playwright jest kluczowany systemem, projektem Chromium i wersja `@playwright/test`, dlatego zmiany pozostalych zaleznosci nie wymuszaja ponownego pobrania browsera.
 - Quality gates sa czesciowo zautomatyzowane; obszary biznesowe, security review i dalsza rozbudowa zakresu E2E nadal wymagaja pracy.
+- PR, main i nightly uruchamiaja takze automatyczny check spojnosci checklisty
+  produkcyjnej etapow 7-10. Check nie udaje potwierdzenia MySQL ani produkcji:
+  jawnie pozostawia te dowody jako gate'y `CI_REQUIRED`.
+- Obecne Playwright E2E startuje backend w profilu `dev` na H2. MySQL jest
+  sprawdzany przez kontrakt migracji w Testcontainers, ale pelne HTTP E2E na
+  Compose/MySQL pozostaje wymaganym przebiegiem nightly/release.
+
+### Ostatni zielony przebieg etapow 7-10
+
+- Backend `./mvnw -B verify`: 179 testow, 0 failures, 0 errors, 0 skipped;
+  JaCoCo branches `90.22%` przy blokujacym progu `90%`.
+- Frontend: Vitest z coverage, lint i build przeszly w CI.
+- Playwright: 21 scenariuszy E2E przeszlo, lacznie z accessibility, klawiatura,
+  responsive, CSRF, ownership, moderacja, personalizacja i admin flow.
+- Ten wynik zamyka pierwsza iteracje etapow 7-10. Nie oznacza jeszcze produkcji:
+  HTTP E2E na MySQL/Compose, load testy i dowody operacyjne pozostaja gate'ami
+  release opisanymi w checklistach.
 
 ## Stan docelowy
 

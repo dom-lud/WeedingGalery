@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.data.jpa.repository.JpaRepository;
 import pl.backend.weddinggallery.media.model.MediaStatus;
 import pl.backend.weddinggallery.media.model.MediaFile;
+import pl.backend.weddinggallery.media.model.PublicationStatus;
 
 public interface MediaFileRepository extends JpaRepository<MediaFile, String> {
 	Optional<MediaFile> findByUploadSessionIdAndClientFileId(String sessionId, String clientFileId);
@@ -12,4 +13,6 @@ public interface MediaFileRepository extends JpaRepository<MediaFile, String> {
 	List<MediaFile> findByStatusAndUpdatedAtBefore(MediaStatus status, LocalDateTime cutoff);
 	List<MediaFile> findByGalleryIdAndStatusInOrderByStoredAtDescCreatedAtDescIdAsc(String galleryId,
 			Collection<MediaStatus> statuses);
+	List<MediaFile> findByGalleryIdAndStatusInAndPublicationStatusOrderByStoredAtDescCreatedAtDescIdAsc(
+			String galleryId, Collection<MediaStatus> statuses, PublicationStatus publicationStatus);
 }

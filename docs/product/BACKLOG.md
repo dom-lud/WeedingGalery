@@ -6,7 +6,7 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 ## Status dokumentu
 - Status: draft
 - Zakres: backlog dla pełnej wizji produktu
-- Ostatnia aktualizacja: 2026-07-20
+- Ostatnia aktualizacja: 2026-07-26
 
 ## Stan obecny
 - Closure sprint 0-5 domyka hardening konfiguracji: brak aktywnego konta po pelnej migracji V1-V5, neutralizacja historycznego credentialu przez forward-only V5, opt-in bootstrap admina, wymagane sekrety prod, bezpieczne cookies oraz powtarzalny lokalny format check.
@@ -24,6 +24,10 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 
 ## Aktualny status realizacji
 
+Stan po zielonym CI z 2026-07-26: Etapy 7-10 oraz odpowiadajace im pozycje
+`MOD-001`, `CUSTOM-001`, `ADMIN-001`, `ADMIN-002` i `AUDIT-001` maja status
+`DONE_FIRST_ITERATION`. Szczegolowe dowody sa w [STAGES_7_10_PRODUCTION_CHECKLIST.md](../checklists/STAGES_7_10_PRODUCTION_CHECKLIST.md).
+
 | Obszar | Zadania | Status | Zakres wykonany / następny krok |
 | --- | --- | --- | --- |
 | Fundament | `FND-001`, `FND-002` | `DONE` | Dokumentacja, monorepo, Flyway, środowiska, health, CI i testowy baseline są wdrożone. |
@@ -39,15 +43,15 @@ Zbiera pełny backlog docelowej platformy w podziale na epiki, zwięzłe zadania
 | Upload | `UPLOAD-001`, `UPLOAD-002` | `DONE` | Wieloplikowy upload, manifest, retry, cancel, status, limity i idempotency; chunks są przyszłym rozszerzeniem. |
 | Storage | `STORAGE-001` | `DONE` | Abstrakcja i bezpieczny zapis lokalny; publiczny odczyt/signed links należą do `DOWNLOAD-001`. |
 | Media processing | `MEDIA-001` | `DONE` | Pierwsza iteracja: trwale joby DB, in-process worker, statusy processingu, retry oraz miniatura `SMALL` dla obrazow obslugiwanych przez runtime. |
-| Moderacja | `MOD-001` | `DEFERRED` | Oczekuje na `MEDIA-001` i publiczne listowanie mediów. |
+| Moderacja | `MOD-001` | `DONE_FIRST_ITERATION` | Statusy publikacji, bulk actions, ownership i audyt są wdrożone; pełne MySQL/Compose E2E pozostaje gate'em produkcyjnym. |
 | Download | `DOWNLOAD-001` | `ANALYSIS` | Trzeba rozstrzygnąć streaming vs signed links i zaakceptować ADR 0009. |
-| Personalizacja | `CUSTOM-001` | `IDEA` | Oczekuje na publiczny widok galerii z Etapu 7. |
+| Personalizacja | `CUSTOM-001` | `DONE_FIRST_ITERATION` | Whitelistowane opcje, wersjonowanie, cover media, owner-only i accessibility są wdrożone; pełne MySQL E2E pozostaje gate'em produkcyjnym. |
 | QR | `QR-001` | `ANALYSIS` | `PUBLIC-001` jest gotowe; pozostał kontrakt generowania i pobierania PNG/SVG. |
 | Statystyki | `STAT-001` | `IDEA` | Oczekuje na media, przeglądanie i download. |
 | Powiadomienia | `NOTIF-001` | `IDEA` | Oczekuje na `AUTH-002`, `INV-001` i `DOWNLOAD-001`. |
 | Plany | `PLAN-001` | `IDEA` | Oczekuje na profil i statystyki; obecna quota galerii nie jest jeszcze systemem planów. |
-| Administracja | `ADMIN-001`, `ADMIN-002` | `IDEA` | Brak osobnego admin API/UI; zwykłe API nadal wymaga ownership. |
-| Audyt | `AUDIT-001` | `IN_PROGRESS` | Auth, event, membership, gallery i upload zapisują audyt; panel, filtrowanie i akcje admina pozostają. |
+| Administracja | `ADMIN-001`, `ADMIN-002` | `DONE_FIRST_ITERATION` | Osobne admin API/UI, dashboard, listy, jawne akcje i paginowany odczyt audytu są wdrożone; produkcyjny gate obejmuje RBAC E2E na MySQL/Compose. |
+| Audyt | `AUDIT-001` | `DONE_FIRST_ITERATION` | Audyt obejmuje auth, event, membership, gallery, upload, moderację, personalizację i akcje admina; filtrowanie/trendy pozostają rozszerzeniem. |
 | Security baseline | `SEC-001` | `IN_PROGRESS` | Sesje, CSRF, headers, rate limiting, IDOR i secret handling działają; pełny przegląd produkcyjny pozostaje. |
 | Upload security | `SEC-002` | `IN_PROGRESS` | Walidacja plików, limity, traversal i scoping są wdrożone; bezpieczeństwo downloadu czeka na `DOWNLOAD-001`. |
 | Operacje | `OPS-001` | `IN_PROGRESS` | Compose, konfiguracja, health i CI działają; produkcyjny rollout, HTTPS i rollback nie są potwierdzone. |

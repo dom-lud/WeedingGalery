@@ -6,6 +6,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.backend.weddinggallery.audit.service.AuditService;
 import pl.backend.weddinggallery.common.exception.AppException;
+import pl.backend.weddinggallery.event.exception.EventErrorCode;
 import pl.backend.weddinggallery.event.dto.EventWriteRequest;
 import pl.backend.weddinggallery.event.model.*;
 import pl.backend.weddinggallery.event.repository.EventRepository;
@@ -82,5 +85,86 @@ class EventServiceTest {
 
 		assertThatThrownBy(() -> service.create(new EventWriteRequest("Wedding", EventType.WEDDING, null, null,
 				PrivacyMode.PRIVATE), "owner@example.com")).isInstanceOf(IllegalStateException.class);
+	}
+
+	@Test
+	void shouldNormalizeUserLookupAndDescriptionAndReturnUpdatedResponse() {
+		Event event = event(EventStatus.DRAFT);
+		when(userRepository.findByEmail("owner@example.com")).thenReturn(Optional.of(owner));
+		when(eventRepository.findAccessibleById(event.getId(), owner.getId())).thenReturn(Optional.of(event));
+
+		var response = service.update(event.getId(), new EventWriteRequest("  Updated  ", EventType.WEDDING,
+				LocalDate.of(2030, 1, 2), "   ", PrivacyMode.PRIVATE), " OWNER@EXAMPLE.COM ");
+
+		assertThat(response.name()).isEqualTo("Updated");
+		assertThat(response.description()).isNull();
+		assertThat(event.getPrivacyMode()).isEqualTo(PrivacyMode.PRIVATE);
+		verify(auditService).logRequiredEvent(eq(owner.getEmail()), any(), eq(event.getId()), isNull(), anyString());
+	}
+
+	@Test
+	void shouldRejectUpdateOfArchivedEvent() {
+		Event event = event(EventStatus.ARCHIVED);
+		when(eventRepository.findAccessibleById(event.getId(), owner.getId())).thenReturn(Optional.of(event));
+
+		assertCode(() -> service.update(event.getId(), request(), owner.getEmail()), EventErrorCode.EVENT_ARCHIVED);
+		verifyNoInteractions(auditService);
+	}
+
+	@Test
+	void shouldArchiveOnlyOwnedEventAndMakeRepeatedArchiveIdempotent() {
+		Event event = event(EventStatus.DRAFT);
+		when(eventRepository.findAccessibleById(event.getId(), owner.getId())).thenReturn(Optional.of(event));
+
+		assertThat(service.archive(event.getId(), owner.getEmail()).status()).isEqualTo(EventStatus.ARCHIVED);
+		service.archive(event.getId(), owner.getEmail());
+
+		verify(auditService, times(1)).logRequiredEvent(eq(owner.getEmail()), any(), eq(event.getId()), isNull(),
+				contains("ARCHIVED"));
+	}
+
+	@Test
+	void shouldRejectArchiveAndDeleteForNonOwnerAndMaskMissingEvent() {
+		User manager = User.builder().id("manager-id").email("manager@example.com").build();
+		Event event = event(EventStatus.DRAFT);
+		when(userRepository.findByEmail("manager@example.com")).thenReturn(Optional.of(manager));
+		when(eventRepository.findAccessibleById(event.getId(), manager.getId())).thenReturn(Optional.of(event));
+
+		assertCode(() -> service.archive(event.getId(), manager.getEmail()), EventErrorCode.EVENT_OWNER_REQUIRED);
+		assertCode(() -> service.delete(event.getId(), manager.getEmail()), EventErrorCode.EVENT_OWNER_REQUIRED);
+
+		when(eventRepository.findAccessibleById("missing", owner.getId())).thenReturn(Optional.empty());
+		assertCode(() -> service.delete("missing", owner.getEmail()), EventErrorCode.EVENT_NOT_FOUND);
+	}
+
+	@Test
+	void shouldListOwnerAndManagerWithRolesAndRejectUnknownRole() {
+		User manager = User.builder().id("manager-id").email("manager@example.com").build();
+		Event event = event(EventStatus.DRAFT);
+		when(membershipRepository.existsByEventIdAndUserIdAndRemovedAtIsNull(event.getId(), manager.getId()))
+				.thenReturn(true);
+
+		assertThat(service.roleFor(event, owner)).isEqualTo(pl.backend.weddinggallery.membership.model.EventRole.OWNER);
+		assertThat(service.roleFor(event, manager))
+				.isEqualTo(pl.backend.weddinggallery.membership.model.EventRole.MANAGER);
+		assertCode(() -> service.roleFor(event, User.builder().id("other-id").build()), EventErrorCode.EVENT_NOT_FOUND);
+		when(eventRepository.findAccessibleByUserId(owner.getId())).thenReturn(List.of(event));
+		assertThat(service.list(owner.getEmail())).singleElement().satisfies(item -> assertThat(item.currentUserRole())
+				.isEqualTo(pl.backend.weddinggallery.membership.model.EventRole.OWNER));
+	}
+
+	private Event event(EventStatus status) {
+		return Event.builder().id("event-id").name("Wedding").type(EventType.WEDDING).status(status).owner(owner)
+				.privacyMode(PrivacyMode.PRIVATE).createdAt(LocalDateTime.now().minusDays(1))
+				.updatedAt(LocalDateTime.now()).build();
+	}
+
+	private EventWriteRequest request() {
+		return new EventWriteRequest("Updated", EventType.WEDDING, null, "description", PrivacyMode.PRIVATE);
+	}
+
+	private void assertCode(org.assertj.core.api.ThrowableAssert.ThrowingCallable call, EventErrorCode code) {
+		assertThatThrownBy(call).isInstanceOfSatisfying(AppException.class,
+				error -> assertThat(error.getErrorCode()).isEqualTo(code));
 	}
 }

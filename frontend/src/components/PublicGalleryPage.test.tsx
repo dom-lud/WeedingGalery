@@ -48,7 +48,7 @@ describe('PublicGalleryPage', () => {
   afterEach(() => cleanup())
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.resetAllMocks()
     sessionStorage.clear()
     window.history.replaceState(null, '', '/g/reception#token=private-token')
     vi.mocked(publicAccessApi.get).mockResolvedValue({ data: gallery } as never)
@@ -144,6 +144,7 @@ describe('PublicGalleryPage', () => {
         },
       } as never
     })
+
     const view = renderPage()
     await screen.findByRole('heading', { name: 'Reception gallery' })
     const input = view.container.querySelector('input[type="file"]') as HTMLInputElement
@@ -159,6 +160,48 @@ describe('PublicGalleryPage', () => {
     )
     expect(screen.queryByText('photo.jpg')).not.toBeInTheDocument()
     expect(screen.getByText('Your upload queue is empty.')).toBeInTheDocument()
+  })
+
+  it('waits for stored media to finish processing before refreshing the public gallery', async () => {
+    vi.mocked(publicAccessApi.access).mockResolvedValue({ data: gallery } as never)
+    vi.mocked(uploadApi.createSession).mockResolvedValue({ data: { id: 'session-1' } } as never)
+    let uploadedId = ''
+    vi.mocked(uploadApi.uploadFile).mockImplementationOnce(
+      async (_slug, _session, id, _file, progress) => {
+        uploadedId = id
+        progress(100)
+        return { data: { status: 'STORED' } } as never
+      },
+    )
+    let sessionPoll = 0
+    vi.mocked(uploadApi.getSession).mockImplementation(async () => {
+      sessionPoll += 1
+      return {
+        data: {
+          id: 'session-1',
+          status: 'COMPLETED',
+          expiresAt: '2026-07-21T12:00:00Z',
+          files: [
+            {
+              clientFileId: uploadedId,
+              fileName: 'stored.jpg',
+              size: 5,
+              status: sessionPoll === 1 ? 'STORED' : 'PROCESSED',
+            },
+          ],
+        },
+      } as never
+    })
+    renderPage()
+    await screen.findByRole('heading', { name: 'Reception gallery' })
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(input, {
+      target: { files: [new File(['photo'], 'stored.jpg', { type: 'image/jpeg' })] },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Add now' }))
+
+    await waitFor(() => expect(uploadApi.getSession).toHaveBeenCalledTimes(2), { timeout: 2500 })
+    await waitFor(() => expect(screen.getByText('Your upload queue is empty.')).toBeInTheDocument())
   })
 
   it('hides technical backend processing failures after the upload is accepted', async () => {
@@ -383,6 +426,112 @@ describe('PublicGalleryPage', () => {
     )
   })
 
+  it('filters media explicitly and keeps the grid on thumbnails', async () => {
+    vi.mocked(publicAccessApi.access).mockResolvedValue({
+      data: {
+        ...gallery,
+        media: [
+          {
+            id: 'media-image',
+            fileName: 'ceremony.jpg',
+            mediaType: 'IMAGE',
+            status: 'PROCESSED',
+            size: 100,
+            uploadedAt: null,
+            thumbnailUrl: '/thumb-image',
+            contentUrl: '/content-image',
+          },
+          {
+            id: 'media-video',
+            fileName: 'dance.mp4',
+            mediaType: 'VIDEO',
+            status: 'PROCESSED',
+            size: 200,
+            uploadedAt: null,
+            thumbnailUrl: '/thumb-video',
+            contentUrl: '/content-video',
+          },
+        ],
+      },
+    } as never)
+
+    renderPage()
+    await screen.findByRole('heading', { name: 'Reception gallery' })
+
+    expect(screen.getByRole('img', { name: 'ceremony.jpg' })).toHaveAttribute('src', '/thumb-image')
+    expect(screen.getByRole('img', { name: 'dance.mp4' })).toHaveAttribute('src', '/thumb-video')
+    expect(document.querySelector('video')).not.toBeInTheDocument()
+    expect(document.querySelector('img[src="/content-image"]')).not.toBeInTheDocument()
+    expect(document.querySelector('img[src="/content-video"]')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show images only' }))
+    expect(screen.getByRole('button', { name: 'Open ceremony.jpg' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Open dance.mp4' })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show videos only' }))
+    expect(screen.getByRole('button', { name: 'Open dance.mp4' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Open ceremony.jpg' })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show images only' }))
+    expect(screen.getByRole('button', { name: 'Open ceremony.jpg' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Show videos only' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Show images only' }))
+    expect(screen.getByRole('button', { name: 'Open ceremony.jpg' })).toBeInTheDocument()
+  })
+
+  it('shows a clear empty result when a selected media type is unavailable', async () => {
+    vi.mocked(publicAccessApi.access).mockResolvedValue({
+      data: {
+        ...gallery,
+        media: [
+          {
+            id: 'media-image',
+            fileName: 'ceremony.jpg',
+            mediaType: 'IMAGE',
+            status: 'PROCESSED',
+            size: 100,
+            uploadedAt: null,
+            thumbnailUrl: '/thumb-image',
+            contentUrl: '/content-image',
+          },
+        ],
+      },
+    } as never)
+    renderPage()
+    await screen.findByRole('heading', { name: 'Reception gallery' })
+    fireEvent.click(screen.getByRole('button', { name: 'Show videos only' }))
+    expect(screen.getByText('No videos match this filter.')).toBeInTheDocument()
+  })
+
+  it('shows media error and retry after a thumbnail failure', async () => {
+    vi.mocked(publicAccessApi.access).mockResolvedValue({
+      data: {
+        ...gallery,
+        media: [
+          {
+            id: 'media-1',
+            fileName: 'ceremony.jpg',
+            mediaType: 'IMAGE',
+            status: 'PROCESSED',
+            size: 100,
+            uploadedAt: null,
+            thumbnailUrl: '/thumb-image',
+            contentUrl: '/content-image',
+          },
+        ],
+      },
+    } as never)
+    vi.mocked(publicAccessApi.get).mockResolvedValue({ data: gallery } as never)
+    renderPage()
+    await screen.findByRole('heading', { name: 'Reception gallery' })
+    fireEvent.error(screen.getByRole('img', { name: 'ceremony.jpg' }))
+
+    expect(await screen.findByText('We could not load the gallery media.')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    await waitFor(() => expect(publicAccessApi.get).toHaveBeenCalledWith('reception'))
+    expect(await screen.findByText('No photos or videos have been added yet.')).toBeInTheDocument()
+  })
+
   it('opens video media in a lightbox and closes it without leaving stale preview state', async () => {
     vi.mocked(publicAccessApi.access).mockResolvedValue({
       data: {
@@ -407,14 +556,17 @@ describe('PublicGalleryPage', () => {
     expect(await screen.findByRole('heading', { name: 'Reception gallery' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Open first-dance.mp4' }))
     const videos = document.querySelectorAll('video')
-    expect(videos).toHaveLength(2)
-    expect(videos[1]).toHaveAttribute(
+    expect(videos).toHaveLength(1)
+    expect(videos[0]).toHaveAttribute(
       'src',
       '/api/public/galleries/reception/media/media-video/content',
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
     await waitFor(() => expect(screen.queryByText('first-dance.mp4')).not.toBeInTheDocument())
-    expect(document.querySelectorAll('video')).toHaveLength(1)
+    expect(document.querySelectorAll('video')).toHaveLength(0)
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Open first-dance.mp4' })).toHaveFocus(),
+    )
   })
 
   it('caps a batch at fifty files and explains the limit', async () => {

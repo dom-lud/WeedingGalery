@@ -1,4 +1,9 @@
 package pl.backend.weddinggallery.auth.dto;
 
-public record UserInfoResponse(String email) {
+import pl.backend.weddinggallery.user.model.SystemRole;
+
+public record UserInfoResponse(String email, SystemRole systemRole) {
+	public UserInfoResponse(String email) {
+		this(email, null);
+	}
 }

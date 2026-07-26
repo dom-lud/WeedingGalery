@@ -20,7 +20,11 @@ public enum GalleryErrorCode implements ErrorCode {
 																	HttpStatus.UNAUTHORIZED,
 																	"Gallery access was denied."), GALLERY_SETTINGS_OWNER_REQUIRED(
 																			HttpStatus.FORBIDDEN,
-																			"Only the event owner can change gallery settings.");
+																			"Only the event owner can change gallery settings."), GALLERY_CUSTOMIZATION_COVER_INVALID(
+																					HttpStatus.BAD_REQUEST,
+																					"The cover media does not belong to this gallery or is not processed."), GALLERY_CUSTOMIZATION_CONFLICT(
+																							HttpStatus.CONFLICT,
+																							"Gallery appearance changed elsewhere. Reload before saving.");
 
 	private final HttpStatus status;
 	private final String message;
