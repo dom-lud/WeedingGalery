@@ -6,7 +6,7 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 ## Status dokumentu
 - Status: draft
 - Zakres: roadmapa wdrazania funkcji i procesow
-- Ostatnia aktualizacja: 2026-07-21
+- Ostatnia aktualizacja: 2026-07-26
 
 ## Stan obecny
 - Roadmapa opisuje planowany rozwoj.
@@ -30,10 +30,10 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 | 4/4B - Galerie i public access | `DONE` | `GALLERY-001`, `GALLERY-002`, `PUBLIC-001`; bez QR, listowania mediów i moderacji. |
 | 5 - Upload i storage | `DONE` | `UPLOAD-001`, minimalny `UPLOAD-002`, uploadowa część `STORAGE-001`. |
 | 6 - Przetwarzanie mediów | `DONE` | Pierwsza iteracja `MEDIA-001`: joby DB, worker, retry, statusy i miniatura `SMALL`. |
-| 7 - Publiczna galeria | `DEFERRED` | Zaprojektować listowanie, lightbox, download/signed links i budżety wydajnościowe. |
-| 8 - Moderacja | `DEFERRED` | Oczekuje na media i widok publiczny. |
-| 9 - Personalizacja | `IDEA` | Oczekuje na stabilny publiczny widok galerii. |
-| 10 - Panel administratora | `IDEA` | Wymaga osobnego admin API, audytu i modelu jawnych akcji. |
+| 7 - Publiczna galeria | `DONE_FIRST_ITERATION` | Publiczne listowanie, filtrowanie, lightbox, processing states i kontrolowany download; produkcyjny gate to MySQL/Compose HTTP E2E oraz test wydajnościowy. |
+| 8 - Moderacja | `DONE_FIRST_ITERATION` | Statusy publikacji, bulk actions, ownership i audyt; produkcyjny gate to pełne E2E na MySQL/Compose. |
+| 9 - Personalizacja | `DONE_FIRST_ITERATION` | Whitelistowana personalizacja, wersjonowanie, cover media, owner-only i accessibility; produkcyjny gate to MySQL E2E. |
+| 10 - Panel administratora | `DONE_FIRST_ITERATION` | Izolowane admin API, dashboard, listy, jawne akcje i audyt; produkcyjny gate to pełne E2E RBAC na MySQL/Compose. |
 | 11 - Statystyki i powiadomienia | `IDEA` | Wymaga media/download oraz rozszerzonej identity. |
 | 12 - Plany i komercjalizacja | `IDEA` | Wymaga profilu, statystyk i decyzji produktowej o planach. |
 | 13 - Stabilizacja produkcyjna | `IN_PROGRESS` | Baseline CI/Compose/health istnieje; brak backup/restore, alertów, HTTPS rollout i testów obciążeniowych. |
@@ -212,7 +212,7 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 ## Decyzje otwarte
 - Po ktorym etapie powinna nastapic pierwsza wersja publicznie dostepna dla uzytkownikow zewnetrznych.
 
-## Aktualizacja statusu Etapow 7-10
+## Aktualizacja statusu Etapow 7-10 (2026-07-26)
 
 Po implementacji pierwszej iteracji statusy operacyjne sa nastepujace:
 
@@ -224,5 +224,16 @@ Po implementacji pierwszej iteracji statusy operacyjne sa nastepujace:
 - Etap 10: `DONE_FIRST_ITERATION` - izolowane admin API, dashboard, listy i jawne
   akcje audytowane.
 
-Pelne zamkniecie produkcyjne nadal wymaga uruchomienia E2E na MySQL/Docker oraz
-potwierdzenia testow obciazeniowych dla duzych galerii.
+Dowody zamkniecia pierwszej iteracji:
+
+- CI: backend `./mvnw -B verify` - 179 testow, 0 bledow i 0 pominietych,
+  JaCoCo branches `90.22%` przy progu `90%`.
+- CI: frontend Vitest z coverage gates, lint i build - wszystkie kroki zielone.
+- CI: Playwright - 21 scenariuszy E2E, w tym CSRF, ownership, moderacja,
+  personalizacja, panel administratora, accessibility, klawiatura i responsive.
+- Kontrakty API i readiness check dokumentacji przeszly, a poprawki obsluzyly
+  status `STORED`, CSRF w publicznym exchange oraz selektor moderacji MUI.
+
+Pelne zamkniecie produkcyjne nadal wymaga osobnego dowodu HTTP E2E na
+MySQL/Compose, testow obciazeniowych dla duzych galerii oraz operacyjnych
+dowodow Etapu 13 (backup/restore, monitoring i rollback).

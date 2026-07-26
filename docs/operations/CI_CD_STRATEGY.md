@@ -8,7 +8,7 @@ Opisuje docelowa strategie CI/CD dla GitHub Actions oraz aktualne repo truth dla
 
 - Status: draft
 - Zakres: pull request flow, quality gates, pipeline build/test/deploy, artefakty i rollback
-- Ostatnia aktualizacja: 2026-07-20
+- Ostatnia aktualizacja: 2026-07-26
 
 ## Stan obecny
 
@@ -44,6 +44,17 @@ Opisuje docelowa strategie CI/CD dla GitHub Actions oraz aktualne repo truth dla
 - Obecne Playwright E2E startuje backend w profilu `dev` na H2. MySQL jest
   sprawdzany przez kontrakt migracji w Testcontainers, ale pelne HTTP E2E na
   Compose/MySQL pozostaje wymaganym przebiegiem nightly/release.
+
+### Ostatni zielony przebieg etapow 7-10
+
+- Backend `./mvnw -B verify`: 179 testow, 0 failures, 0 errors, 0 skipped;
+  JaCoCo branches `90.22%` przy blokujacym progu `90%`.
+- Frontend: Vitest z coverage, lint i build przeszly w CI.
+- Playwright: 21 scenariuszy E2E przeszlo, lacznie z accessibility, klawiatura,
+  responsive, CSRF, ownership, moderacja, personalizacja i admin flow.
+- Ten wynik zamyka pierwsza iteracje etapow 7-10. Nie oznacza jeszcze produkcji:
+  HTTP E2E na MySQL/Compose, load testy i dowody operacyjne pozostaja gate'ami
+  release opisanymi w checklistach.
 
 ## Stan docelowy
 
