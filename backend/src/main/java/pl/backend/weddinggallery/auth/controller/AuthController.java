@@ -2,8 +2,8 @@ package pl.backend.weddinggallery.auth.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,6 +29,7 @@ public class AuthController {
 		this(authService, null);
 	}
 
+	@Autowired
 	public AuthController(AuthService authService, UserRepository userRepository) {
 		this.authService = authService;
 		this.userRepository = userRepository;
