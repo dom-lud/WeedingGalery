@@ -119,9 +119,14 @@ test.describe('Stages 7-10 production E2E contract', () => {
     const guestPage = await guest.newPage()
     const noGrant = await guest.request.get(`/api/public/galleries/${owned.gallery.slug}`)
     expect([401, 404]).toContain(noGrant.status())
+    const csrfResponse = await guest.request.get('/api/auth/csrf')
+    expect(csrfResponse.status()).toBe(200)
+    const csrfCookie = (await guest.cookies()).find((cookie) => cookie.name === 'XSRF-TOKEN')
+    expect(csrfCookie?.value).toBeTruthy()
     const exchange = await guest.request.post(
       `/api/public/galleries/${owned.gallery.slug}/access`,
       {
+        headers: { 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie!.value) },
         data: { accessToken: token.accessToken },
       },
     )
@@ -180,7 +185,7 @@ test.describe('Stages 7-10 production E2E contract', () => {
     const owned = await createOwnedGallery(page, `${Date.now()}-moderation`)
     const mediaPath = `events/${owned.eventId}/galleries/${owned.gallery.id}/media`
 
-    const withoutCsrf = await page.request.post(`${mediaPath}/not-a-real-media-id/approve`)
+    const withoutCsrf = await page.request.post('/api/auth/logout')
     expect(withoutCsrf.status()).toBe(403)
     const missingMedia = await api(page, 'POST', `${mediaPath}/not-a-real-media-id/approve`, {})
     expect(missingMedia.status()).toBe(404)

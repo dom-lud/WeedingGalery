@@ -26,7 +26,8 @@ test('owner publishes a code-protected gallery and a guest uploads a file', asyn
   const shareLink = await page.getByLabel('New private share link').inputValue()
   await page.getByLabel('Enable guest view').check()
   await page.getByLabel('Allow guest uploads').check()
-  await page.getByLabel('Moderation').selectOption('NONE')
+  await page.getByRole('combobox', { name: 'Moderation' }).click()
+  await page.getByRole('option', { name: 'No review' }).click()
   const settingsResponse = page.waitForResponse(
     (response) => response.url().endsWith('/settings') && response.request().method() === 'PUT',
   )

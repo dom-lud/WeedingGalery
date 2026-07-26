@@ -48,6 +48,7 @@ public class GalleryCustomizationService {
 		g.setCoverMediaId(r.coverMediaId());
 		g.setUpdatedAt(java.time.LocalDateTime.now());
 		galleries.save(g);
+		galleries.flush();
 		return out(g);
 	}
 	private Gallery require(String id) {
