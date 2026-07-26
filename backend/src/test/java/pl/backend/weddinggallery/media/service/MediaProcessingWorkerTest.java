@@ -271,6 +271,86 @@ class MediaProcessingWorkerTest {
 		verify(storage, never()).save(contains("thumbnail"), any(), anyLong());
 	}
 
+	@Test
+	void storageFailureWhileWritingThumbnailIsRetryableAndLeavesMediaProcessing() {
+		stubDueJob();
+		when(mediaFiles.findById("media")).thenReturn(Optional.of(media));
+		when(storage.open(media.getStorageKey())).thenReturn(new ByteArrayInputStream(jpeg(200, 100)));
+		when(thumbnails.findByMediaFileIdAndVariant("media", MediaThumbnailVariant.SMALL)).thenReturn(Optional.empty());
+		when(storage.save(contains("/thumbnails/small.jpg"), any(), anyLong()))
+				.thenThrow(new RuntimeException("storage unavailable"));
+		when(jobs.findById("job")).thenReturn(Optional.of(job));
+
+		worker.processDueJobs();
+
+		assertThat(job.getStatus()).isEqualTo(MediaProcessingJobStatus.RETRY_SCHEDULED);
+		assertThat(job.getLastErrorCode()).isEqualTo("MEDIA_PROCESSING_THUMBNAIL_FAILED");
+		assertThat(media.getStatus()).isEqualTo(MediaStatus.PROCESSING);
+		verify(auditService, never()).logSystemGalleryEvent(any(), any(), any(), any());
+	}
+
+	@Test
+	void retryableFailureAtAttemptLimitBecomesManualReviewAndAuditsExhaustion() {
+		job.setAttemptCount(1);
+		job.setMaxAttempts(2);
+		stubDueJob();
+		when(mediaFiles.findById("media")).thenReturn(Optional.of(media));
+		when(storage.open(media.getStorageKey())).thenThrow(new RuntimeException("disk"));
+		when(jobs.findById("job")).thenReturn(Optional.of(job));
+
+		worker.processDueJobs();
+
+		assertThat(job.getStatus()).isEqualTo(MediaProcessingJobStatus.MANUAL_REVIEW);
+		assertThat(media.getStatus()).isEqualTo(MediaStatus.PROCESSING_FAILED);
+		assertThat(media.getFailureCode()).isEqualTo("MEDIA_PROCESSING_RETRY_EXHAUSTED");
+		verify(auditService).logSystemGalleryEvent(eq(EventType.MEDIA_PROCESSING_FAILED), eq("event"), eq("gallery"),
+				contains("code=MEDIA_PROCESSING_RETRY_EXHAUSTED"));
+	}
+
+	@Test
+	void missingStoredThumbnailRegeneratesWhenDatabaseRowPointsToDeletedObject() {
+		MediaThumbnail stale = MediaThumbnail.builder().mediaFile(media).variant(MediaThumbnailVariant.SMALL)
+				.storageKey("events/e/galleries/g/media/media/thumbnails/small.jpg").width(12).height(6).sizeBytes(1L)
+				.build();
+		stubDueJob();
+		when(mediaFiles.findById("media")).thenReturn(Optional.of(media));
+		when(storage.open(media.getStorageKey())).thenReturn(new ByteArrayInputStream(jpeg(80, 40)));
+		when(thumbnails.findByMediaFileIdAndVariant("media", MediaThumbnailVariant.SMALL))
+				.thenReturn(Optional.of(stale));
+		when(storage.exists(stale.getStorageKey())).thenReturn(false);
+		when(storage.save(eq(stale.getStorageKey()), any(), anyLong())).thenReturn(new StoredObject(500L, "checksum"));
+		when(jobs.findById("job")).thenReturn(Optional.of(job));
+
+		worker.processDueJobs();
+
+		assertThat(media.getStatus()).isEqualTo(MediaStatus.PROCESSED);
+		assertThat(stale.getWidth()).isEqualTo(64);
+		assertThat(stale.getHeight()).isEqualTo(32);
+		verify(storage).save(eq(stale.getStorageKey()), any(), anyLong());
+	}
+
+	@Test
+	void batchSizeProcessesOnlyConfiguredNumberOfJobs() {
+		MediaFile secondMedia = MediaFile.builder().id("media-2").gallery(media.getGallery()).storageKey("second")
+				.mediaType(MediaType.VIDEO).status(MediaStatus.STORED).build();
+		MediaProcessingJob secondJob = MediaProcessingJob.builder().id("job-2").mediaFile(secondMedia)
+				.jobType(MediaProcessingJobType.PROCESS_MEDIA).status(MediaProcessingJobStatus.PENDING).attemptCount(0)
+				.maxAttempts(3).scheduledAt(LocalDateTime.now()).build();
+		ReflectionTestUtils.setField(worker, "batchSize", 1);
+		when(jobs.findDueForUpdate(anyCollection(), any(), any())).thenReturn(List.of(job));
+		when(mediaFiles.findById("media")).thenReturn(Optional.of(media));
+		when(storage.open(media.getStorageKey())).thenReturn(new ByteArrayInputStream(jpeg(20, 10)));
+		when(thumbnails.findByMediaFileIdAndVariant("media", MediaThumbnailVariant.SMALL)).thenReturn(Optional.empty());
+		when(storage.save(anyString(), any(), anyLong())).thenReturn(new StoredObject(100L, "checksum"));
+		when(jobs.findById("job")).thenReturn(Optional.of(job));
+
+		worker.processDueJobs();
+
+		assertThat(job.getStatus()).isEqualTo(MediaProcessingJobStatus.SUCCEEDED);
+		assertThat(secondJob.getStatus()).isEqualTo(MediaProcessingJobStatus.PENDING);
+		verify(jobs, times(1)).findDueForUpdate(anyCollection(), any(), any());
+	}
+
 	private void stubDueJob() {
 		when(jobs.findDueForUpdate(anyCollection(), any(), any())).thenReturn(List.of(job));
 	}

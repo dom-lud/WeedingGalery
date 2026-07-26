@@ -107,6 +107,36 @@ class UploadFileValidatorTest {
 	}
 
 	@Test
+	void failsClosedWhenJpegSuffixCannotBeRead() throws Exception {
+		byte[] jpeg = jpeg();
+		MultipartFile brokenSuffix = mock(MultipartFile.class);
+		when(brokenSuffix.isEmpty()).thenReturn(false);
+		when(brokenSuffix.getSize()).thenReturn((long) jpeg.length);
+		when(brokenSuffix.getOriginalFilename()).thenReturn("photo.jpg");
+		when(brokenSuffix.getInputStream()).thenReturn(new java.io.ByteArrayInputStream(jpeg))
+				.thenThrow(new IOException("suffix stream failed"));
+
+		assertThatThrownBy(() -> validator.validate("photo.jpg", "image/jpeg", jpeg.length, brokenSuffix))
+				.isInstanceOfSatisfying(AppException.class,
+						ex -> assertThat(ex.getErrorCode()).isEqualTo(UploadErrorCode.UPLOAD_CONTENT_MISMATCH));
+	}
+
+	@Test
+	void failsClosedWhenMp4StructureCannotBeRead() throws Exception {
+		byte[] mp4 = mp4();
+		MultipartFile brokenStructure = mock(MultipartFile.class);
+		when(brokenStructure.isEmpty()).thenReturn(false);
+		when(brokenStructure.getSize()).thenReturn((long) mp4.length);
+		when(brokenStructure.getOriginalFilename()).thenReturn("clip.mp4");
+		when(brokenStructure.getInputStream()).thenReturn(new java.io.ByteArrayInputStream(mp4))
+				.thenThrow(new IOException("structure stream failed"));
+
+		assertThatThrownBy(() -> validator.validate("clip.mp4", "video/mp4", mp4.length, brokenStructure))
+				.isInstanceOfSatisfying(AppException.class,
+						ex -> assertThat(ex.getErrorCode()).isEqualTo(UploadErrorCode.UPLOAD_CONTENT_MISMATCH));
+	}
+
+	@Test
 	void rejectsWhenImageValidationCapacityIsExhausted() throws Exception {
 		Semaphore slots = (Semaphore) ReflectionTestUtils.getField(validator, "imageDecodeSlots");
 		assertThat(slots).isNotNull();

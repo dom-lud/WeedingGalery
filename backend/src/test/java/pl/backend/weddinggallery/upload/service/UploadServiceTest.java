@@ -5,6 +5,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import jakarta.servlet.http.HttpSession;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -305,6 +307,107 @@ class UploadServiceTest {
 		verify(storage, times(2)).delete(anyString());
 		assertThat(openReceiving.getStatus()).isEqualTo(MediaStatus.FAILED);
 		assertThat(expiredReceiving.getStatus()).isEqualTo(MediaStatus.CANCELLED);
+	}
+
+	@Test
+	void uploadValidationFailureBeforeWriteMarksClaimedFileFailedWithoutDeletingStorage() {
+		stubGrant();
+		UploadSession session = session(UploadSessionStatus.OPEN);
+		MediaFile file = file(session, MediaStatus.PENDING, 10);
+		stubSession(session);
+		when(media.findByUploadSessionIdAndClientFileId("session", "file")).thenReturn(Optional.of(file));
+		when(media.findById("media")).thenReturn(Optional.of(file));
+		MultipartFile multipart = mock(MultipartFile.class);
+		when(validator.validate("a.jpg", "image/jpeg", 10, multipart))
+				.thenThrow(new AppException(UploadErrorCode.UPLOAD_CONTENT_MISMATCH));
+
+		assertCode(() -> service.upload("slug", "session", "file", multipart, httpSession),
+				UploadErrorCode.UPLOAD_CONTENT_MISMATCH);
+
+		assertThat(file.getStatus()).isEqualTo(MediaStatus.FAILED);
+		assertThat(file.getFailureCode()).isEqualTo("UPLOAD_CONTENT_MISMATCH");
+		verify(storage, never()).save(anyString(), any(), anyLong());
+		verify(storage, never()).delete(anyString());
+	}
+
+	@Test
+	void storageWriteFailureAfterClaimCompensatesDatabaseStateWithoutDeletingUnknownObject() throws Exception {
+		stubGrant();
+		UploadSession session = session(UploadSessionStatus.OPEN);
+		MediaFile file = file(session, MediaStatus.PENDING, 10);
+		stubSession(session);
+		when(media.findByUploadSessionIdAndClientFileId("session", "file")).thenReturn(Optional.of(file));
+		when(media.findById("media")).thenReturn(Optional.of(file));
+		MultipartFile multipart = mock(MultipartFile.class);
+		when(validator.validate("a.jpg", "image/jpeg", 10, multipart))
+				.thenReturn(new UploadFileValidator.DetectedFile(MediaType.IMAGE, "image/jpeg", 100));
+		when(multipart.getInputStream()).thenThrow(new IOException("source closed"));
+
+		assertCode(() -> service.upload("slug", "session", "file", multipart, httpSession),
+				UploadErrorCode.STORAGE_WRITE_FAILED);
+
+		assertThat(file.getStatus()).isEqualTo(MediaStatus.FAILED);
+		assertThat(file.getFailureCode()).isEqualTo("STORAGE_WRITE_FAILED");
+		verify(storage, never()).delete(anyString());
+	}
+
+	@Test
+	void finalizationFailureDeletesWrittenObjectAndMarksFileFailed() throws Exception {
+		stubGrant();
+		UploadSession session = session(UploadSessionStatus.OPEN);
+		MediaFile file = file(session, MediaStatus.PENDING, 10);
+		stubSession(session);
+		when(media.findByUploadSessionIdAndClientFileId("session", "file")).thenReturn(Optional.of(file));
+		when(media.findById("media")).thenReturn(Optional.of(file));
+		when(galleries.findWithLockById("gallery")).thenReturn(Optional.empty());
+		MultipartFile multipart = mock(MultipartFile.class);
+		when(validator.validate(anyString(), anyString(), anyLong(), eq(multipart)))
+				.thenReturn(new UploadFileValidator.DetectedFile(MediaType.IMAGE, "image/jpeg", 100));
+		when(multipart.getInputStream()).thenReturn(new ByteArrayInputStream(new byte[10]));
+		when(storage.save(eq("object-key"), any(), eq(100L))).thenReturn(new StoredObject(10L, "checksum"));
+
+		assertCode(() -> service.upload("slug", "session", "file", multipart, httpSession),
+				UploadErrorCode.STORAGE_WRITE_FAILED);
+
+		assertThat(file.getStatus()).isEqualTo(MediaStatus.FAILED);
+		verify(storage).delete("object-key");
+		verify(processingJobs).enqueue(file);
+	}
+
+	@Test
+	void scheduledRecoveryMarksOpenUploadCleanupRequiredWhenDeletionFails() {
+		UploadSession open = session(UploadSessionStatus.OPEN);
+		MediaFile receiving = file(open, MediaStatus.RECEIVING, 10);
+		when(media.findByStatusAndUpdatedAtBefore(eq(MediaStatus.RECEIVING), any())).thenReturn(List.of(receiving));
+		when(media.findByStatusAndUpdatedAtBefore(eq(MediaStatus.CLEANUP_REQUIRED), any())).thenReturn(List.of());
+		when(storage.exists("object-key")).thenReturn(true);
+		doThrow(new RuntimeException("delete failed")).when(storage).delete("object-key");
+
+		service.releaseExpiredAndRevokedSessions();
+
+		assertThat(receiving.getStatus()).isEqualTo(MediaStatus.CLEANUP_REQUIRED);
+		assertThat(receiving.getFailureCode()).isEqualTo("INTERRUPTED_UPLOAD_CLEANUP_FAILED");
+		verify(galleries, never()).findWithLockById(anyString());
+	}
+
+	@Test
+	void expiredSessionReleasesNonStoredFilesAndKeepsCleanupRequiredReservation() {
+		stubGrant();
+		UploadSession expired = session(UploadSessionStatus.OPEN);
+		expired.setExpiresAt(LocalDateTime.now().minusSeconds(1));
+		MediaFile pending = file(expired, MediaStatus.PENDING, 10);
+		MediaFile cleanup = file(expired, MediaStatus.CLEANUP_REQUIRED, 5);
+		when(tokens.hash("http-session")).thenReturn("grant-hash");
+		when(sessions.findByIdAndGalleryIdAndPublicAccessIdAndGrantFingerprint(anyString(), anyString(), anyString(),
+				anyString())).thenReturn(Optional.of(expired));
+		when(galleries.findWithLockById("gallery")).thenReturn(Optional.of(gallery));
+
+		assertCode(() -> service.get("slug", "session", httpSession), UploadErrorCode.UPLOAD_SESSION_NOT_OPEN);
+
+		assertThat(pending.getStatus()).isEqualTo(MediaStatus.CANCELLED);
+		assertThat(cleanup.getStatus()).isEqualTo(MediaStatus.CLEANUP_REQUIRED);
+		assertThat(expired.getStatus()).isEqualTo(UploadSessionStatus.EXPIRED);
+		assertThat(expired.getReservedBytes()).isZero();
 	}
 
 	private void stubGrant() {
