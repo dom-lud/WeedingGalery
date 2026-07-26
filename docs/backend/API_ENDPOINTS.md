@@ -9,7 +9,8 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 - Ostatnia aktualizacja: 2026-07-20
 
 ## Stan obecny
-- Endpointy auth oraz zakresy events, memberships, galleries, public access i upload oznaczone ponizej sa zaimplementowane.
+- Endpointy auth, events, memberships, galleries, public access, upload oraz
+  pierwsza iteracja etapow 7-10 oznaczone ponizej sa zaimplementowane.
 - Pozostale endpointy sa planowane; ich obecność na liscie nie oznacza istnienia w runtime.
 
 ## Stan docelowy
@@ -80,11 +81,11 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 - `POST /api/galleries/{galleryId}/qr`
 
 ## Public galleries
-- `GET /api/public/galleries/{slug}` - zaimplementowany Etap 4B/6, wymaga grantu sesyjnego i zwraca bezpieczne metadane dodanych mediow
+- `GET /api/public/galleries/{slug}` - zaimplementowany Etap 7, wymaga grantu sesyjnego i zwraca tylko zatwierdzone media
 - `POST /api/public/galleries/{slug}/access` - zaimplementowany Etap 4B, token + opcjonalny kod
-- `GET /api/public/galleries/{slug}/media/{mediaId}/thumbnail` - zaimplementowany Etap 6, wymaga grantu sesyjnego, kontrolowany streaming miniatury albo oryginalu jako fallback
-- `GET /api/public/galleries/{slug}/media/{mediaId}/content` - zaimplementowany Etap 6, wymaga grantu sesyjnego, kontrolowany streaming oryginalu
-- `GET /api/public/galleries/{slug}/media`
+- `GET /api/public/galleries/{slug}/media/{mediaId}/thumbnail` - zaimplementowany Etap 7, wymaga grantu sesyjnego i statusu `APPROVED`
+- `GET /api/public/galleries/{slug}/media/{mediaId}/content` - zaimplementowany Etap 7, wymaga grantu sesyjnego i statusu `APPROVED`
+- `GET /api/public/galleries/{slug}/media` - zaimplementowany Etap 7, limit 500 i tylko `APPROVED`
 - `GET /api/public/media/{mediaId}`
 - `POST /api/public/galleries/{slug}/favorite`
 
@@ -114,9 +115,8 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 - `DELETE /api/downloads/{archiveId}`
 
 ## Customization
-- `GET /api/galleries/{galleryId}/customization`
-- `PUT /api/galleries/{galleryId}/customization`
-- `POST /api/galleries/{galleryId}/cover`
+- `GET /api/galleries/{galleryId}/customization` - Etap 9, owner/manager odczyt; obecny kontrakt nie niesie eventId
+- `PUT /api/galleries/{galleryId}/customization` - Etap 9, owner zapis, optimistic version; cross-event scoping pozostaje gate'em security
 
 ## Statistics
 - `GET /api/events/{eventId}/statistics/media`
@@ -133,12 +133,13 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 - `GET /api/admin/dashboard`
 - `GET /api/admin/users`
 - `GET /api/admin/users/{userId}`
-- `POST /api/admin/users/{userId}/block`
-- `POST /api/admin/users/{userId}/unblock`
+- `POST /api/admin/users/{userId}/lock` - Etap 10, audytowana akcja
+- `POST /api/admin/users/{userId}/unlock` - Etap 10, audytowana akcja
 - `GET /api/admin/events`
 - `GET /api/admin/galleries`
 - `GET /api/admin/media`
-- `POST /api/admin/media/{mediaId}/reprocess`
+- `POST /api/admin/events/{eventId}/archive` - Etap 10, audytowana akcja
+- `POST /api/admin/media/{mediaId}/hide` - Etap 10, audytowana akcja
 - `GET /api/admin/storage`
 - `GET /api/admin/system-settings`
 - `PUT /api/admin/system-settings/{key}`
@@ -160,6 +161,18 @@ Prezentuje docelową strukturę endpointów REST dla wszystkich głównych obsza
 - [API_CONVENTIONS.md](API_CONVENTIONS.md)
 - [AUTHENTICATION_AND_AUTHORIZATION.md](AUTHENTICATION_AND_AUTHORIZATION.md)
 - [../product/FUNCTIONAL_REQUIREMENTS.md](../product/FUNCTIONAL_REQUIREMENTS.md)
+
+## Implemented first iteration: Stages 7-10
+
+- Moderation uses scoped endpoints under
+  `/api/events/{eventId}/galleries/{galleryId}/media/...`; bulk actions are
+  limited to 100 media and are audited.
+- Customization uses whitelist validation and optimistic `version` updates. The
+  current endpoint is galleryId-scoped; eventId scoping is an explicitly open
+  security gate and was not changed in this documentation-only audit.
+- Admin operations are isolated under `/api/admin/**`, require `ADMIN`, and
+  audit mutations. Production evidence is tracked in
+  [STAGES_7_10_PRODUCTION_CHECKLIST.md](../checklists/STAGES_7_10_PRODUCTION_CHECKLIST.md).
 
 ## Decyzje otwarte
 - Czy endpoint uploadu dla dużych plików będzie od początku podzielony na `init`, `part`, `complete`.

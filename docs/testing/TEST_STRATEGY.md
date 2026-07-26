@@ -12,7 +12,12 @@ Opisuje docelowa strategie testowania platformy na poziomie backendu, frontendu 
 
 ## Stan obecny
 
-- Istniejacy szkielet projektu nie zapewnia jeszcze pelnego pokrycia testowego.
+- Etapy 7-10 maja test design brief, testy backendowe/frontendowe oraz
+  Playwright + axe w repozytorium.
+- Workflow PR i nightly uruchamiaja E2E na profilu developerskim z H2. Osobny
+  test migracji Flyway sprawdza MySQL w runnerze z Dockerem; nie jest to
+  substytut pelnego HTTP E2E na MySQL/Compose.
+- Produkcyjne braki sa jawnie sledzone w [STAGES_7_10_PRODUCTION_CHECKLIST.md](../checklists/STAGES_7_10_PRODUCTION_CHECKLIST.md).
 
 ## Stan docelowy
 

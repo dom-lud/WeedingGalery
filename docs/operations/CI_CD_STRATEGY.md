@@ -38,6 +38,12 @@ Opisuje docelowa strategie CI/CD dla GitHub Actions oraz aktualne repo truth dla
   najnowszy raport Allure pod `allure/latest/` i linkuje go z dashboardu.
 - Cache przegladarki Playwright jest kluczowany systemem, projektem Chromium i wersja `@playwright/test`, dlatego zmiany pozostalych zaleznosci nie wymuszaja ponownego pobrania browsera.
 - Quality gates sa czesciowo zautomatyzowane; obszary biznesowe, security review i dalsza rozbudowa zakresu E2E nadal wymagaja pracy.
+- PR, main i nightly uruchamiaja takze automatyczny check spojnosci checklisty
+  produkcyjnej etapow 7-10. Check nie udaje potwierdzenia MySQL ani produkcji:
+  jawnie pozostawia te dowody jako gate'y `CI_REQUIRED`.
+- Obecne Playwright E2E startuje backend w profilu `dev` na H2. MySQL jest
+  sprawdzany przez kontrakt migracji w Testcontainers, ale pelne HTTP E2E na
+  Compose/MySQL pozostaje wymaganym przebiegiem nightly/release.
 
 ## Stan docelowy
 

@@ -731,7 +731,7 @@ dostepu ani prywatnych linkow.
 
 ## Kontrakt MEDIA-002 - Etap 8 moderacji publikacji
 
-Status: `IN_PROGRESS`.
+Status: `IMPLEMENTED_FIRST_ITERATION`.
 
 `MediaStatus` opisuje zapis i przetwarzanie pliku. Widocznosc publiczna jest
 niezalezna i uzywa pola `publicationStatus` z wartosciami `PENDING`,
@@ -769,6 +769,10 @@ zapisuje fail-closed audyt z aktorem, eventem, galeria, media, nowym statusem
 i wynikiem. Audyt nie zawiera tokenow, access code ani storage key.
 
 ## Kontrakt Etap 9/10
+
+Status: `IMPLEMENTED_FIRST_ITERATION`. Produkcyjne E2E na MySQL/Compose oraz
+testy wydajnosciowe pozostaja osobnym gate'em opisanym w checklistcie Stages
+7-10.
 
 Personalizacja uzywa whitelistowanych theme/layout, kolorow `#RRGGBB`, tekstu do
 500 znakow i flag widoku przez `GET/PUT /api/galleries/{galleryId}/customization`.
