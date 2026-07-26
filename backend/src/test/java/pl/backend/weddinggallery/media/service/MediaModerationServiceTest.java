@@ -116,4 +116,47 @@ class MediaModerationServiceTest {
 				"foreign media", owner.getEmail())).isInstanceOfSatisfying(AppException.class,
 				ex -> assertThat(ex.getErrorCode()).isEqualTo(MediaModerationErrorCode.MEDIA_MODERATION_NOT_FOUND));
 	}
+
+	@Test
+	void allModerationActionsEnforceReasonsTransitionsAndAuditTypes() {
+		media.setPublicationStatus(PublicationStatus.PENDING);
+		service.moderate(event.getId(), gallery.getId(), media.getId(), MediaModerationAction.REJECT, "copyright",
+				owner.getEmail());
+		assertThat(media.getPublicationStatus()).isEqualTo(PublicationStatus.REJECTED);
+
+		service.moderate(event.getId(), gallery.getId(), media.getId(), MediaModerationAction.RESTORE,
+				owner.getEmail());
+		assertThat(media.getPublicationStatus()).isEqualTo(PublicationStatus.APPROVED);
+
+		service.moderate(event.getId(), gallery.getId(), media.getId(), MediaModerationAction.HIDE, "privacy",
+				owner.getEmail());
+		assertThat(media.getPublicationStatus()).isEqualTo(PublicationStatus.HIDDEN);
+
+		service.moderate(event.getId(), gallery.getId(), media.getId(), MediaModerationAction.RESTORE,
+				owner.getEmail());
+		assertThat(media.getPublicationStatus()).isEqualTo(PublicationStatus.APPROVED);
+		verify(auditService, times(4)).logRequiredGalleryEvent(anyString(), any(), eq("event"), eq("gallery"),
+				anyString());
+	}
+
+	@Test
+	void invalidReasonsBulkShapeAndTransitionsAreRejected() {
+		assertThatThrownBy(() -> service.moderate(event.getId(), gallery.getId(), media.getId(),
+				MediaModerationAction.REJECT, " ", owner.getEmail()))
+				.isInstanceOfSatisfying(AppException.class, ex -> assertThat(ex.getErrorCode())
+						.isEqualTo(MediaModerationErrorCode.MEDIA_MODERATION_REASON_REQUIRED));
+		assertThatThrownBy(() -> service.bulk(event.getId(), gallery.getId(), null, owner.getEmail()))
+				.isInstanceOfSatisfying(AppException.class, ex -> assertThat(ex.getErrorCode())
+						.isEqualTo(MediaModerationErrorCode.MEDIA_MODERATION_EMPTY_BULK));
+		assertThatThrownBy(() -> service.bulk(event.getId(), gallery.getId(),
+				new BulkMediaModerationRequest(List.of("media", "media"), MediaModerationAction.APPROVE),
+				owner.getEmail()))
+				.isInstanceOfSatisfying(AppException.class, ex -> assertThat(ex.getErrorCode())
+						.isEqualTo(MediaModerationErrorCode.MEDIA_MODERATION_DUPLICATE_MEDIA));
+		media.setPublicationStatus(PublicationStatus.PENDING);
+		assertThatThrownBy(() -> service.moderate(event.getId(), gallery.getId(), media.getId(),
+				MediaModerationAction.HIDE, "privacy", owner.getEmail()))
+				.isInstanceOfSatisfying(AppException.class, ex -> assertThat(ex.getErrorCode())
+						.isEqualTo(MediaModerationErrorCode.MEDIA_MODERATION_INVALID_TRANSITION));
+	}
 }

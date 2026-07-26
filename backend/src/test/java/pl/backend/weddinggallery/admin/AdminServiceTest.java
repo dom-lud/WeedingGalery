@@ -111,4 +111,45 @@ class AdminServiceTest {
 		assertThatThrownBy(() -> service.archiveEvent("admin@example.com", "missing"))
 				.isInstanceOf(AdminService.AdminNotFoundException.class);
 	}
+
+	@Test
+	void adminChecksAndAdministrativeMutationsAreFailClosedAndIdempotent() {
+		assertThat(service.isAdmin(null)).isFalse();
+		Authentication unauthenticated = mock(Authentication.class);
+		when(unauthenticated.isAuthenticated()).thenReturn(false);
+		assertThat(service.isAdmin(unauthenticated)).isFalse();
+		Authentication anonymous = mock(Authentication.class);
+		when(anonymous.isAuthenticated()).thenReturn(true);
+		when(anonymous.getPrincipal()).thenReturn("anonymousUser");
+		assertThat(service.isAdmin(anonymous)).isFalse();
+
+		Authentication unknown = mock(Authentication.class);
+		when(unknown.isAuthenticated()).thenReturn(true);
+		when(unknown.getPrincipal()).thenReturn(new Object());
+		when(unknown.getName()).thenReturn("unknown@example.com");
+		when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
+		assertThat(service.isAdmin(unknown)).isFalse();
+
+		when(userRepository.findById("target")).thenReturn(Optional.of(target));
+		service.unlockUser("admin@example.com", "target");
+		verify(userRepository, never()).save(target);
+
+		Event archived = Event.builder().id("archived").name("Archived").owner(admin).status(EventStatus.ARCHIVED)
+				.build();
+		when(eventRepository.findById("archived")).thenReturn(Optional.of(archived));
+		service.archiveEvent("admin@example.com", "archived");
+		verify(eventRepository, never()).save(archived);
+		Event deleted = Event.builder().id("deleted").name("Deleted").owner(admin).status(EventStatus.DRAFT)
+				.deletedAt(LocalDateTime.now()).build();
+		when(eventRepository.findById("deleted")).thenReturn(Optional.of(deleted));
+		service.archiveEvent("admin@example.com", "deleted");
+		verify(eventRepository, never()).save(deleted);
+
+		Gallery gallery = Gallery.builder().id("gallery").event(archived).build();
+		MediaFile hidden = MediaFile.builder().id("hidden").gallery(gallery).publicationStatus(PublicationStatus.HIDDEN)
+				.build();
+		when(mediaFileRepository.findById("hidden")).thenReturn(Optional.of(hidden));
+		service.hideMedia("admin@example.com", "hidden");
+		verify(mediaFileRepository, never()).save(hidden);
+	}
 }

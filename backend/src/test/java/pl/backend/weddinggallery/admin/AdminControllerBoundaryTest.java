@@ -42,4 +42,33 @@ class AdminControllerBoundaryTest {
 		assertThatThrownBy(() -> controller.users(admin, 0, 101))
 				.isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
 	}
+
+	@Test
+	void everyAdminRouteForwardsWhenRoleCheckSucceeds() {
+		AdminService service = mock(AdminService.class);
+		AdminController controller = new AdminController(service);
+		Authentication admin = mock(Authentication.class);
+		when(service.isAdmin(admin)).thenReturn(true);
+		when(admin.getName()).thenReturn("admin@example.com");
+
+		controller.dashboard(admin);
+		controller.users(admin, 0, 1);
+		controller.events(admin, 0, 1);
+		controller.galleries(admin, 0, 1);
+		controller.media(admin, 0, 1);
+		controller.lock(admin, "user");
+		controller.unlock(admin, "user");
+		controller.archive(admin, "event");
+		controller.hide(admin, "media");
+
+		verify(service).dashboard();
+		verify(service).users(any());
+		verify(service).events(any());
+		verify(service).galleries(any());
+		verify(service).media(any());
+		verify(service).lockUser("admin@example.com", "user");
+		verify(service).unlockUser("admin@example.com", "user");
+		verify(service).archiveEvent("admin@example.com", "event");
+		verify(service).hideMedia("admin@example.com", "media");
+	}
 }
