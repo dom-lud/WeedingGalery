@@ -7,7 +7,7 @@
  * - Accessibility: named regions, status/error announcements, keyboard-reachable controls, and dialog focus.
  * - Boundary risks: missing summary fields normalize to zero; both array and paged list payloads render.
  */
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { ThemeProvider } from '@mui/material/styles'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { adminApi } from '../adminApi'
@@ -43,6 +43,27 @@ const user = {
   status: 'ACTIVE' as const,
   createdAt: '2026-07-01',
   lastLoginAt: null,
+}
+const lockedUser = { ...user, id: 'user-2', email: 'locked@example.com', locked: true }
+const event = {
+  id: 'event-1',
+  name: 'Wedding',
+  ownerEmail: 'owner@example.com',
+  type: 'WEDDING',
+  status: 'ACTIVE',
+  ownerUserId: 'owner-1',
+  eventDate: '2026-08-01',
+  createdAt: '',
+  updatedAt: '',
+}
+const audit = {
+  id: 'audit-1',
+  eventType: 'USER_LOCKED',
+  actorEmail: null,
+  resourceType: 'USER',
+  resourceId: 'user-2',
+  createdAt: '',
+  result: null,
 }
 
 function renderDashboard() {
@@ -105,5 +126,51 @@ describe('AdminDashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Block user' }))
     await waitFor(() => expect(adminApi.blockUser).toHaveBeenCalledWith('user-1'))
     expect(adminApi.dashboard).toHaveBeenCalledTimes(2)
+  })
+
+  it('renders event and audit tabs, including system fallbacks and large storage units', async () => {
+    vi.mocked(adminApi.dashboard).mockResolvedValue({
+      data: { users: 1, events: 1, galleries: 1, media: 1, storageUsedBytes: 10 * 1024 ** 4 },
+    } as never)
+    vi.mocked(adminApi.users).mockResolvedValue({ data: [] } as never)
+    vi.mocked(adminApi.events).mockResolvedValue({ data: [event] } as never)
+    vi.mocked(adminApi.audit).mockResolvedValue({ data: [audit] } as never)
+    renderDashboard()
+    await screen.findByText('10 TB')
+    fireEvent.click(screen.getByRole('tab', { name: 'Events' }))
+    expect(screen.getByText('Wedding')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('tab', { name: 'Audit' }))
+    expect(screen.getByText('USER_LOCKED')).toBeInTheDocument()
+    const auditPanel = screen.getByRole('tabpanel', { name: 'audit data' })
+    expect(auditPanel).toHaveTextContent('System')
+    expect(auditPanel).toHaveTextContent('Recorded')
+  })
+
+  it('unblocks a locked user and surfaces mutation errors without closing confirmation', async () => {
+    vi.mocked(adminApi.users).mockResolvedValue({ data: [lockedUser] } as never)
+    vi.mocked(adminApi.unblockUser).mockRejectedValue({
+      response: { data: { message: 'Cannot unblock.' } },
+    })
+    renderDashboard()
+    await screen.findByText('locked@example.com')
+    fireEvent.click(screen.getByRole('button', { name: 'Unblock' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Unblock user' }))
+    expect(await screen.findByText('Cannot unblock.')).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('uses the generic message for errors without an HTTP response and reloads on search', async () => {
+    vi.mocked(adminApi.dashboard).mockRejectedValueOnce(new Error('offline'))
+    renderDashboard()
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Administrative data is unavailable.',
+    )
+    resolveData()
+    fireEvent.change(screen.getByRole('textbox', { name: 'Search administrative data' }), {
+      target: { value: 'new query' },
+    })
+    await waitFor(() =>
+      expect(adminApi.users).toHaveBeenLastCalledWith({ query: 'new query', page: 0, size: 25 }),
+    )
   })
 })

@@ -138,4 +138,35 @@ describe('ModerationPanel', () => {
     expect(await screen.findByText('No media is waiting for moderation.')).toBeInTheDocument()
     expect(moderationApi.list).toHaveBeenCalledTimes(2)
   })
+
+  it('shows the no-match state and toggles all visible selections on and off', async () => {
+    vi.mocked(moderationApi.list).mockResolvedValue({ data: media } as never)
+    renderPanel()
+    await screen.findByText('pending.jpg')
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Status' }))
+    fireEvent.click(screen.getByRole('option', { name: 'Hidden' }))
+    expect(screen.getByText('No media matches this status.')).toBeInTheDocument()
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Status' }))
+    fireEvent.click(screen.getByRole('option', { name: 'Approved' }))
+    const selectAll = screen.getByRole('checkbox', { name: 'Select all visible media' })
+    fireEvent.click(selectAll)
+    expect(screen.getByText('1 selected')).toBeInTheDocument()
+    fireEvent.click(selectAll)
+    expect(screen.getByText('0 selected')).toBeInTheDocument()
+  })
+
+  it('keeps the confirmation open and reports action failures', async () => {
+    vi.mocked(moderationApi.list).mockResolvedValue({ data: media } as never)
+    vi.mocked(moderationApi.action).mockRejectedValue({
+      response: { data: { message: 'Denied.' } },
+    })
+    renderPanel()
+    await screen.findByText('pending.jpg')
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select pending.jpg' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Approve' }))
+    const dialog = screen.getByRole('dialog', { name: 'Approve selected media?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Approve' }))
+    expect(await screen.findByText('Denied.')).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Approve selected media?' })).toBeInTheDocument()
+  })
 })

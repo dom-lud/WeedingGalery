@@ -60,7 +60,7 @@ describe('AppearancePanel', () => {
     renderPanel()
 
     expect(await screen.findByRole('dialog')).toBeVisible()
-    fireEvent.change(screen.getByRole('textbox', { name: 'Welcome text' }), {
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Welcome text' }), {
       target: { value: '<img src=x onerror=alert(1)>' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Save appearance' }))
@@ -132,5 +132,33 @@ describe('AppearancePanel', () => {
     )
     expect(within(dialog).getByRole('textbox', { name: 'Welcome text' })).toBeDisabled()
     expect(within(dialog).getByRole('button', { name: 'Close' })).toBeVisible()
+  })
+
+  it('shows a server message for a non-conflict save failure and invokes onSaved on success', async () => {
+    const onSaved = vi.fn()
+    vi.mocked(customizationApi.get).mockResolvedValue({ data: customization } as never)
+    vi.mocked(customizationApi.update)
+      .mockRejectedValueOnce({ response: { data: { message: 'Save failed.' } } })
+      .mockResolvedValueOnce({ data: customization } as never)
+    const view = render(
+      <ThemeProvider theme={appTheme}>
+        <AppearancePanel gallery={gallery} open onSaved={onSaved} onClose={vi.fn()} />
+      </ThemeProvider>,
+    )
+    await screen.findByRole('textbox', { name: 'Welcome text' })
+    fireEvent.click(screen.getByRole('button', { name: 'Save appearance' }))
+    expect(await screen.findByText('Save failed.')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Save appearance' }))
+    await waitFor(() => expect(onSaved).toHaveBeenCalledTimes(1))
+    view.unmount()
+  })
+
+  it('uses safe defaults for missing values and renders the initial loading state', async () => {
+    vi.mocked(customizationApi.get).mockResolvedValue({ data: {} } as never)
+    renderPanel()
+    expect(await screen.findByRole('combobox', { name: 'Theme' })).toHaveTextContent('Editorial')
+    expect(screen.getByRole('switch', { name: 'Show title' })).toBeChecked()
+    expect(screen.getByRole('switch', { name: 'Show upload' })).toBeChecked()
+    expect(screen.getByRole('switch', { name: 'Show download' })).not.toBeChecked()
   })
 })
