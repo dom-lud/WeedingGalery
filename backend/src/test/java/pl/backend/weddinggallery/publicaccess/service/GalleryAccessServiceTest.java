@@ -27,6 +27,7 @@ import pl.backend.weddinggallery.gallery.repository.GalleryRepository;
 import pl.backend.weddinggallery.media.model.MediaFile;
 import pl.backend.weddinggallery.media.model.MediaStatus;
 import pl.backend.weddinggallery.media.model.MediaType;
+import pl.backend.weddinggallery.media.model.PublicationStatus;
 import pl.backend.weddinggallery.media.repository.MediaFileRepository;
 import pl.backend.weddinggallery.membership.model.EventRole;
 import pl.backend.weddinggallery.publicaccess.dto.GallerySettingsRequest;
@@ -275,6 +276,52 @@ class GalleryAccessServiceTest {
 		var response = service.exchange(gallery.getSlug(), new PublicAccessRequest("token", null), session);
 
 		assertThat(response.media()).isEmpty();
+	}
+
+	@Test
+	void publicGalleryFiltersUnapprovedMediaAndRejectsForeignOrExpiredGrants() {
+		GalleryAccess access = activeAccess();
+		stubAvailableAccess(access);
+		MockHttpSession session = new MockHttpSession();
+		MediaFile approved = MediaFile.builder().id("approved").gallery(gallery).originalFilename("approved.jpg")
+				.mediaType(MediaType.IMAGE).status(MediaStatus.STORED).publicationStatus(PublicationStatus.APPROVED)
+				.storageKey("objects/approved").storedAt(LocalDateTime.now()).build();
+		MediaFile pending = MediaFile.builder().id("pending").gallery(gallery).originalFilename("pending.jpg")
+				.mediaType(MediaType.IMAGE).status(MediaStatus.STORED).publicationStatus(PublicationStatus.PENDING)
+				.storageKey("objects/pending").storedAt(LocalDateTime.now()).build();
+		when(storage.exists("objects/approved")).thenReturn(true);
+		when(accesses.findById(access.getId())).thenReturn(Optional.of(access));
+		when(media.findByGalleryIdAndStatusInOrderByStoredAtDescCreatedAtDescIdAsc(eq(gallery.getId()), anyList()))
+				.thenReturn(List.of(approved, pending));
+
+		service.exchange(gallery.getSlug(), new PublicAccessRequest("token", null), session);
+		assertThat(service.getPublic(gallery.getSlug(), session).media()).extracting(item -> item.id())
+				.containsExactly("approved");
+
+		GalleryAccess foreign = GalleryAccess.builder().id("foreign").gallery(Gallery.builder().id("other-gallery")
+				.event(event).slug("other").status(GalleryStatus.ACTIVE).publicViewEnabled(true).build()).build();
+		when(accesses.findById(access.getId())).thenReturn(Optional.of(foreign));
+		assertCode(() -> service.requireGrant(gallery.getSlug(), session, false),
+				GalleryErrorCode.PUBLIC_GALLERY_NOT_FOUND);
+	}
+
+	@Test
+	void requireGrantRejectsMissingMalformedAndExpiredSessionAttributes() throws Exception {
+		MockHttpSession session = new MockHttpSession();
+		assertCode(() -> service.requireGrant(gallery.getSlug(), session, false),
+				GalleryErrorCode.PUBLIC_GALLERY_NOT_FOUND);
+		session.setAttribute("PUBLIC_GALLERY_GRANT:" + gallery.getSlug(), "not-a-grant");
+		assertCode(() -> service.requireGrant(gallery.getSlug(), session, false),
+				GalleryErrorCode.PUBLIC_GALLERY_NOT_FOUND);
+
+		Class<?> grantType = java.util.Arrays.stream(GalleryAccessService.class.getDeclaredClasses())
+				.filter(type -> type.getSimpleName().equals("PublicGrant")).findFirst().orElseThrow();
+		var constructor = grantType.getDeclaredConstructor(String.class, String.class, Instant.class);
+		constructor.setAccessible(true);
+		session.setAttribute("PUBLIC_GALLERY_GRANT:" + gallery.getSlug(),
+				constructor.newInstance("access-1", gallery.getId(), Instant.now().minusSeconds(1)));
+		assertCode(() -> service.requireGrant(gallery.getSlug(), session, false),
+				GalleryErrorCode.PUBLIC_GALLERY_NOT_FOUND);
 	}
 
 	@Test
