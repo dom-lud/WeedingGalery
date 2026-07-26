@@ -145,49 +145,6 @@ describe('PublicGalleryPage', () => {
       } as never
     })
 
-    it('waits for stored media to finish processing before refreshing the public gallery', async () => {
-      vi.mocked(publicAccessApi.access).mockResolvedValue({ data: gallery } as never)
-      vi.mocked(uploadApi.createSession).mockResolvedValue({ data: { id: 'session-1' } } as never)
-      let uploadedId = ''
-      vi.mocked(uploadApi.uploadFile).mockImplementationOnce(
-        async (_slug, _session, id, _file, progress) => {
-          uploadedId = id
-          progress(100)
-          return { data: { status: 'STORED' } } as never
-        },
-      )
-      let sessionPoll = 0
-      vi.mocked(uploadApi.getSession).mockImplementation(async () => {
-        sessionPoll += 1
-        return {
-          data: {
-            id: 'session-1',
-            status: 'COMPLETED',
-            expiresAt: '2026-07-21T12:00:00Z',
-            files: [
-              {
-                clientFileId: uploadedId,
-                fileName: 'stored.jpg',
-                size: 5,
-                status: sessionPoll === 1 ? 'STORED' : 'PROCESSED',
-              },
-            ],
-          },
-        } as never
-      })
-      renderPage()
-      await screen.findByRole('heading', { name: 'Reception gallery' })
-      const input = document.querySelector('input[type="file"]') as HTMLInputElement
-      fireEvent.change(input, {
-        target: { files: [new File(['photo'], 'stored.jpg', { type: 'image/jpeg' })] },
-      })
-      fireEvent.click(screen.getByRole('button', { name: 'Add now' }))
-
-      await waitFor(() => expect(uploadApi.getSession).toHaveBeenCalledTimes(2), { timeout: 2500 })
-      await waitFor(() =>
-        expect(screen.getByText('Your upload queue is empty.')).toBeInTheDocument(),
-      )
-    })
     const view = renderPage()
     await screen.findByRole('heading', { name: 'Reception gallery' })
     const input = view.container.querySelector('input[type="file"]') as HTMLInputElement
@@ -203,6 +160,48 @@ describe('PublicGalleryPage', () => {
     )
     expect(screen.queryByText('photo.jpg')).not.toBeInTheDocument()
     expect(screen.getByText('Your upload queue is empty.')).toBeInTheDocument()
+  })
+
+  it('waits for stored media to finish processing before refreshing the public gallery', async () => {
+    vi.mocked(publicAccessApi.access).mockResolvedValue({ data: gallery } as never)
+    vi.mocked(uploadApi.createSession).mockResolvedValue({ data: { id: 'session-1' } } as never)
+    let uploadedId = ''
+    vi.mocked(uploadApi.uploadFile).mockImplementationOnce(
+      async (_slug, _session, id, _file, progress) => {
+        uploadedId = id
+        progress(100)
+        return { data: { status: 'STORED' } } as never
+      },
+    )
+    let sessionPoll = 0
+    vi.mocked(uploadApi.getSession).mockImplementation(async () => {
+      sessionPoll += 1
+      return {
+        data: {
+          id: 'session-1',
+          status: 'COMPLETED',
+          expiresAt: '2026-07-21T12:00:00Z',
+          files: [
+            {
+              clientFileId: uploadedId,
+              fileName: 'stored.jpg',
+              size: 5,
+              status: sessionPoll === 1 ? 'STORED' : 'PROCESSED',
+            },
+          ],
+        },
+      } as never
+    })
+    renderPage()
+    await screen.findByRole('heading', { name: 'Reception gallery' })
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(input, {
+      target: { files: [new File(['photo'], 'stored.jpg', { type: 'image/jpeg' })] },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Add now' }))
+
+    await waitFor(() => expect(uploadApi.getSession).toHaveBeenCalledTimes(2), { timeout: 2500 })
+    await waitFor(() => expect(screen.getByText('Your upload queue is empty.')).toBeInTheDocument())
   })
 
   it('hides technical backend processing failures after the upload is accepted', async () => {
