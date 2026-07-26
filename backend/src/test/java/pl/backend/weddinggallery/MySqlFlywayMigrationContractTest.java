@@ -23,7 +23,7 @@ class MySqlFlywayMigrationContractTest {
 				.locations("classpath:db/migration").load();
 		BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(11);
+		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(12);
 
 		try (Connection connection = MYSQL.createConnection("");
 				var users = connection.prepareStatement("SELECT COUNT(*) FROM users");

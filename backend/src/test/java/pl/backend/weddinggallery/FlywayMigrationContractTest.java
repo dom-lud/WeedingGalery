@@ -14,7 +14,7 @@ class FlywayMigrationContractTest {
 		Flyway flyway = Flyway.configure().dataSource(url, "sa", "").locations("classpath:db/migration").load();
 		BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(11);
+		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(12);
 
 		try (var connection = DriverManager.getConnection(url, "sa", "");
 				var users = connection.prepareStatement("SELECT COUNT(*) FROM users");
@@ -41,6 +41,8 @@ class FlywayMigrationContractTest {
 						+ "attempt_count, max_attempts, locked_by FROM media_processing_jobs");
 				var mediaThumbnails = connection.prepareStatement("SELECT media_file_id, variant, storage_key, "
 						+ "width, height, size_bytes FROM media_thumbnails");
+				var customizationLockVersion = connection
+						.prepareStatement("SELECT lock_version FROM gallery_customizations");
 				var guestAudit = connection
 						.prepareStatement("SELECT actor_type, public_access_id, user_email FROM audit_events");
 				var demoGallery = connection.prepareStatement("SELECT public_view_enabled, upload_enabled, "
@@ -85,6 +87,7 @@ class FlywayMigrationContractTest {
 			assertThat(mediaFiles.executeQuery()).isNotNull();
 			assertThat(mediaProcessingJobs.executeQuery()).isNotNull();
 			assertThat(mediaThumbnails.executeQuery()).isNotNull();
+			assertThat(customizationLockVersion.executeQuery()).isNotNull();
 			assertThat(guestAudit.executeQuery()).isNotNull();
 			assertThat(demoGallery.executeQuery()).satisfies(result -> {
 				assertThat(result.next()).isTrue();
@@ -124,6 +127,8 @@ class FlywayMigrationContractTest {
 			assertThat(versions.getString(1)).isEqualTo("10");
 			assertThat(versions.next()).isTrue();
 			assertThat(versions.getString(1)).isEqualTo("11");
+			assertThat(versions.next()).isTrue();
+			assertThat(versions.getString(1)).isEqualTo("12");
 			assertThat(versions.next()).isFalse();
 		}
 	}
