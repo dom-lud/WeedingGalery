@@ -89,6 +89,8 @@ public class Gallery {
 	private boolean showUpload;
 	@Column(name = "show_download", nullable = false)
 	private boolean showDownload;
+	@Column(name = "cover_media_id", length = 36)
+	private String coverMediaId;
 
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;

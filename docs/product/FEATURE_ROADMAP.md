@@ -211,3 +211,18 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 
 ## Decyzje otwarte
 - Po ktorym etapie powinna nastapic pierwsza wersja publicznie dostepna dla uzytkownikow zewnetrznych.
+
+## Aktualizacja statusu Etapow 7-10
+
+Po implementacji pierwszej iteracji statusy operacyjne sa nastepujace:
+
+- Etap 7: `DONE_FIRST_ITERATION` - publiczne listowanie, filtrowanie, lightbox,
+  streaming i download ownera.
+- Etap 8: `DONE_FIRST_ITERATION` - moderacja publikacji, bulk, ownership i audyt.
+- Etap 9: `DONE_FIRST_ITERATION` - whitelistowana personalizacja z wersjonowaniem,
+  walidacja cover media i ochrona owner-only.
+- Etap 10: `DONE_FIRST_ITERATION` - izolowane admin API, dashboard, listy i jawne
+  akcje audytowane.
+
+Pelne zamkniecie produkcyjne nadal wymaga uruchomienia E2E na MySQL/Docker oraz
+potwierdzenia testow obciazeniowych dla duzych galerii.

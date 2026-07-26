@@ -10,12 +10,15 @@ import pl.backend.weddinggallery.gallery.exception.GalleryErrorCode;
 import pl.backend.weddinggallery.gallery.model.Gallery;
 import pl.backend.weddinggallery.gallery.repository.GalleryRepository;
 import pl.backend.weddinggallery.membership.model.EventRole;
+import pl.backend.weddinggallery.media.model.MediaStatus;
+import pl.backend.weddinggallery.media.repository.MediaFileRepository;
 @Service
 @RequiredArgsConstructor
 public class GalleryCustomizationService {
 	private final GalleryRepository galleries;
 	private final EventService events;
 	private final AuditService audit;
+	private final MediaFileRepository mediaFiles;
 	@Transactional(readOnly = true)
 	public GalleryCustomizationResponse get(String id, String email) {
 		Gallery g = require(id);
@@ -37,6 +40,12 @@ public class GalleryCustomizationService {
 		g.setShowTitle(r.showTitle());
 		g.setShowUpload(r.showUpload());
 		g.setShowDownload(r.showDownload());
+		if (r.coverMediaId() != null) {
+			mediaFiles.findByIdAndGalleryId(r.coverMediaId(), g.getId())
+					.filter(media -> media.getStatus() == MediaStatus.PROCESSED)
+					.orElseThrow(() -> new AppException(GalleryErrorCode.GALLERY_CUSTOMIZATION_COVER_INVALID));
+		}
+		g.setCoverMediaId(r.coverMediaId());
 		g.setUpdatedAt(java.time.LocalDateTime.now());
 		galleries.save(g);
 		return out(g);
@@ -53,7 +62,7 @@ public class GalleryCustomizationService {
 	}
 	private GalleryCustomizationResponse out(Gallery g) {
 		return new GalleryCustomizationResponse(g.getTheme(), g.getLayout(), g.getPrimaryColor(), g.getAccentColor(),
-				g.getBackgroundColor(), g.getWelcomeText(), g.isShowTitle(), g.isShowUpload(), g.isShowDownload(), null,
-				g.getVersion());
+				g.getBackgroundColor(), g.getWelcomeText(), g.isShowTitle(), g.isShowUpload(), g.isShowDownload(),
+				g.getCoverMediaId(), g.getVersion());
 	}
 }
