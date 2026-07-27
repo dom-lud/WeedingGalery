@@ -141,6 +141,16 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.14</version>
+				<configuration>
+					<excludes>
+						<exclude>**/statistics/model/**</exclude>
+						<exclude>**/statistics/dto/**</exclude>
+						<exclude>**/notification/model/**</exclude>
+						<exclude>**/notification/dto/**</exclude>
+						<exclude>**/audit/dto/**</exclude>
+						<exclude>**/gallery/model/**</exclude>
+					</excludes>
+				</configuration>
 				<executions>
 					<execution>
 						<goals>
