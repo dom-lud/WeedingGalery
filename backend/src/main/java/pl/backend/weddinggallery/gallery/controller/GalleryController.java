@@ -5,6 +5,8 @@ import java.net.URI;
 import java.security.Principal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,16 +15,20 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pl.backend.weddinggallery.gallery.dto.GalleryResponse;
 import pl.backend.weddinggallery.gallery.dto.GalleryWriteRequest;
 import pl.backend.weddinggallery.gallery.service.GalleryService;
+import pl.backend.weddinggallery.qr.model.QrFormat;
+import pl.backend.weddinggallery.qr.service.QrCodeService;
 
 @RestController
 @RequestMapping("/api/events/{eventId}/galleries")
 @RequiredArgsConstructor
 public class GalleryController {
 	private final GalleryService galleryService;
+	private final QrCodeService qrCodeService;
 
 	@GetMapping
 	public List<GalleryResponse> list(@PathVariable String eventId, Principal principal) {
@@ -40,6 +46,18 @@ public class GalleryController {
 	@GetMapping("/{galleryId}")
 	public GalleryResponse get(@PathVariable String eventId, @PathVariable String galleryId, Principal principal) {
 		return galleryService.get(eventId, galleryId, principal.getName());
+	}
+
+	@GetMapping(value = "/{galleryId}/qr", produces = {MediaType.IMAGE_PNG_VALUE, "image/svg+xml"})
+	public ResponseEntity<byte[]> qr(@PathVariable String eventId, @PathVariable String galleryId,
+			@RequestParam(defaultValue = "PNG") QrFormat format, @RequestParam(defaultValue = "512") int size,
+			Principal principal) {
+		String slug = galleryService.publicSlug(eventId, galleryId, principal.getName());
+		String publicUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath()
+				.path("/g/{slug}").buildAndExpand(slug).toUriString();
+		var generated = qrCodeService.generate(publicUrl, format, size);
+		return ResponseEntity.ok().contentType(generated.contentType()).cacheControl(CacheControl.noStore())
+				.body(generated.content());
 	}
 
 	@PutMapping("/{galleryId}")

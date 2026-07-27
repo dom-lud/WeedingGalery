@@ -23,7 +23,7 @@ class MySqlFlywayMigrationContractTest {
 				.locations("classpath:db/migration").load();
 		BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(12);
+		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(15);
 
 		try (Connection connection = MYSQL.createConnection("");
 				var users = connection.prepareStatement("SELECT COUNT(*) FROM users");
@@ -45,7 +45,7 @@ class MySqlFlywayMigrationContractTest {
 				var tables = connection.prepareStatement("SELECT table_name FROM information_schema.tables "
 						+ "WHERE table_schema = DATABASE() AND table_name IN "
 						+ "('galleries', 'gallery_accesses', 'upload_sessions', 'media_files', "
-						+ "'media_processing_jobs', 'media_thumbnails')");
+						+ "'media_processing_jobs', 'media_thumbnails', 'usage_events', 'notifications')");
 				var uniqueGrantKey = connection.prepareStatement("SELECT COUNT(*) FROM information_schema.statistics "
 						+ "WHERE table_schema = DATABASE() AND table_name = 'upload_sessions' "
 						+ "AND index_name = 'uk_upload_grant_idempotency'");
@@ -61,7 +61,7 @@ class MySqlFlywayMigrationContractTest {
 						.prepareStatement("SELECT COUNT(*) FROM information_schema.referential_constraints "
 								+ "WHERE constraint_schema = DATABASE() AND table_name IN "
 								+ "('gallery_accesses', 'upload_sessions', 'media_files', "
-								+ "'media_processing_jobs', 'media_thumbnails')")) {
+								+ "'media_processing_jobs', 'media_thumbnails', 'usage_events')")) {
 			assertThat(singleCount(users.executeQuery())).isEqualTo(4);
 			assertThat(singleCount(demoUsers.executeQuery())).isEqualTo(4);
 			ResultSet adminRow = admin.executeQuery();
@@ -85,11 +85,11 @@ class MySqlFlywayMigrationContractTest {
 			int tableCount = 0;
 			while (tableRows.next())
 				tableCount++;
-			assertThat(tableCount).isEqualTo(6);
+			assertThat(tableCount).isEqualTo(8);
 			assertThat(singleCount(uniqueGrantKey.executeQuery())).isPositive();
 			assertThat(singleCount(uniqueProcessingJobType.executeQuery())).isPositive();
 			assertThat(singleCount(uniqueThumbnailVariant.executeQuery())).isPositive();
-			assertThat(singleCount(foreignKeys.executeQuery())).isEqualTo(7);
+			assertThat(singleCount(foreignKeys.executeQuery())).isEqualTo(11);
 		}
 	}
 

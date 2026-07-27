@@ -9,6 +9,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import pl.backend.weddinggallery.admin.dto.*;
 import pl.backend.weddinggallery.admin.service.AdminService;
+import pl.backend.weddinggallery.audit.dto.AuditFilter;
+import pl.backend.weddinggallery.audit.model.EventType;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -57,10 +60,44 @@ public class AdminController {
 
 	@GetMapping("/audit")
 	public ResponseEntity<?> audit(Authentication authentication, @RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "50") int size) {
+			@RequestParam(defaultValue = "50") int size, @RequestParam(required = false) EventType eventType,
+			@RequestParam(required = false) String actorType, @RequestParam(required = false) String eventId,
+			@RequestParam(required = false) String galleryId, @RequestParam(required = false) LocalDateTime from,
+			@RequestParam(required = false) LocalDateTime to) {
+		if (!adminService.isAdmin(authentication))
+			return forbidden();
+		return ResponseEntity.ok(adminService.audit(pageRequest(page, size),
+				new AuditFilter(eventType, actorType, eventId, galleryId, from, to)));
+	}
+
+	// Kept as a small Java-level compatibility overload for existing boundary
+	// tests.
+	public ResponseEntity<?> audit(Authentication authentication, int page, int size) {
 		if (!adminService.isAdmin(authentication))
 			return forbidden();
 		return ResponseEntity.ok(adminService.audit(pageRequest(page, size)));
+	}
+
+	@GetMapping("/alerts")
+	public ResponseEntity<?> alerts(Authentication authentication, @RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "50") int size) {
+		if (!adminService.isAdmin(authentication))
+			return forbidden();
+		return ResponseEntity.ok(adminService.alerts(pageRequest(page, size)));
+	}
+
+	@PostMapping("/alerts/{alertId}/acknowledge")
+	public ResponseEntity<?> acknowledgeAlert(Authentication authentication, @PathVariable String alertId) {
+		if (!adminService.isAdmin(authentication))
+			return forbidden();
+		return ResponseEntity.ok(adminService.acknowledgeAlert(authentication.getName(), alertId));
+	}
+
+	@GetMapping("/statistics")
+	public ResponseEntity<?> statistics(Authentication authentication) {
+		if (!adminService.isAdmin(authentication))
+			return forbidden();
+		return ResponseEntity.ok(adminService.statistics());
 	}
 
 	@PostMapping("/users/{userId}/lock")

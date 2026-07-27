@@ -50,6 +50,20 @@ export interface AdminPage<T> {
   number: number
 }
 
+export interface AdminAlert {
+  id: string
+  notificationType: string
+  severity: 'INFO' | 'WARNING' | 'CRITICAL'
+  status: 'OPEN' | 'ACKNOWLEDGED'
+  title: string
+  message: string
+  resourceType: string | null
+  resourceId: string | null
+  createdAt: string
+  acknowledgedAt: string | null
+  acknowledgedBy: string | null
+}
+
 export interface AdminListParams {
   query?: string
   page?: number
@@ -66,6 +80,10 @@ export const adminApi = {
     api.get<AdminPage<AdminAuditEntry> | AdminAuditEntry[]>('admin/audit', { params }),
   blockUser: (userId: string) => api.post<AdminUser>(`admin/users/${userId}/lock`),
   unblockUser: (userId: string) => api.post<AdminUser>(`admin/users/${userId}/unlock`),
+  alerts: (params?: { page?: number; size?: number }) =>
+    api.get<AdminPage<AdminAlert>>('admin/alerts', { params }),
+  acknowledgeAlert: (alertId: string) =>
+    api.post<AdminAlert>(`admin/alerts/${alertId}/acknowledge`),
 }
 
 export function pageItems<T>(response: AdminPage<T> | T[]) {
