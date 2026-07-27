@@ -34,7 +34,7 @@ Porzadkuje rozwoj pelnej platformy w logiczne etapy implementacyjne bez redukowa
 | 8 - Moderacja | `DONE_FIRST_ITERATION` | Statusy publikacji, bulk actions, ownership i audyt; produkcyjny gate to pełne E2E na MySQL/Compose. |
 | 9 - Personalizacja | `DONE_FIRST_ITERATION` | Whitelistowana personalizacja, wersjonowanie, cover media, owner-only i accessibility; produkcyjny gate to MySQL E2E. |
 | 10 - Panel administratora | `DONE_FIRST_ITERATION` | Izolowane admin API, dashboard, listy, jawne akcje i audyt; produkcyjny gate to pełne E2E RBAC na MySQL/Compose. |
-| 11 - Statystyki i powiadomienia | `IDEA` | Wymaga media/download oraz rozszerzonej identity. |
+| 11 - Statystyki i powiadomienia | `DONE_FIRST_ITERATION` | Statystyki eventu/galerii, usage events, alerty admina, filtrowany audyt i podglad eventow; pelne powiadomienia uzytkownikow pozostaja rozszerzeniem. |
 | 12 - Plany i komercjalizacja | `IDEA` | Wymaga profilu, statystyk i decyzji produktowej o planach. |
 | 13 - Stabilizacja produkcyjna | `IN_PROGRESS` | Baseline CI/Compose/health istnieje; brak backup/restore, alertów, HTTPS rollout i testów obciążeniowych. |
 

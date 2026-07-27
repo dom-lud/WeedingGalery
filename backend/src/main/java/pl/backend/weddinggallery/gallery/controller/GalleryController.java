@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pl.backend.weddinggallery.gallery.dto.GalleryResponse;
 import pl.backend.weddinggallery.gallery.dto.GalleryWriteRequest;
+import pl.backend.weddinggallery.common.exception.AppException;
+import pl.backend.weddinggallery.qr.exception.QrErrorCode;
 import pl.backend.weddinggallery.gallery.service.GalleryService;
 import pl.backend.weddinggallery.qr.model.QrFormat;
 import pl.backend.weddinggallery.qr.service.QrCodeService;
@@ -50,12 +52,18 @@ public class GalleryController {
 
 	@GetMapping(value = "/{galleryId}/qr", produces = {MediaType.IMAGE_PNG_VALUE, "image/svg+xml"})
 	public ResponseEntity<byte[]> qr(@PathVariable String eventId, @PathVariable String galleryId,
-			@RequestParam(defaultValue = "PNG") QrFormat format, @RequestParam(defaultValue = "512") int size,
+			@RequestParam(defaultValue = "PNG") String format, @RequestParam(defaultValue = "512") int size,
 			Principal principal) {
+		QrFormat qrFormat;
+		try {
+			qrFormat = QrFormat.valueOf(format.toUpperCase(java.util.Locale.ROOT));
+		} catch (RuntimeException exception) {
+			throw new AppException(QrErrorCode.QR_INVALID_FORMAT);
+		}
 		String slug = galleryService.publicSlug(eventId, galleryId, principal.getName());
 		String publicUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath()
 				.path("/g/{slug}").buildAndExpand(slug).toUriString();
-		var generated = qrCodeService.generate(publicUrl, format, size);
+		var generated = qrCodeService.generate(publicUrl, qrFormat, size);
 		return ResponseEntity.ok().contentType(generated.contentType()).cacheControl(CacheControl.noStore())
 				.body(generated.content());
 	}

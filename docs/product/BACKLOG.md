@@ -46,9 +46,9 @@ Stan po zielonym CI z 2026-07-26: Etapy 7-10 oraz odpowiadajace im pozycje
 | Moderacja | `MOD-001` | `DONE_FIRST_ITERATION` | Statusy publikacji, bulk actions, ownership i audyt są wdrożone; pełne MySQL/Compose E2E pozostaje gate'em produkcyjnym. |
 | Download | `DOWNLOAD-001` | `ANALYSIS` | Trzeba rozstrzygnąć streaming vs signed links i zaakceptować ADR 0009. |
 | Personalizacja | `CUSTOM-001` | `DONE_FIRST_ITERATION` | Whitelistowane opcje, wersjonowanie, cover media, owner-only i accessibility są wdrożone; pełne MySQL E2E pozostaje gate'em produkcyjnym. |
-| QR | `QR-001` | `ANALYSIS` | `PUBLIC-001` jest gotowe; pozostał kontrakt generowania i pobierania PNG/SVG. |
-| Statystyki | `STAT-001` | `IDEA` | Oczekuje na media, przeglądanie i download. |
-| Powiadomienia | `NOTIF-001` | `IDEA` | Oczekuje na `AUTH-002`, `INV-001` i `DOWNLOAD-001`. |
+| QR | `QR-001` | `DONE_FIRST_ITERATION` | Owner/manager może pobrać PNG/SVG dla publicznego entrypointu z walidacją formatu i rozmiaru. |
+| Statystyki | `STAT-001` | `DONE_FIRST_ITERATION` | Statystyki eventu/galerii, usage events, storage, processing failures, widoki i pobrania mają API i widok dashboardu. |
+| Powiadomienia | `NOTIF-001` | `DONE_FIRST_ITERATION` | Admin ma deduplikowane alerty OPEN/ACKNOWLEDGED i podgląd w dashboardzie; kanały user/e-mail pozostają poza zakresem. |
 | Plany | `PLAN-001` | `IDEA` | Oczekuje na profil i statystyki; obecna quota galerii nie jest jeszcze systemem planów. |
 | Administracja | `ADMIN-001`, `ADMIN-002` | `DONE_FIRST_ITERATION` | Osobne admin API/UI, dashboard, listy, jawne akcje i paginowany odczyt audytu są wdrożone; produkcyjny gate obejmuje RBAC E2E na MySQL/Compose. |
 | Audyt | `AUDIT-001` | `DONE_FIRST_ITERATION` | Audyt obejmuje auth, event, membership, gallery, upload, moderację, personalizację i akcje admina; filtrowanie/trendy pozostają rozszerzeniem. |
