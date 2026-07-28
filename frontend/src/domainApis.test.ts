@@ -30,6 +30,7 @@ describe('domain API contracts', () => {
     eventsApi.addManager('event-1', 'manager@example.com')
     eventsApi.removeManager('event-1', 'membership-1')
     eventsApi.transferOwnership('event-1', 'membership-1')
+    eventsApi.statistics('event-1')
 
     expect(api.get).toHaveBeenNthCalledWith(1, 'events')
     expect(api.get).toHaveBeenNthCalledWith(2, 'events/event-1/members')
@@ -45,6 +46,7 @@ describe('domain API contracts', () => {
     })
     expect(api.delete).toHaveBeenCalledWith('events/event-1')
     expect(api.delete).toHaveBeenCalledWith('events/event-1/members/membership-1')
+    expect(api.get).toHaveBeenCalledWith('events/event-1/statistics')
   })
 
   it('keeps every gallery operation scoped by event and gallery identifiers', () => {
@@ -70,11 +72,16 @@ describe('domain API contracts', () => {
     galleriesApi.setAccessCode('event-1', 'gallery-1', 'secret-code')
     galleriesApi.removeAccessCode('event-1', 'gallery-1')
     galleriesApi.media('event-1', 'gallery-1')
+    galleriesApi.qr('event-1', 'gallery-1', 'SVG', 1024)
     const downloadUrl = galleriesApi.downloadUrl('event-1', 'gallery-1')
 
     const base = 'events/event-1/galleries/gallery-1'
     expect(api.get).toHaveBeenCalledWith('events/event-1/galleries')
     expect(api.get).toHaveBeenCalledWith(`${base}/media`)
+    expect(api.get).toHaveBeenCalledWith(`${base}/qr`, {
+      params: { format: 'SVG', size: 1024 },
+      responseType: 'blob',
+    })
     expect(api.post).toHaveBeenCalledWith('events/event-1/galleries', write)
     expect(api.put).toHaveBeenCalledWith(base, write)
     expect(api.post).toHaveBeenCalledWith(`${base}/archive`)

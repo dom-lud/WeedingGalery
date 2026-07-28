@@ -33,6 +33,7 @@ import {
   eventsApi,
   type EventData,
   type EventMember,
+  type EventStatistics,
   type EventType,
   type EventWritePayload,
 } from '../eventsApi'
@@ -87,7 +88,11 @@ export default function Dashboard() {
   const [saving, setSaving] = useState(false)
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
   const [confirming, setConfirming] = useState(false)
-  const [activeTab, setActiveTab] = useState<'galleries' | 'people' | 'settings'>('galleries')
+  const [activeTab, setActiveTab] = useState<'galleries' | 'people' | 'settings' | 'statistics'>(
+    'galleries',
+  )
+  const [statistics, setStatistics] = useState<EventStatistics | null>(null)
+  const [statisticsLoading, setStatisticsLoading] = useState(false)
   const detailHeadingRef = useRef<HTMLHeadingElement>(null)
   const eventTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>({})
 
@@ -122,6 +127,19 @@ export default function Dashboard() {
       setMembers(response.data)
     } catch (requestError) {
       setError(errorMessage(requestError))
+    }
+  }
+
+  const loadStatistics = async () => {
+    if (!selected || statisticsLoading) return
+    setStatisticsLoading(true)
+    setError(null)
+    try {
+      setStatistics((await eventsApi.statistics(selected.id)).data)
+    } catch (requestError) {
+      setError(errorMessage(requestError))
+    } finally {
+      setStatisticsLoading(false)
     }
   }
 
@@ -576,6 +594,12 @@ export default function Dashboard() {
                       value="settings"
                       label="Settings"
                     />
+                    <Tab
+                      id="event-tab-statistics"
+                      aria-controls="event-panel-statistics"
+                      value="statistics"
+                      label="Statistics"
+                    />
                   </Tabs>
                 </Paper>
 
@@ -686,6 +710,63 @@ export default function Dashboard() {
                           </Paper>
                         ))}
                       </Stack>
+                    </Stack>
+                  </Paper>
+                )}
+
+                {activeTab === 'statistics' && (
+                  <Paper
+                    id="event-panel-statistics"
+                    role="tabpanel"
+                    aria-labelledby="event-tab-statistics"
+                    variant="outlined"
+                    sx={{ p: { xs: 2, sm: 3 } }}
+                  >
+                    <Stack spacing={2} component="section" aria-labelledby="statistics-title">
+                      <Box>
+                        <Typography id="statistics-title" variant="h5" component="h2">
+                          Event statistics
+                        </Typography>
+                        <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                          Aggregated activity without guest-identifying data.
+                        </Typography>
+                      </Box>
+                      <Button
+                        variant="contained"
+                        onClick={() => void loadStatistics()}
+                        disabled={statisticsLoading}
+                      >
+                        {statisticsLoading ? 'Loading statistics...' : 'Load statistics'}
+                      </Button>
+                      {statistics && (
+                        <Box
+                          sx={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))',
+                            gap: 1.5,
+                          }}
+                        >
+                          {[
+                            ['Media', statistics.mediaCount],
+                            ['Photos', statistics.imageCount],
+                            ['Videos', statistics.videoCount],
+                            ['Uploads', statistics.uploadFileCount],
+                            ['Public views', statistics.publicViewCount],
+                            ['Downloads', statistics.downloadCount],
+                            ['Processing failures', statistics.processingFailureCount],
+                            ['Storage bytes', statistics.storageUsedBytes],
+                          ].map(([label, value]) => (
+                            <Paper key={label} variant="outlined" sx={{ p: 1.5 }}>
+                              <Typography variant="body2" color="text.secondary">
+                                {label}
+                              </Typography>
+                              <Typography variant="h5" component="p" sx={{ mt: 0.5 }}>
+                                {value}
+                              </Typography>
+                            </Paper>
+                          ))}
+                        </Box>
+                      )}
                     </Stack>
                   </Paper>
                 )}

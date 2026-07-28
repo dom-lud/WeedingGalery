@@ -174,6 +174,21 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
     }
   }
 
+  const downloadQr = async (gallery: GalleryData) => {
+    try {
+      const response = await galleriesApi.qr(event.id, gallery.id)
+      const url = URL.createObjectURL(response.data)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${gallery.slug}-qr.png`
+      link.click()
+      URL.revokeObjectURL(url)
+      setMessage('QR code downloaded.')
+    } catch (requestError) {
+      setError(errorMessage(requestError))
+    }
+  }
+
   const requestArchive = (gallery: GalleryData) =>
     setConfirmation({
       title: 'Archive gallery?',
@@ -465,6 +480,14 @@ export default function GalleryManager({ event }: GalleryManagerProps) {
                   sx={{ width: { xs: '100%', sm: 'auto' } }}
                 >
                   View gallery
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => void downloadQr(gallery)}
+                  disabled={gallery.status === 'ARCHIVED'}
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
+                >
+                  Download QR
                 </Button>
                 <Button
                   variant="outlined"

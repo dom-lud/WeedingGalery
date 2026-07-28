@@ -48,6 +48,12 @@ public class GalleryService {
 		return toResponse(requireGallery(eventId, galleryId), access.role());
 	}
 
+	@Transactional(readOnly = true)
+	public String publicSlug(String eventId, String galleryId, String actorEmail) {
+		requireAccessible(eventId, actorEmail);
+		return requireGallery(eventId, galleryId).getSlug();
+	}
+
 	@Transactional
 	public GalleryResponse create(String eventId, GalleryWriteRequest request, String actorEmail) {
 		Access access = requireAccessible(eventId, actorEmail);

@@ -163,6 +163,55 @@ class GalleryFlowIntegrationTest {
 		assertThat(galleryRepository.count()).isZero();
 	}
 
+	@Test
+	void shouldGenerateOwnerAndManagerQrWithoutExposingSecrets() {
+		SessionClient owner = login("owner@example.com");
+		SessionClient manager = login("manager@example.com");
+		SessionClient outsider = login("outsider@example.com");
+		String eventId = jsonValue(owner.exchange(HttpMethod.POST, "/api/events", eventPayload("QR event"), true),
+				"id");
+		owner.exchange(HttpMethod.POST, "/api/events/" + eventId + "/members",
+				Map.of("email", "manager@example.com", "role", "MANAGER"), true);
+		ResponseEntity<String> created = owner.exchange(HttpMethod.POST, galleries(eventId),
+				galleryPayload("Reception", 1), true);
+		String galleryId = jsonValue(created, "id");
+		String slug = jsonValue(created, "slug");
+
+		ResponseEntity<String> ownerQr = owner.exchange(HttpMethod.GET,
+				galleries(eventId) + "/" + galleryId + "/qr?format=SVG&size=128", null, false);
+		ResponseEntity<String> managerQr = manager.exchange(HttpMethod.GET,
+				galleries(eventId) + "/" + galleryId + "/qr?format=PNG&size=2048", null, false);
+		ResponseEntity<String> outsiderQr = outsider.exchange(HttpMethod.GET,
+				galleries(eventId) + "/" + galleryId + "/qr", null, false);
+
+		assertThat(ownerQr.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(ownerQr.getHeaders().getContentType()).isEqualTo(MediaType.parseMediaType("image/svg+xml"));
+		assertThat(ownerQr.getBody()).contains("/g/" + slug).doesNotContain("accessToken", "accessCode", "storageKey");
+		assertThat(managerQr.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(managerQr.getHeaders().getContentType()).isEqualTo(MediaType.IMAGE_PNG);
+		assertThat(managerQr.getBody()).isNotEmpty();
+		assertThat(outsiderQr.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+	}
+
+	@Test
+	void shouldRejectInvalidQrFormatAndSize() {
+		SessionClient owner = login("owner@example.com");
+		String eventId = jsonValue(owner.exchange(HttpMethod.POST, "/api/events", eventPayload("QR validation"), true),
+				"id");
+		ResponseEntity<String> created = owner.exchange(HttpMethod.POST, galleries(eventId),
+				galleryPayload("Reception", 1), true);
+		String galleryId = jsonValue(created, "id");
+
+		ResponseEntity<String> invalidSize = owner.exchange(HttpMethod.GET,
+				galleries(eventId) + "/" + galleryId + "/qr?size=127", null, false);
+		ResponseEntity<String> invalidFormat = owner.exchange(HttpMethod.GET,
+				galleries(eventId) + "/" + galleryId + "/qr?format=PDF", null, false);
+
+		assertThat(invalidSize.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(jsonValue(invalidSize, "code")).isEqualTo("QR_INVALID_SIZE");
+		assertThat(invalidFormat.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+	}
+
 	private String galleries(String eventId) {
 		return "/api/events/" + eventId + "/galleries";
 	}

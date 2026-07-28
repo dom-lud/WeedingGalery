@@ -85,4 +85,9 @@ export const galleriesApi = {
     api.get<GalleryMedia[]>(`${path(eventId)}/${galleryId}/media`),
   downloadUrl: (eventId: string, galleryId: string) =>
     `/api/${path(eventId)}/${galleryId}/download`,
+  qr: (eventId: string, galleryId: string, format: 'PNG' | 'SVG' = 'PNG', size = 512) =>
+    api.get<Blob>(`${path(eventId)}/${galleryId}/qr`, {
+      params: { format, size },
+      responseType: 'blob',
+    }),
 }

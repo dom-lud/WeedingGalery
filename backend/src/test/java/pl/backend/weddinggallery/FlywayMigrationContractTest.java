@@ -14,7 +14,7 @@ class FlywayMigrationContractTest {
 		Flyway flyway = Flyway.configure().dataSource(url, "sa", "").locations("classpath:db/migration").load();
 		BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(12);
+		assertThat(flyway.migrate().migrationsExecuted).isEqualTo(15);
 
 		try (var connection = DriverManager.getConnection(url, "sa", "");
 				var users = connection.prepareStatement("SELECT COUNT(*) FROM users");
@@ -129,6 +129,12 @@ class FlywayMigrationContractTest {
 			assertThat(versions.getString(1)).isEqualTo("11");
 			assertThat(versions.next()).isTrue();
 			assertThat(versions.getString(1)).isEqualTo("12");
+			assertThat(versions.next()).isTrue();
+			assertThat(versions.getString(1)).isEqualTo("13");
+			assertThat(versions.next()).isTrue();
+			assertThat(versions.getString(1)).isEqualTo("14");
+			assertThat(versions.next()).isTrue();
+			assertThat(versions.getString(1)).isEqualTo("15");
 			assertThat(versions.next()).isFalse();
 		}
 	}

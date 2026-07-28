@@ -21,6 +21,7 @@ import {
   adminApi,
   pageItems,
   type AdminAuditEntry,
+  type AdminAlert,
   type AdminDashboardSummary,
   type AdminEvent,
   type AdminUser,
@@ -77,6 +78,8 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [confirmation, setConfirmation] = useState<AdminUser | null>(null)
   const [actionBusy, setActionBusy] = useState(false)
+  const [alerts, setAlerts] = useState<AdminAlert[]>([])
+  const [alertsLoading, setAlertsLoading] = useState(false)
 
   const load = useCallback(async () => {
     if (!isAdmin) return
@@ -123,6 +126,27 @@ export default function AdminDashboard() {
       setError(errorMessage(requestError))
     } finally {
       setActionBusy(false)
+    }
+  }
+
+  const loadAlerts = async () => {
+    if (alertsLoading) return
+    setAlertsLoading(true)
+    try {
+      setAlerts(pageItems((await adminApi.alerts({ page: 0, size: 25 })).data))
+    } catch (requestError) {
+      setError(errorMessage(requestError))
+    } finally {
+      setAlertsLoading(false)
+    }
+  }
+
+  const acknowledgeAlert = async (alert: AdminAlert) => {
+    try {
+      await adminApi.acknowledgeAlert(alert.id)
+      await loadAlerts()
+    } catch (requestError) {
+      setError(errorMessage(requestError))
     }
   }
 
@@ -218,6 +242,62 @@ export default function AdminDashboard() {
             ))}
           </Box>
         ) : null}
+
+        <Paper
+          component="section"
+          aria-labelledby="admin-alerts-title"
+          variant="outlined"
+          sx={{ p: { xs: 2, sm: 3 } }}
+        >
+          <Stack spacing={2}>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={2}
+              sx={{ justifyContent: 'space-between' }}
+            >
+              <Box>
+                <Typography id="admin-alerts-title" variant="h4" component="h2">
+                  Operational alerts
+                </Typography>
+                <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                  Domain alerts requiring administrator attention.
+                </Typography>
+              </Box>
+              <Button variant="outlined" onClick={() => void loadAlerts()} disabled={alertsLoading}>
+                {alertsLoading ? 'Loading alerts...' : 'Load alerts'}
+              </Button>
+            </Stack>
+            {alerts.length === 0 ? (
+              <Typography color="text.secondary">No open alerts loaded.</Typography>
+            ) : (
+              <Stack component="ul" spacing={1} sx={{ listStyle: 'none', p: 0, m: 0 }}>
+                {alerts.map((alert) => (
+                  <Paper component="li" key={alert.id} variant="outlined" sx={{ p: 1.5 }}>
+                    <Stack
+                      direction={{ xs: 'column', sm: 'row' }}
+                      spacing={1}
+                      sx={{ justifyContent: 'space-between' }}
+                    >
+                      <Box>
+                        <Typography sx={{ fontWeight: 700 }}>{alert.title}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {alert.message}
+                        </Typography>
+                      </Box>
+                      <Button
+                        size="small"
+                        onClick={() => void acknowledgeAlert(alert)}
+                        disabled={alert.status !== 'OPEN'}
+                      >
+                        Acknowledge
+                      </Button>
+                    </Stack>
+                  </Paper>
+                ))}
+              </Stack>
+            )}
+          </Stack>
+        </Paper>
 
         <Paper
           component="section"

@@ -31,6 +31,8 @@ vi.mock('../adminApi', async () => {
       audit: vi.fn(),
       blockUser: vi.fn(),
       unblockUser: vi.fn(),
+      alerts: vi.fn(),
+      acknowledgeAlert: vi.fn(),
     },
   }
 })
@@ -185,5 +187,41 @@ describe('AdminDashboard', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Log out' })).toBeVisible())
     fireEvent.click(screen.getByRole('button', { name: 'Log out' }))
     expect(auth.logout).toHaveBeenCalled()
+  })
+
+  it('loads and acknowledges operational alerts', async () => {
+    vi.mocked(adminApi.alerts)
+      .mockResolvedValueOnce({
+        data: {
+          content: [
+            {
+              id: 'alert-1',
+              notificationType: 'PROCESSING_FAILED',
+              severity: 'CRITICAL',
+              status: 'OPEN',
+              title: 'Processing failed',
+              message: 'Retry required',
+              resourceType: 'MEDIA',
+              resourceId: 'media-1',
+              createdAt: '2026-07-27T10:00:00Z',
+              acknowledgedAt: null,
+              acknowledgedBy: null,
+            },
+          ],
+          totalElements: 1,
+          totalPages: 1,
+          number: 0,
+        },
+      } as never)
+      .mockResolvedValue({
+        data: { content: [], totalElements: 0, totalPages: 0, number: 0 },
+      } as never)
+    renderDashboard()
+    await screen.findByText('person@example.com')
+    fireEvent.click(screen.getByRole('button', { name: 'Load alerts' }))
+    expect(await screen.findByText('Processing failed')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Acknowledge' }))
+    await waitFor(() => expect(adminApi.acknowledgeAlert).toHaveBeenCalledWith('alert-1'))
+    expect(adminApi.alerts).toHaveBeenCalledTimes(2)
   })
 })

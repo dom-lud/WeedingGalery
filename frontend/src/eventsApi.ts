@@ -32,6 +32,21 @@ export interface EventWritePayload {
   privacyMode: 'PRIVATE'
 }
 
+export interface EventStatistics {
+  eventId: string
+  galleryId: string | null
+  mediaCount: number
+  imageCount: number
+  videoCount: number
+  uploadSessionCount: number
+  uploadFileCount: number
+  storageUsedBytes: number
+  processingFailureCount: number
+  publicViewCount: number
+  downloadCount: number
+  usageEventCount: number
+}
+
 export const eventsApi = {
   list: () => api.get<EventData[]>('events'),
   create: (payload: EventWritePayload) => api.post<EventData>('events', payload),
@@ -45,4 +60,5 @@ export const eventsApi = {
     api.delete(`events/${eventId}/members/${membershipId}`),
   transferOwnership: (eventId: string, targetMembershipId: string) =>
     api.post<EventData>(`events/${eventId}/ownership-transfer`, { targetMembershipId }),
+  statistics: (eventId: string) => api.get<EventStatistics>(`events/${eventId}/statistics`),
 }

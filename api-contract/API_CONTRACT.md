@@ -782,3 +782,66 @@ nie jest akceptowany.
 Panel administratora jest odseparowany pod `/api/admin/**`, wymaga roli `ADMIN`
 i obsluguje dashboard, paginowane listy, audit oraz jawne akcje lock/unlock,
 archive event i hide media. Mutacje sa audytowane.
+
+## Etap 11: Statystyki i powiadomienia
+
+### `GET /api/events/{eventId}/statistics`
+
+Zwraca zagregowane statystyki wydarzenia dla ownera lub aktywnego managera.
+Opcjonalne parametry `from`, `to` oraz `galleryId` przyjmuja daty ISO-8601 i
+identyfikator galerii. Odpowiedz nie zawiera identyfikatorow sesji, adresow IP
+ani danych pozwalajacych odtworzyc aktywnosc pojedynczego goscia.
+
+```json
+{
+  "eventId": "uuid",
+  "galleryId": null,
+  "uploadedFiles": 10,
+  "photos": 8,
+  "videos": 2,
+  "storedBytes": 123456,
+  "processingFailures": 1,
+  "galleryViews": 120,
+  "mediaViews": 780,
+  "downloads": 24
+}
+```
+
+`401` oznacza brak sesji, `404` brak dostepu do wydarzenia, a `400` bledny
+zakres dat lub nieprawidlowe `galleryId` spoza wydarzenia.
+
+### `GET /api/notifications`
+
+Zwraca paginowana liste powiadomien zalogowanego uzytkownika. Parametry:
+`page`, `size` oraz opcjonalne `unreadOnly=true`.
+
+### `POST /api/notifications/{notificationId}/read`
+
+Oznacza powiadomienie aktualnego uzytkownika jako przeczytane. Powtorzenie jest
+bezpieczne i idempotentne. Uzytkownik nie moze zmienic cudzych powiadomien.
+
+### `GET /api/admin/alerts`
+
+Endpoint tylko dla `ADMIN`. Zwraca paginowana liste alertow domenowych z
+parametrami `page`, `size` i opcjonalnym `status`. Alerty nie zawieraja
+sekretow, storage keys ani surowych payloadow.
+
+### `POST /api/admin/alerts/{alertId}/acknowledge`
+
+Endpoint tylko dla `ADMIN`, wymaga CSRF i przechodzi alert do stanu
+`ACKNOWLEDGED`. Powtorzenie jest idempotentne.
+
+### Filtrowany podglad audytu administratora
+
+`GET /api/admin/audit` obsluguje `eventType`, `actorType`, `eventId`,
+`galleryId`, `from`, `to`, `page` i `size`. Odpowiedz jest paginowana i
+redaguje szczegoly techniczne, ktore moglyby ujawnic sekrety.
+
+## QR-001
+
+### `GET /api/events/{eventId}/galleries/{galleryId}/qr`
+
+Owner lub manager otrzymuje obraz QR wskazujacy na publiczny URL galerii.
+Parametry: `format=PNG|SVG` oraz `size=256..2048`. Kod nie zawiera access
+tokenu ani access code. Dla galerii niepublicznej backend zwraca `409`, dla
+obcego wydarzenia `404`. Odpowiedz jest `no-store`.

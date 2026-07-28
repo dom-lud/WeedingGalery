@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.backend.weddinggallery.admin.dto.*;
+import pl.backend.weddinggallery.audit.dto.AuditFilter;
 import pl.backend.weddinggallery.audit.model.EventType;
 import pl.backend.weddinggallery.audit.model.AuditEvent;
 import pl.backend.weddinggallery.audit.repository.AuditEventRepository;
@@ -21,6 +22,11 @@ import pl.backend.weddinggallery.gallery.repository.GalleryRepository;
 import pl.backend.weddinggallery.media.model.MediaFile;
 import pl.backend.weddinggallery.media.model.PublicationStatus;
 import pl.backend.weddinggallery.media.repository.MediaFileRepository;
+import pl.backend.weddinggallery.notification.dto.AdminNotificationResponse;
+import pl.backend.weddinggallery.notification.model.NotificationStatus;
+import pl.backend.weddinggallery.notification.service.NotificationService;
+import pl.backend.weddinggallery.statistics.dto.StatisticsResponse;
+import pl.backend.weddinggallery.statistics.service.StatisticsService;
 import pl.backend.weddinggallery.user.model.SystemRole;
 import pl.backend.weddinggallery.user.model.User;
 import pl.backend.weddinggallery.user.repository.UserRepository;
@@ -35,6 +41,8 @@ public class AdminService {
 	private final MediaFileRepository mediaFileRepository;
 	private final AuditEventRepository auditEventRepository;
 	private final AuditService auditService;
+	private final NotificationService notificationService;
+	private final StatisticsService statisticsService;
 
 	@Transactional(readOnly = true)
 	public boolean isAdmin(Authentication authentication) {
@@ -78,6 +86,37 @@ public class AdminService {
 	@Transactional(readOnly = true)
 	public AdminPageResponse<AdminAuditResponse> audit(Pageable pageable) {
 		return page(auditEventRepository.findAll(pageable).map(this::toAudit));
+	}
+
+	@Transactional(readOnly = true)
+	public boolean isAdminByEmail(java.security.Principal principal) {
+		return principal != null && userRepository.findByEmail(principal.getName().toLowerCase())
+				.map(user -> user.getSystemRole() == SystemRole.ADMIN).orElse(false);
+	}
+
+	@Transactional(readOnly = true)
+	public AdminPageResponse<AdminAuditResponse> audit(Pageable pageable, AuditFilter filter) {
+		AuditFilter normalized = filter.normalized();
+		return page(
+				auditEventRepository
+						.findFiltered(normalized.eventType(), normalized.actorType(), normalized.eventId(),
+								normalized.galleryId(), normalized.from(), normalized.to(), pageable)
+						.map(this::toAudit));
+	}
+
+	@Transactional(readOnly = true)
+	public AdminPageResponse<AdminNotificationResponse> alerts(Pageable pageable) {
+		return page(notificationService.adminOpen(pageable));
+	}
+
+	@Transactional
+	public AdminNotificationResponse acknowledgeAlert(String actorEmail, String alertId) {
+		return notificationService.acknowledge(alertId, actorEmail);
+	}
+
+	@Transactional(readOnly = true)
+	public StatisticsResponse statistics() {
+		return statisticsService.global();
 	}
 
 	@Transactional
@@ -171,8 +210,8 @@ public class AdminService {
 		String resourceId = event.getGalleryId() != null
 				? event.getGalleryId()
 				: event.getEventId() != null ? event.getEventId() : event.getTargetUserId();
-		return new AdminAuditResponse(event.getId(), event.getEventType(), event.getUserEmail(), resourceType,
-				resourceId, event.getCreatedAt(), event.getDetails());
+		return new AdminAuditResponse(event.getId(), event.getEventType(), event.getActorType(), event.getUserEmail(),
+				resourceType, resourceId, event.getCreatedAt(), event.getDetails());
 	}
 
 	private <T> AdminPageResponse<T> page(Page<T> page) {
