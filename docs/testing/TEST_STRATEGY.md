@@ -55,7 +55,7 @@ Opisuje docelowa strategie testowania platformy na poziomie backendu, frontendu 
   poprawne zachowanie, bledna implementacja do wykrycia, wariant pozytywny,
   negatywny i graniczny oraz wlasciwa warstwa testu.
 - Utrzymuj jawna macierz wymaganie -> test dla etapow o wysokim ryzyku. Dla
-  Etapow 4/4B/5 zrodlem jest [STAGE_4_5_TEST_MATRIX.md](STAGE_4_5_TEST_MATRIX.md).
+  Etapow 4/4B/5 zrodlem sa aktualne testy integracyjne i kontraktowe opisane w tym dokumencie.
 - Coverage jest zapadka regresyjna, a nie dowodem kompletnosci. Progu nie wolno
   obnizac tylko po to, aby zmiana przeszla CI.
 - Kazdy przebieg coverage konczy sie analiza na trzech poziomach: wynik globalny,
